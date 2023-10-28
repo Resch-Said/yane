@@ -126,14 +126,19 @@ def test_forward_propagation():
     neuron_from1 = Neuron(value=2)
     neuron_from2 = Neuron(value=3)
     neuron_to = Neuron()
+
     nn.add_input_neuron(neuron_from1)
     nn.add_input_neuron(neuron_from2)
     nn.add_output_neuron(neuron_to)
+
     nn.add_connection(neuron_from1, neuron_to, 1)
     nn.add_connection(neuron_from2, neuron_to, 2)
+    nn.add_connection(neuron_to, neuron_from1, 3)
+
     nn.forward_propagation()
 
     assert neuron_to.value == 8
+    assert neuron_from1.value == 26
 
 
 def test_forward_propagation_2():
@@ -339,11 +344,7 @@ def test_random_weight_mutation():
     nn.add_connection(neuron_input1, neuron_output1, 1)
     nn.add_connection(neuron_input1, neuron_output2, 1)
 
-    print("Vor dem mutieren:", nn.forward_propagation().get_output_values())
-
     nn.random_mutate_weight(0.5)
-
-    print("Nach dem mutieren", nn.forward_propagation().get_output_values())
 
     first_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output1).weight != 1
     second_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output2).weight != 1
