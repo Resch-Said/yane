@@ -1,8 +1,6 @@
-import random
-
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.NeuralNetwork import NeuralNetwork
+from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
 
