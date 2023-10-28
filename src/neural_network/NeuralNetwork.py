@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy, copy
 
 from src.neural_network.Connection import Connection
 from src.neural_network.InputNeuron import InputNeuron
@@ -30,8 +31,35 @@ class NeuralNetwork:
         mutate_weight(random_connection, weight_shift)
 
     # TODO: Implement
-    def train(self, number_iterations: int):
-        pass
+    # Make copy of network
+    # Test Fitness
+    # Mutate
+    # Check if better
+    # If better, replace old network with new one
+    # Repeat
+    def train(self, number_iterations: int, weight_shift: float):
+
+        nn_current = deepcopy(self)
+        nn_current.forward_propagation()
+        nn_new = deepcopy(nn_current)
+
+        for i in range(number_iterations):
+            nn_new.random_mutate_weight(weight_shift)
+            nn_new.forward_propagation()
+
+            if nn_current.get_fitness() < nn_new.get_fitness():
+                nn_current = deepcopy(nn_new)
+                print("Better network found")
+            else:
+                nn_new = deepcopy(nn_current)
+
+        self.copy(nn_current)
+
+    def get_fitness(self):
+        fitness = 0
+        for neuron in self.output_neurons:
+            fitness -= abs(neuron.value - neuron.expected_value)
+        return fitness
 
     def reset_neurons(self):
         for neuron in self.hidden_neurons:
@@ -84,7 +112,6 @@ class NeuralNetwork:
                 self.connections.remove(connection)
 
     def forward_propagation(self):
-
         self.reset_neurons()
 
         open_list = self.output_neurons.copy()
@@ -106,11 +133,19 @@ class NeuralNetwork:
                         active_neuron.value += neuron_backwards.value * self.get_connection_weight(neuron_backwards,
                                                                                                    active_neuron)
 
+        return self
+
     def get_output_values(self):
         output_values = []
         for neuron in self.output_neurons:
             output_values.append(neuron.value)
         return output_values
+
+    def get_expected_output_values(self):
+        expected_output_values = []
+        for neuron in self.output_neurons:
+            expected_output_values.append(neuron.expected_value)
+        return expected_output_values
 
     def get_connection_weight(self, neuron_backwards, active_neuron):
         for connection in self.connections:
@@ -120,3 +155,9 @@ class NeuralNetwork:
     def set_expected_output_values(self, param):
         for expected_value, neuron in zip(param, self.output_neurons):
             neuron.expected_value = expected_value
+
+    def copy(self, nn_current):
+        self.input_neurons = copy(nn_current.input_neurons)
+        self.hidden_neurons = copy(nn_current.hidden_neurons)
+        self.output_neurons = copy(nn_current.output_neurons)
+        self.connections = copy(nn_current.connections)

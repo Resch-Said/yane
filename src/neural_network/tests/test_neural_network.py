@@ -133,9 +133,25 @@ def test_forward_propagation():
     nn.add_connection(neuron_from2, neuron_to, 2)
     nn.forward_propagation()
 
-    outputs = nn.get_output_values()
-
     assert neuron_to.value == 8
+
+
+def test_forward_propagation_2():
+    nn = NeuralNetwork()
+    neuron_input1 = Neuron(value=2)
+    neuron_input2 = Neuron(value=4)
+    neuron_output = Neuron()
+
+    nn.add_input_neuron(neuron_input1)
+    nn.add_input_neuron(neuron_input2)
+    nn.add_output_neuron(neuron_output)
+
+    nn.add_connection(neuron_input1, neuron_output, 1)
+    nn.add_connection(neuron_input2, neuron_output, 0.5)
+    nn.forward_propagation()
+
+    # output_neuron = 2*1 + 4*0.5 = 4
+    assert neuron_output.value == 4
 
 
 def test_forward_propagation_with_multiple_layers():
@@ -323,7 +339,11 @@ def test_random_weight_mutation():
     nn.add_connection(neuron_input1, neuron_output1, 1)
     nn.add_connection(neuron_input1, neuron_output2, 1)
 
+    print("Vor dem mutieren:", nn.forward_propagation().get_output_values())
+
     nn.random_mutate_weight(0.5)
+
+    print("Nach dem mutieren", nn.forward_propagation().get_output_values())
 
     first_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output1).weight != 1
     second_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output2).weight != 1
@@ -352,8 +372,8 @@ def test_train():
     neuron_input2 = Neuron(value=3)
     neuron_hidden1 = Neuron()
     neuron_hidden2 = Neuron()
-    neuron_output1 = Neuron()
-    neuron_output2 = Neuron()
+    neuron_output1 = OutputNeuron()
+    neuron_output2 = OutputNeuron()
 
     nn.add_input_neuron(neuron_input1)
     nn.add_input_neuron(neuron_input2)
@@ -372,4 +392,19 @@ def test_train():
 
     nn.set_expected_output_values([1, 0])
 
-    nn.train(1000)
+    nn.train(10000, 0.1)
+    nn.forward_propagation()
+
+    delta_shift = 0.1
+    output1_difference = abs(nn.output_neurons[0].value - nn.output_neurons[0].expected_value)
+    output2_difference = abs(nn.output_neurons[1].value - nn.output_neurons[1].expected_value)
+
+    # TODO: Test is not consistent
+    # Training works but it's a little bit random
+    # We should update training to set a minimum fitness or something like that
+
+    assert output1_difference < delta_shift
+    assert output2_difference < delta_shift
+
+# TODO: test copy
+# TODO: test get_fitness
