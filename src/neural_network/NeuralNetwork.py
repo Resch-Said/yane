@@ -114,26 +114,13 @@ class NeuralNetwork:
     def forward_propagation(self):
         self.reset_neurons()
 
-        open_list = self.output_neurons.copy()
-        closed_list = []
-        active_neuron_can_be_closed = False
+        working_neurons = self.input_neurons.copy()
 
-        while len(open_list) > 0:
-            for active_neuron in open_list:
-                active_neuron_can_be_closed = True
-                for neuron_backwards in self.get_connected_neurons_backward(active_neuron):
-                    if neuron_backwards not in closed_list:
-                        active_neuron_can_be_closed = False
-                        if neuron_backwards not in open_list:
-                            open_list.append(neuron_backwards)
-                if active_neuron_can_be_closed:
-                    open_list.remove(active_neuron)
-                    closed_list.append(active_neuron)
-                    for neuron_backwards in self.get_connected_neurons_backward(active_neuron):
-                        active_neuron.value += neuron_backwards.value * self.get_connection_weight(neuron_backwards,
-                                                                                                   active_neuron)
-
-        return self
+        for neuron in working_neurons:
+            for neuron_forward in self.get_connected_neurons_forward(neuron):
+                neuron_forward.value += neuron.value * self.get_connection_weight(neuron, neuron_forward)
+                if neuron_forward not in working_neurons:
+                    working_neurons.append(neuron_forward)
 
     def get_output_values(self):
         output_values = []
@@ -147,9 +134,9 @@ class NeuralNetwork:
             expected_output_values.append(neuron.expected_value)
         return expected_output_values
 
-    def get_connection_weight(self, neuron_backwards, active_neuron):
+    def get_connection_weight(self, neuron_from, neuron_to):
         for connection in self.connections:
-            if connection.neuron_from == neuron_backwards and connection.neuron_to == active_neuron:
+            if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
                 return connection.weight
 
     def set_expected_output_values(self, param):
