@@ -15,6 +15,13 @@ def mutate_weight(connection: Connection, weight_shift: float):
         connection.weight -= weight_shift
 
 
+def get_total_fire_rate(working_neurons):
+    total_fire_rate = 0
+    for neuron in working_neurons:
+        total_fire_rate += neuron.fire_rate_variable
+    return total_fire_rate
+
+
 class NeuralNetwork:
     def __init__(self):
         self.input_neurons = []
@@ -105,28 +112,27 @@ class NeuralNetwork:
             if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
                 self.connections.remove(connection)
 
-    # TODO: Aktivierungsfunktion implementieren
     # TODO: Feuerrate implementieren
     # TODO:
-    def forward_propagation(self):
+    def forward_propagation(self):  # One tick cycle
 
         if get_clear_on_new_input():
             self.clear_neurons()
+        working_neurons = self.get_neuron_working_order()
+
+        total_fire_rate = get_total_fire_rate(working_neurons)
+
+        while total_fire_rate > 0:
+            for neuron in working_neurons:
+                ActivationFunction.do_activation_function(neuron)
+
+                for next_neuron in self.get_connected_neurons_forward(neuron):
+                    if neuron.fire_rate_variable > 0:
+                        next_neuron.value += neuron.value * self.get_connection_weight(neuron, next_neuron)
+                neuron.fire_rate_variable -= 1
+                total_fire_rate -= 1
 
         self.reset_fire_rate()
-
-        working_neurons = self.input_neurons.copy()
-
-        for neuron in working_neurons:
-
-            ActivationFunction.do_activation_function(neuron)
-
-            for neuron_forward in self.get_connected_neurons_forward(neuron):
-                if neuron.fire_rate_variable > 0:
-                    neuron_forward.value += neuron.value * self.get_connection_weight(neuron, neuron_forward)
-                if neuron_forward not in working_neurons:
-                    working_neurons.append(neuron_forward)
-            neuron.fire_rate_variable -= 1
 
     def get_output_values(self):
         output_values = []
@@ -170,3 +176,12 @@ class NeuralNetwork:
             neuron.activation_function = linear
         for neuron in self.output_neurons:
             neuron.activation_function = linear
+
+    def get_neuron_working_order(self):
+        working_neurons = self.input_neurons.copy()
+        for neuron in working_neurons:
+            for next_neuron in self.get_connected_neurons_forward(neuron):
+                if next_neuron not in working_neurons:
+                    working_neurons.append(next_neuron)
+
+        return working_neurons
