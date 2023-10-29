@@ -393,19 +393,11 @@ def test_train():
 
     nn.set_expected_output_values([1, 0])
 
-    nn.train(10000, 0.1)
+    min_fitness = -0.1
+    nn.train(min_fitness)
     nn.forward_propagation()
 
-    delta_shift = 0.1
-    output1_difference = abs(nn.output_neurons[0].value - nn.output_neurons[0].expected_value)
-    output2_difference = abs(nn.output_neurons[1].value - nn.output_neurons[1].expected_value)
-
-    # TODO: Test is not consistent
-    # Training works but it's a little bit random
-    # We should update training to set a minimum fitness or something like that
-
-    assert output1_difference < delta_shift
-    assert output2_difference < delta_shift
+    assert nn.get_fitness() >= min_fitness
 
 # TODO: test copy
 # TODO: test get_fitness
