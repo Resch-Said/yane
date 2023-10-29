@@ -112,8 +112,6 @@ class NeuralNetwork:
             if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
                 self.connections.remove(connection)
 
-    # TODO: Feuerrate implementieren
-    # TODO:
     def forward_propagation(self):  # One tick cycle
 
         if get_clear_on_new_input():
