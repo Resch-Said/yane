@@ -61,7 +61,7 @@ def create_default_json_config():
         # the training time since an additional output is added, but it can reduce the execution time of forward
         # propagation. If false, yane will always execute forward propagation until the end.
         "allow_early_output": True,
-        "clear_on_new_input": False,  # if true, yane will reset all neuron values when a new input is given
+        "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
         "fire_rate": [1, 10],  # How often a neuron is allowed to fire before the next input. [min, max]
         "fire_rate_shift": [1, 1],  # How much the fire rate can change when mutating. [min, max]
         "weight_shift": [0.01, 0.1],  # How much the weight can change when mutating. [min, max]

@@ -7,7 +7,7 @@ def test_create_default_json():
 
 def test_load_default_config_from_json():
     assert load_json_config()["allow_early_output"] is True
-    assert load_json_config()["clear_on_new_input"] is False
+    assert load_json_config()["clear_on_new_input"] is True
     assert load_json_config()["fire_rate"] == [1, 10]
     assert load_json_config()["fire_rate_shift"] == [1, 1]
     assert load_json_config()["weight_shift"] == [0.01, 0.1]
@@ -22,7 +22,7 @@ def test_load_default_config_from_json():
 
 def test_load_default_config_from_json_2():
     assert get_allow_early_output() is True
-    assert get_clear_on_new_input() is False
+    assert get_clear_on_new_input() is True
     assert get_fire_rate_max() == 10
     assert get_fire_rate_min() == 1
     assert get_random_fire_rate_shift() in range(get_fire_rate_min(), get_fire_rate_max() + 1)

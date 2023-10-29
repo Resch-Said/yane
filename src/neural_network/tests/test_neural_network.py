@@ -1,3 +1,4 @@
+from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight
@@ -135,6 +136,8 @@ def test_forward_propagation():
     nn.add_connection(neuron_from2, neuron_to, 2)
     nn.add_connection(neuron_to, neuron_from1, 3)
 
+    nn.set_all_activation_functions(ActivationFunction.LINEAR)
+
     nn.forward_propagation()
 
     assert neuron_to.value == 8
@@ -153,6 +156,8 @@ def test_forward_propagation_2():
 
     nn.add_connection(neuron_input1, neuron_output, 1)
     nn.add_connection(neuron_input2, neuron_output, 0.5)
+
+    nn.set_all_activation_functions(ActivationFunction.LINEAR)
     nn.forward_propagation()
 
     # output_neuron = 2*1 + 4*0.5 = 4
@@ -177,6 +182,7 @@ def test_forward_propagation_with_multiple_layers():
 
     # hidden_neuron = 2*1 + 3*2 = 8
     # output_neuron = 8*4 = 32
+    nn.set_all_activation_functions(ActivationFunction.LINEAR)
     nn.forward_propagation()
 
     assert neuron_hidden.value == 8
@@ -211,7 +217,7 @@ def test_forward_propagation_with_multiple_layers_and_multiple_outputs():
     # hidden_neuron2 = 3*2 = 6
     # output_neuron1 = 8*4 + 6*3 = 50
     # output_neuron2 = 3*5 + 8*3 = 39
-
+    nn.set_all_activation_functions(ActivationFunction.LINEAR)
     nn.forward_propagation()
 
     assert neuron_hidden1.value == 8
@@ -248,7 +254,7 @@ def test_forward_propagation_with_multiple_layers_and_multiple_outputs_with_remo
     # hidden_neuron2 = 3*2 = 6
     # output_neuron1 = 8*4 + 6*3 = 50
     # output_neuron2 = 3*5 + 8*3 = 39
-
+    nn.set_all_activation_functions(ActivationFunction.LINEAR)
     nn.forward_propagation()
 
     assert neuron_hidden1.value == 8
@@ -289,6 +295,7 @@ def test_forward_propagation_consistent():
     nn.add_connection(neuron_input1, neuron_hidden1, 5)
     nn.add_connection(neuron_hidden1, neuron_output2, 2)
 
+    nn.set_all_activation_functions(ActivationFunction.LINEAR)
     for i in range(50):
         nn.forward_propagation()
 

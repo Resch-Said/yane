@@ -30,3 +30,18 @@ class ActivationFunction(Enum):
     TANH = 2
     LINEAR = 3
     BINARY = 4
+
+    @classmethod
+    def do_activation_function(cls, neuron):
+        if neuron.activation_function == cls.SIGMOID:
+            neuron.value = sigmoid(neuron.value)
+        elif neuron.activation_function == cls.RELU:
+            neuron.value = relu(neuron.value)
+        elif neuron.activation_function == cls.TANH:
+            neuron.value = tanh(neuron.value)
+        elif neuron.activation_function == cls.LINEAR:
+            neuron.value = linear(neuron.value)
+        elif neuron.activation_function == cls.BINARY:
+            neuron.value = binary(neuron.value)
+        else:
+            raise Exception("Unknown activation function")

@@ -1,6 +1,7 @@
 import random
 from copy import deepcopy, copy
 
+from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.Connection import Connection
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.Neuron import Neuron
@@ -54,7 +55,7 @@ class NeuralNetwork:
             fitness -= abs(neuron.value - neuron.expected_value)
         return fitness
 
-    def reset_neurons(self):
+    def clear_neurons(self):
         for neuron in self.hidden_neurons:
             neuron.value = 0.0
         for neuron in self.output_neurons:
@@ -104,16 +105,28 @@ class NeuralNetwork:
             if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
                 self.connections.remove(connection)
 
+    # TODO: Aktivierungsfunktion implementieren
+    # TODO: Feuerrate implementieren
+    # TODO:
     def forward_propagation(self):
-        self.reset_neurons()
+
+        if get_clear_on_new_input():
+            self.clear_neurons()
+
+        self.reset_fire_rate()
 
         working_neurons = self.input_neurons.copy()
 
         for neuron in working_neurons:
+
+            ActivationFunction.do_activation_function(neuron)
+
             for neuron_forward in self.get_connected_neurons_forward(neuron):
-                neuron_forward.value += neuron.value * self.get_connection_weight(neuron, neuron_forward)
+                if neuron.fire_rate_variable > 0:
+                    neuron_forward.value += neuron.value * self.get_connection_weight(neuron, neuron_forward)
                 if neuron_forward not in working_neurons:
                     working_neurons.append(neuron_forward)
+            neuron.fire_rate_variable -= 1
 
     def get_output_values(self):
         output_values = []
@@ -141,3 +154,19 @@ class NeuralNetwork:
         self.hidden_neurons = copy(nn_current.hidden_neurons)
         self.output_neurons = copy(nn_current.output_neurons)
         self.connections = copy(nn_current.connections)
+
+    def reset_fire_rate(self):
+        for neuron in self.input_neurons:
+            neuron.fire_rate_variable = neuron.fire_rate_fixed
+        for neuron in self.hidden_neurons:
+            neuron.fire_rate_variable = neuron.fire_rate_fixed
+        for neuron in self.output_neurons:
+            neuron.fire_rate_variable = neuron.fire_rate_fixed
+
+    def set_all_activation_functions(self, linear):
+        for neuron in self.input_neurons:
+            neuron.activation_function = linear
+        for neuron in self.hidden_neurons:
+            neuron.activation_function = linear
+        for neuron in self.output_neurons:
+            neuron.activation_function = linear
