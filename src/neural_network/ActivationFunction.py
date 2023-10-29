@@ -24,12 +24,12 @@ def binary(x):
     return 1 if x > get_binary_threshold() else 0
 
 
-class ActivationFunction(Enum):
-    SIGMOID = 0
-    RELU = 1
-    TANH = 2
-    LINEAR = 3
-    BINARY = 4
+class ActivationFunction(str, Enum):
+    SIGMOID = "Sigmoid"
+    RELU = "ReLU"
+    TANH = "Tanh"
+    LINEAR = "Linear"
+    BINARY = "Binary"
 
     @classmethod
     def do_activation_function(cls, neuron):
