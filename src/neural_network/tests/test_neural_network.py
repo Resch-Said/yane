@@ -406,5 +406,30 @@ def test_train():
 
     assert nn.get_fitness() >= min_fitness
 
+
+def test_tick_cycle():
+    nn = NeuralNetwork()
+    neuron_input1 = Neuron(value=2, fire_rate=2)
+    neuron_input2 = Neuron(value=3)
+    neuron_hidden2 = Neuron(fire_rate=2)
+    neuron_output1 = OutputNeuron()
+
+    nn.add_input_neuron(neuron_input1)
+    nn.add_input_neuron(neuron_input2)
+    nn.add_hidden_neuron(neuron_hidden2)
+    nn.add_output_neuron(neuron_output1)
+
+    nn.add_connection(neuron_input1, neuron_hidden2, 1)
+    nn.add_connection(neuron_input2, neuron_hidden2, 2)
+    nn.add_connection(neuron_hidden2, neuron_output1, 3)
+    nn.add_connection(neuron_output1, neuron_input1, 4)
+
+    nn.set_expected_output_values([1, 0])
+
+    min_fitness = -0.1
+    nn.train(min_fitness)
+
+    assert nn.get_fitness() >= min_fitness
+
 # TODO: test copy
 # TODO: test get_fitness
