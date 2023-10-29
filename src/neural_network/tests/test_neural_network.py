@@ -99,7 +99,7 @@ def test_remove_connection():
     assert nn.connections == []
 
 
-# TODO: Verhindern, dass Input und Output Neuronen gelöscht werden können
+# TODO: Prevent input and output neurons from being deleted
 def test_remove_neuron_with_connections():
     nn = NeuralNetwork()
     neuron_from = InputNeuron()
