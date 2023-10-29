@@ -9,19 +9,19 @@ from src.neural_network.OutputNeuron import OutputNeuron
 from src.neural_network.YaneConfig import *
 
 
-# TODO: Make random mutations smarter. A connection should remember if adding or subtracting weight was better.
-def mutate_weight(connection: Connection, weight_shift: float):
-    if random.random() < 0.5:
-        connection.weight += weight_shift
-    else:
-        connection.weight -= weight_shift
-
-
 def get_total_fire_rate(working_neurons):
     total_fire_rate = 0
     for neuron in working_neurons:
         total_fire_rate += neuron.fire_rate_variable
     return total_fire_rate
+
+
+def mutate_weight(connection: Connection, weight_shift: float):
+    if connection.weight_shift_up_down:
+        connection.weight += weight_shift
+    else:
+        connection.weight -= weight_shift
+    NeuralNetwork.last_modified_connection = connection
 
 
 class NeuralNetwork:
@@ -31,13 +31,14 @@ class NeuralNetwork:
         self.output_neurons = []
         self.connections = []
 
+    last_modified_connection = None
+
     def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
             if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
                 return connection
         return None
 
-    # TODO: Make random mutations smarter
     def random_mutate_weight(self, weight_shift: float):
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
@@ -56,7 +57,9 @@ class NeuralNetwork:
                 nn_parent = nn_child
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
-
+            else:
+                nn_parent.connections[nn_child.connections.index(
+                    nn_parent.last_modified_connection)].weight_shift_up_down = not nn_parent.last_modified_connection.weight_shift_up_down
             nn_child = deepcopy(nn_parent)
             nn_child.mutate()
         self.copy(nn_parent)

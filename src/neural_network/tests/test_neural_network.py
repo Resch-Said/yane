@@ -4,7 +4,7 @@ from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
-from src.neural_network.YaneConfig import get_random_activation_function, get_random_weight_shift
+from src.neural_network.YaneConfig import get_random_weight_shift
 
 
 def test_neural_network_init():
