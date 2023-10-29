@@ -9,6 +9,7 @@ from src.neural_network.OutputNeuron import OutputNeuron
 from src.neural_network.YaneConfig import *
 
 
+# TODO: Make random mutations smarter. A connection should remember if adding or subtracting weight was better.
 def mutate_weight(connection: Connection, weight_shift: float):
     if random.random() < 0.5:
         connection.weight += weight_shift
@@ -42,9 +43,7 @@ class NeuralNetwork:
         mutate_weight(random_connection, weight_shift)
 
     def train(self, min_fitness):
-
         nn_parent = self
-
         nn_parent.forward_propagation()
         nn_child = nn_parent.create_child()
         current_fitness = nn_parent.get_fitness()
@@ -174,10 +173,10 @@ class NeuralNetwork:
             neuron.expected_value = expected_value
 
     def copy(self, nn_current):
-        self.input_neurons = deepcopy(nn_current.input_neurons)
-        self.hidden_neurons = deepcopy(nn_current.hidden_neurons)
-        self.output_neurons = deepcopy(nn_current.output_neurons)
-        self.connections = deepcopy(nn_current.connections)
+        self.input_neurons = copy(nn_current.input_neurons)
+        self.hidden_neurons = copy(nn_current.hidden_neurons)
+        self.output_neurons = copy(nn_current.output_neurons)
+        self.connections = copy(nn_current.connections)
 
     def reset_fire_rate(self):
         for neuron in self.input_neurons:

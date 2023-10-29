@@ -401,7 +401,7 @@ def test_train():
 
     nn.set_expected_output_values([1, 0])
 
-    min_fitness = -2
+    min_fitness = -0.1
     nn.train(min_fitness)
     nn.forward_propagation()
 
