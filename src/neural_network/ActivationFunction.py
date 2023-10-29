@@ -24,9 +24,24 @@ def binary(x):
     return 1 if x > get_binary_threshold() else 0
 
 
-class ActivationFunction(Enum):
-    SIGMOID = 0
-    RELU = 1
-    TANH = 2
-    LINEAR = 3
-    BINARY = 4
+class ActivationFunction(str, Enum):
+    SIGMOID = "Sigmoid"
+    RELU = "ReLU"
+    TANH = "Tanh"
+    LINEAR = "Linear"
+    BINARY = "Binary"
+
+    @classmethod
+    def activate(cls, neuron):
+        if neuron.activation_function == cls.SIGMOID:
+            neuron.value = sigmoid(neuron.value)
+        elif neuron.activation_function == cls.RELU:
+            neuron.value = relu(neuron.value)
+        elif neuron.activation_function == cls.TANH:
+            neuron.value = tanh(neuron.value)
+        elif neuron.activation_function == cls.LINEAR:
+            neuron.value = linear(neuron.value)
+        elif neuron.activation_function == cls.BINARY:
+            neuron.value = binary(neuron.value)
+        else:
+            raise Exception("Unknown activation function")
