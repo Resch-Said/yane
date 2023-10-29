@@ -4,6 +4,7 @@ from copy import deepcopy, copy
 from src.neural_network.Connection import Connection
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.Neuron import Neuron
+from src.neural_network.YaneConfig import *
 
 
 def mutate_weight(connection: Connection, weight_shift: float):
@@ -30,19 +31,18 @@ class NeuralNetwork:
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
 
-    def train(self, number_iterations: int, weight_shift: float):
+    def train(self, min_fitness):
 
         nn_current = deepcopy(self)
         nn_current.forward_propagation()
         nn_new = deepcopy(nn_current)
 
-        for i in range(number_iterations):
-            nn_new.random_mutate_weight(weight_shift)
+        while nn_current.get_fitness() < min_fitness:
+            nn_new.random_mutate_weight(get_random_weight_shift())
             nn_new.forward_propagation()
 
             if nn_current.get_fitness() < nn_new.get_fitness():
                 nn_current = deepcopy(nn_new)
-                print("Better network found")
             else:
                 nn_new = deepcopy(nn_current)
 
