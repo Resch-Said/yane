@@ -205,9 +205,6 @@ class NeuralNetwork:
         working_neurons = self.get_neuron_forward_order()
         total_fire_rate = get_total_fire_rate(working_neurons)
 
-        if len(working_neurons) < 4:
-            print("Working neurons: " + str(len(working_neurons)))
-
         while total_fire_rate > 0:
             for neuron in working_neurons:
                 if neuron.fire_rate_variable <= 0:
