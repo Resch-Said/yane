@@ -36,6 +36,7 @@ class NeuralNetwork:
                 return connection
         return None
 
+    # TODO: Make random mutations smarter
     def random_mutate_weight(self, weight_shift: float):
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
@@ -48,8 +49,6 @@ class NeuralNetwork:
         nn_child = nn_parent.create_child()
         current_fitness = nn_parent.get_fitness()
 
-        test_input_tmp = nn_parent.input_neurons[0].value
-
         while current_fitness < min_fitness:
             nn_child.forward_propagation()
             new_fitness = nn_child.get_fitness()
@@ -58,9 +57,6 @@ class NeuralNetwork:
                 nn_parent = nn_child
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
-
-            if test_input_tmp != nn_parent.input_neurons[0].value:
-                print("New input: " + str(nn_parent.input_neurons[0].value))
 
             nn_child = deepcopy(nn_parent)
             nn_child.mutate()
@@ -81,7 +77,7 @@ class NeuralNetwork:
             neuron.value = 0.0
 
     def clear_neurons(self):
-        self.clear_input_neurons()
+        self.reset_input_neurons()
         self.reset_fire_rate()
 
         if get_clear_on_new_input():
@@ -157,7 +153,7 @@ class NeuralNetwork:
 
         return working_neurons
 
-    def clear_input_neurons(self):
+    def reset_input_neurons(self):
         for neuron in self.input_neurons:
             neuron.value = neuron.value_fixed
 

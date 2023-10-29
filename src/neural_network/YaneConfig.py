@@ -24,7 +24,8 @@ def get_random_fire_rate_shift():
 
 
 def get_random_weight_shift():
-    return random.uniform(load_json_config()["weight_shift"][0], load_json_config()["weight_shift"][1])
+    weight_shift = random.uniform(load_json_config()["weight_shift"][0], load_json_config()["weight_shift"][1])
+    return weight_shift
 
 
 def get_random_activation_function():
@@ -82,7 +83,8 @@ def load_json_config():
         with open('config.json') as json_config_file:
             json_config = json.load(json_config_file)
     else:
-        create_default_json_config()
+        if not os.path.exists('default_config.json'):
+            create_default_json_config()
         with open('default_config.json') as json_config_file:
             json_config = json.load(json_config_file)
     return json_config

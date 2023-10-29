@@ -423,7 +423,7 @@ def test_tick_cycle():
     nn.add_connection(neuron_input1, neuron_hidden2, 1)
     nn.add_connection(neuron_input2, neuron_hidden2, 2)
     nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    # nn.add_connection(neuron_output1, neuron_input1, 4)
+    nn.add_connection(neuron_output1, neuron_input1, 4)
 
     nn.set_expected_output_values([1, 0])
 
