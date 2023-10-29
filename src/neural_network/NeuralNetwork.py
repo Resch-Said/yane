@@ -30,13 +30,6 @@ class NeuralNetwork:
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
 
-    # TODO: Implement
-    # Make copy of network
-    # Test Fitness
-    # Mutate
-    # Check if better
-    # If better, replace old network with new one
-    # Repeat
     def train(self, number_iterations: int, weight_shift: float):
 
         nn_current = deepcopy(self)
