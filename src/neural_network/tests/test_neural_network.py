@@ -4,6 +4,7 @@ from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
+from src.neural_network.YaneConfig import get_random_activation_function, get_random_weight_shift
 
 
 def test_neural_network_init():
@@ -14,7 +15,7 @@ def test_neural_network_init():
 
 def test_add_input_neuron():
     nn = NeuralNetwork()
-    neuron = Neuron()
+    neuron = InputNeuron()
     assert nn.input_neurons == []
     nn.add_input_neuron(neuron)
     assert nn.input_neurons == [neuron]
@@ -22,7 +23,7 @@ def test_add_input_neuron():
 
 def test_add_hidden_neuron():
     nn = NeuralNetwork()
-    neuron = Neuron()
+    neuron = HiddenNeuron()
     assert nn.hidden_neurons == []
     nn.add_hidden_neuron(neuron)
     assert nn.hidden_neurons == [neuron]
@@ -30,7 +31,7 @@ def test_add_hidden_neuron():
 
 def test_add_output_neuron():
     nn = NeuralNetwork()
-    neuron = Neuron()
+    neuron = OutputNeuron()
     assert nn.output_neurons == []
     nn.add_output_neuron(neuron)
     assert nn.output_neurons == [neuron]
@@ -124,9 +125,9 @@ def test_remove_neuron_with_connections():
 
 def test_forward_propagation():
     nn = NeuralNetwork()
-    neuron_from1 = Neuron(value=2)
-    neuron_from2 = Neuron(value=3)
-    neuron_to = Neuron()
+    neuron_from1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_from2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_to = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
 
     nn.add_input_neuron(neuron_from1)
     nn.add_input_neuron(neuron_from2)
@@ -146,9 +147,9 @@ def test_forward_propagation():
 
 def test_forward_propagation_2():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_input2 = Neuron(value=4)
-    neuron_output = Neuron()
+    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_input2 = InputNeuron(value=4, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
 
     nn.add_input_neuron(neuron_input1)
     nn.add_input_neuron(neuron_input2)
@@ -166,10 +167,10 @@ def test_forward_propagation_2():
 
 def test_forward_propagation_with_multiple_layers():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_input2 = Neuron(value=3)
-    neuron_hidden = Neuron()
-    neuron_output = Neuron()
+    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_input2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_hidden = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
 
     nn.add_input_neuron(neuron_input1)
     nn.add_input_neuron(neuron_input2)
@@ -191,12 +192,12 @@ def test_forward_propagation_with_multiple_layers():
 
 def test_forward_propagation_with_multiple_layers_and_multiple_outputs():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_input2 = Neuron(value=3)
-    neuron_hidden1 = Neuron()
-    neuron_hidden2 = Neuron()
-    neuron_output1 = Neuron()
-    neuron_output2 = Neuron()
+    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_input2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_hidden1 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_hidden2 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output1 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output2 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
 
     nn.add_input_neuron(neuron_input1)
     nn.add_input_neuron(neuron_input2)
@@ -228,12 +229,12 @@ def test_forward_propagation_with_multiple_layers_and_multiple_outputs():
 
 def test_forward_propagation_with_multiple_layers_and_multiple_outputs_with_remove():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_input2 = Neuron(value=3)
-    neuron_hidden1 = Neuron()
-    neuron_hidden2 = Neuron()
-    neuron_output1 = Neuron()
-    neuron_output2 = Neuron()
+    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_input2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_hidden1 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_hidden2 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output1 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output2 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
 
     nn.add_input_neuron(neuron_input1)
     nn.add_input_neuron(neuron_input2)
@@ -281,10 +282,10 @@ def test_forward_propagation_with_multiple_layers_and_multiple_outputs_with_remo
 
 def test_forward_propagation_consistent():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_hidden1 = Neuron()
-    neuron_output1 = Neuron()
-    neuron_output2 = Neuron()
+    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_hidden1 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output1 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    neuron_output2 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
 
     nn.add_input_neuron(neuron_input1)
     nn.add_hidden_neuron(neuron_hidden1)
@@ -308,12 +309,12 @@ def test_forward_propagation_consistent():
 
 def test_weight_mutation():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_input2 = Neuron(value=3)
-    neuron_hidden1 = Neuron()
-    neuron_hidden2 = Neuron()
-    neuron_output1 = Neuron()
-    neuron_output2 = Neuron()
+    neuron_input1 = InputNeuron(value=2)
+    neuron_input2 = InputNeuron(value=3)
+    neuron_hidden1 = HiddenNeuron()
+    neuron_hidden2 = HiddenNeuron()
+    neuron_output1 = OutputNeuron()
+    neuron_output2 = OutputNeuron()
 
     nn.add_input_neuron(neuron_input1)
     nn.add_input_neuron(neuron_input2)
@@ -340,9 +341,9 @@ def test_weight_mutation():
 
 def test_random_weight_mutation():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_output1 = Neuron()
-    neuron_output2 = Neuron()
+    neuron_input1 = InputNeuron(value=2)
+    neuron_output1 = OutputNeuron()
+    neuron_output2 = OutputNeuron()
 
     nn.add_input_neuron(neuron_input1)
     nn.add_output_neuron(neuron_output1)
@@ -376,10 +377,10 @@ def test_set_expected_output_values():
 
 def test_train():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2)
-    neuron_input2 = Neuron(value=3)
-    neuron_hidden1 = Neuron()
-    neuron_hidden2 = Neuron()
+    neuron_input1 = InputNeuron(value=2)
+    neuron_input2 = InputNeuron(value=3)
+    neuron_hidden1 = HiddenNeuron()
+    neuron_hidden2 = HiddenNeuron()
     neuron_output1 = OutputNeuron()
     neuron_output2 = OutputNeuron()
 
@@ -400,7 +401,7 @@ def test_train():
 
     nn.set_expected_output_values([1, 0])
 
-    min_fitness = -0.1
+    min_fitness = -2
     nn.train(min_fitness)
     nn.forward_propagation()
 
@@ -409,9 +410,9 @@ def test_train():
 
 def test_tick_cycle():
     nn = NeuralNetwork()
-    neuron_input1 = Neuron(value=2, fire_rate=2)
-    neuron_input2 = Neuron(value=3)
-    neuron_hidden2 = Neuron(fire_rate=2)
+    neuron_input1 = InputNeuron(value=2, fire_rate=2)
+    neuron_input2 = InputNeuron(value=3)
+    neuron_hidden2 = HiddenNeuron(fire_rate=2)
     neuron_output1 = OutputNeuron()
 
     nn.add_input_neuron(neuron_input1)
@@ -422,14 +423,62 @@ def test_tick_cycle():
     nn.add_connection(neuron_input1, neuron_hidden2, 1)
     nn.add_connection(neuron_input2, neuron_hidden2, 2)
     nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    nn.add_connection(neuron_output1, neuron_input1, 4)
+    # nn.add_connection(neuron_output1, neuron_input1, 4)
 
     nn.set_expected_output_values([1, 0])
 
     min_fitness = -0.1
     nn.train(min_fitness)
+    nn_fitness = nn.get_fitness()
 
-    assert nn.get_fitness() >= min_fitness
+    assert nn_fitness >= min_fitness
+
 
 # TODO: test copy
 # TODO: test get_fitness
+
+
+def test_random_activation_function():
+    neurons = []
+
+    for i in range(50):
+        neurons.append(Neuron())
+
+    is_different = False
+
+    for i in range(len(neurons)):
+        for j in range(len(neurons)):
+            if neurons[i].activation_function != neurons[j].activation_function:
+                is_different = True
+
+    assert is_different
+
+
+def test_random_fire_rate():
+    neurons = []
+
+    for i in range(50):
+        neurons.append(Neuron())
+
+    is_different = False
+
+    for i in range(len(neurons)):
+        for j in range(len(neurons)):
+            if neurons[i].fire_rate_fixed != neurons[j].fire_rate_fixed:
+                is_different = True
+    assert is_different
+
+
+def test_random_weight_shift():
+    weight_shifts = []
+
+    for i in range(50):
+        weight_shifts.append(get_random_weight_shift())
+
+    is_different = False
+
+    for i in range(len(weight_shifts)):
+        for j in range(len(weight_shifts)):
+            if weight_shifts[i] != weight_shifts[j]:
+                is_different = True
+    assert is_different

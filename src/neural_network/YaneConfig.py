@@ -82,6 +82,7 @@ def load_json_config():
         with open('config.json') as json_config_file:
             json_config = json.load(json_config_file)
     else:
+        create_default_json_config()
         with open('default_config.json') as json_config_file:
             json_config = json.load(json_config_file)
     return json_config

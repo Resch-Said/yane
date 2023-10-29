@@ -32,7 +32,7 @@ class ActivationFunction(str, Enum):
     BINARY = "Binary"
 
     @classmethod
-    def do_activation_function(cls, neuron):
+    def activate(cls, neuron):
         if neuron.activation_function == cls.SIGMOID:
             neuron.value = sigmoid(neuron.value)
         elif neuron.activation_function == cls.RELU:
