@@ -132,3 +132,4 @@ dmypy.json
 src/neural_network/tests/default_config.json
 default_config.json
 yane_config.json
+src/neural_network/tests/yane_config.json~
