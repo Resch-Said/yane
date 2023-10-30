@@ -399,11 +399,21 @@ def test_train():
     nn.add_connection(neuron_input2, neuron_output2, 5)
     nn.add_connection(neuron_hidden1, neuron_output2, 3)
 
-    nn.set_expected_output_values([1, 0])
+    nn.set_expected_output_values([5, 0])
+
+    # Test if implementing custom fitness function works
+    def fitness_function(self):
+        fitness = 0
+        for neuron in self.output_neurons:
+            fitness -= abs(neuron.value - neuron.expected_value)
+        return fitness
+
+    NeuralNetwork.get_fitness = fitness_function
 
     min_fitness = -0.1
-    nn.train(min_fitness)
-    nn.forward_propagation()
+    nn.train(min_fitness, max_iterations=10000)
+    # nn.forward_propagation()
+    print(nn.get_output_values())
 
     assert nn.get_fitness() >= min_fitness
 

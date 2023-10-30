@@ -30,7 +30,6 @@ class NeuralNetwork:
         self.hidden_neurons = []
         self.output_neurons = []
         self.connections = []
-        self.fitness = 0
 
     last_modified_connection = None
 
