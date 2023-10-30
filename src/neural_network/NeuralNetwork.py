@@ -30,6 +30,7 @@ class NeuralNetwork:
         self.hidden_neurons = []
         self.output_neurons = []
         self.connections = []
+        self.fitness = 0
 
     last_modified_connection = None
 
@@ -43,13 +44,14 @@ class NeuralNetwork:
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
 
-    def train(self, min_fitness):
+    def train(self, min_fitness=-0.1, max_iterations=1000):
         nn_parent = self
         nn_parent.forward_propagation()
         nn_child = nn_parent.create_child()
         current_fitness = nn_parent.get_fitness()
 
-        while current_fitness < min_fitness:
+        while current_fitness < min_fitness and max_iterations > 0:
+            max_iterations -= 1
             nn_child.forward_propagation()
             new_fitness = nn_child.get_fitness()
 
