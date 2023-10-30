@@ -74,17 +74,13 @@ def create_default_json_config():
         "mutation_fire_rate": 0.1,  # chance that a fire rate is mutated
         "mutation_activation_function": 0.1  # chance that an activation function is mutated
     }
-    with open('default_config.json', 'w') as json_config_file:
+    with open('yane_config.json', 'w') as json_config_file:
         json.dump(json_config, json_config_file)
 
 
 def load_json_config():
-    if os.path.exists('config.json'):
-        with open('config.json') as json_config_file:
-            json_config = json.load(json_config_file)
-    else:
-        if not os.path.exists('default_config.json'):
-            create_default_json_config()
-        with open('default_config.json') as json_config_file:
-            json_config = json.load(json_config_file)
+    if not os.path.exists('yane_config.json'):
+        create_default_json_config()
+    with open('yane_config.json') as json_config_file:
+        json_config = json.load(json_config_file)
     return json_config

@@ -130,3 +130,5 @@ dmypy.json
 
 .idea
 src/neural_network/tests/default_config.json
+default_config.json
+yane_config.json
