@@ -491,6 +491,7 @@ def test_random_weight_shift():
     assert is_different
 
 
+# TODO: fix random out of range error
 def test_weight_shift_is_correct():
     nn = NeuralNetwork()
     neuron_input1 = InputNeuron(value=2)
@@ -516,3 +517,15 @@ def test_weight_shift_is_correct():
 
     assert nn.connections[nn_child.connections.index(
         nn.last_modified_connection)].weight_shift_up_down != nn.last_modified_connection.weight_shift_up_down
+
+
+def test_train_with_multiple_inputs():
+    nn = NeuralNetwork(2, 2, 2)
+
+    nn.set_input_neurons([5, 10])
+    nn.set_expected_output_values([1, 2])
+
+    nn.train(-0.1, max_iterations=10000)
+    nn.forward_propagation()
+
+    assert nn.get_fitness() >= -0.1

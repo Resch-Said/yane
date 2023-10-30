@@ -33,13 +33,26 @@ def change_weight_shift_direction_last_modified_connection(nn_parent, nn_child):
 
 
 class NeuralNetwork:
-    def __init__(self):
+    def __init__(self, input_neurons_count=None, hidden_neurons_count=None, output_neurons_count=None):
+
         self.input_neurons = []
         self.hidden_neurons = []
         self.output_neurons = []
         self.connections = []
 
-    last_modified_connection: Connection
+        if input_neurons_count is not None:
+            for i in range(input_neurons_count):
+                self.add_input_neuron(InputNeuron())
+
+        if hidden_neurons_count is not None:
+            for i in range(hidden_neurons_count):
+                self.add_hidden_neuron(HiddenNeuron())
+
+        if output_neurons_count is not None:
+            for i in range(output_neurons_count):
+                self.add_output_neuron(OutputNeuron())
+
+    last_modified_connection: Connection = None
 
     def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
@@ -48,6 +61,9 @@ class NeuralNetwork:
         return None
 
     def random_mutate_weight(self, weight_shift: float):
+        if len(self.connections) == 0:
+            return
+
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
 
@@ -62,7 +78,7 @@ class NeuralNetwork:
             nn_child.forward_propagation()
             new_fitness = nn_child.get_fitness()
 
-            if new_fitness > current_fitness:
+            if new_fitness >= current_fitness:
                 nn_parent = nn_child
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
@@ -96,19 +112,19 @@ class NeuralNetwork:
             self.clear_hidden_neurons()
             self.clear_output_neurons()
 
-    def add_input_neuron(self, neuron: Neuron = InputNeuron()):
+    def add_input_neuron(self, neuron: Neuron):
         if type(neuron) is not InputNeuron:
             raise TypeError("Neuron is not of type InputNeuron")
 
         self.input_neurons.append(neuron)
 
-    def add_hidden_neuron(self, neuron: Neuron = HiddenNeuron()):
+    def add_hidden_neuron(self, neuron: Neuron):
         if type(neuron) is not HiddenNeuron:
             raise TypeError("Neuron is not of type HiddenNeuron")
 
         self.hidden_neurons.append(neuron)
 
-    def add_output_neuron(self, neuron: Neuron = OutputNeuron()):
+    def add_output_neuron(self, neuron: Neuron):
         if type(neuron) is not OutputNeuron:
             raise TypeError("Neuron is not of type OutputNeuron")
 
@@ -239,6 +255,7 @@ class NeuralNetwork:
 
     def mutate(self):
         self.random_mutate_weight(get_random_weight_shift())
+        self.random_mutate_connection()
 
     def print(self):
         print("Input neurons: " + str(len(self.input_neurons)))
@@ -258,3 +275,23 @@ class NeuralNetwork:
 
         for connection in self.connections:
             print("Connection: " + str(connection.weight))
+
+    def set_input_neurons(self, param):
+        for input_value, neuron in zip(param, self.input_neurons):
+            neuron.value_fixed = input_value
+
+    # TODO: Make Random Mutate Connection save
+    # TODO: No duplicate connections
+    def random_mutate_connection(self):
+        random_neuron_from = self.get_random_neuron()
+        random_neuron_to = self.get_random_neuron()
+
+        if self.connections.__contains__(self.get_connection_between_neurons(random_neuron_from, random_neuron_to)):
+            print("Connection already exists")
+            return
+        self.add_connection(random_neuron_from, random_neuron_to, 0)
+        print("Connection added")
+
+    def get_random_neuron(self) -> Neuron:
+        random_neuron = random.choice(self.input_neurons + self.hidden_neurons + self.output_neurons)
+        return random_neuron
