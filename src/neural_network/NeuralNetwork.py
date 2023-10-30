@@ -9,18 +9,19 @@ from src.neural_network.OutputNeuron import OutputNeuron
 from src.neural_network.YaneConfig import *
 
 
-def mutate_weight(connection: Connection, weight_shift: float):
-    if random.random() < 0.5:
-        connection.weight += weight_shift
-    else:
-        connection.weight -= weight_shift
-
-
 def get_total_fire_rate(working_neurons):
     total_fire_rate = 0
     for neuron in working_neurons:
         total_fire_rate += neuron.fire_rate_variable
     return total_fire_rate
+
+
+def mutate_weight(connection: Connection, weight_shift: float):
+    if connection.weight_shift_up_down:
+        connection.weight += weight_shift
+    else:
+        connection.weight -= weight_shift
+    NeuralNetwork.last_modified_connection = connection
 
 
 class NeuralNetwork:
@@ -30,26 +31,26 @@ class NeuralNetwork:
         self.output_neurons = []
         self.connections = []
 
+    last_modified_connection: Connection = None
+
     def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
             if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
                 return connection
         return None
 
-    # TODO: Make random mutations smarter
     def random_mutate_weight(self, weight_shift: float):
         random_connection = random.choice(self.connections)
         mutate_weight(random_connection, weight_shift)
 
-    def train(self, min_fitness):
-
+    def train(self, min_fitness=-0.1, max_iterations=1000):
         nn_parent = self
-
         nn_parent.forward_propagation()
         nn_child = nn_parent.create_child()
         current_fitness = nn_parent.get_fitness()
 
-        while current_fitness < min_fitness:
+        while current_fitness < min_fitness and max_iterations > 0:
+            max_iterations -= 1
             nn_child.forward_propagation()
             new_fitness = nn_child.get_fitness()
 
@@ -57,7 +58,10 @@ class NeuralNetwork:
                 nn_parent = nn_child
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
-
+            else:
+                nn_parent.connections[nn_child.connections.index(
+                    nn_parent.last_modified_connection)].weight_shift_up_down = \
+                    not nn_parent.last_modified_connection.weight_shift_up_down
             nn_child = deepcopy(nn_parent)
             nn_child.mutate()
         self.copy(nn_parent)
@@ -174,10 +178,10 @@ class NeuralNetwork:
             neuron.expected_value = expected_value
 
     def copy(self, nn_current):
-        self.input_neurons = deepcopy(nn_current.input_neurons)
-        self.hidden_neurons = deepcopy(nn_current.hidden_neurons)
-        self.output_neurons = deepcopy(nn_current.output_neurons)
-        self.connections = deepcopy(nn_current.connections)
+        self.input_neurons = copy(nn_current.input_neurons)
+        self.hidden_neurons = copy(nn_current.hidden_neurons)
+        self.output_neurons = copy(nn_current.output_neurons)
+        self.connections = copy(nn_current.connections)
 
     def reset_fire_rate(self):
         for neuron in self.input_neurons:

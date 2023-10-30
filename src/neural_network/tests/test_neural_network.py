@@ -4,7 +4,7 @@ from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
-from src.neural_network.YaneConfig import get_random_activation_function, get_random_weight_shift
+from src.neural_network.YaneConfig import get_random_weight_shift
 
 
 def test_neural_network_init():
@@ -399,11 +399,21 @@ def test_train():
     nn.add_connection(neuron_input2, neuron_output2, 5)
     nn.add_connection(neuron_hidden1, neuron_output2, 3)
 
-    nn.set_expected_output_values([1, 0])
+    nn.set_expected_output_values([5, 0])
 
-    min_fitness = -2
-    nn.train(min_fitness)
-    nn.forward_propagation()
+    # Test if implementing custom fitness function works
+    def fitness_function(self):
+        fitness = 0
+        for neuron in self.output_neurons:
+            fitness -= abs(neuron.value - neuron.expected_value)
+        return fitness
+
+    NeuralNetwork.get_fitness = fitness_function
+
+    min_fitness = -0.1
+    nn.train(min_fitness, max_iterations=10000)
+    # nn.forward_propagation()
+    print(nn.get_output_values())
 
     assert nn.get_fitness() >= min_fitness
 
@@ -432,10 +442,6 @@ def test_tick_cycle():
     nn_fitness = nn.get_fitness()
 
     assert nn_fitness >= min_fitness
-
-
-# TODO: test copy
-# TODO: test get_fitness
 
 
 def test_random_activation_function():

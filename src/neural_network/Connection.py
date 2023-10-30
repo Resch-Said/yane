@@ -6,3 +6,4 @@ class Connection:
         self.neuron_from = neuron_from
         self.neuron_to = neuron_to
         self.weight = weight
+        self.weight_shift_up_down = True  # True = Up, False = Down
