@@ -1,7 +1,8 @@
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight
+from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight, \
+    change_weight_shift_direction_last_modified_connection
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
 from src.neural_network.YaneConfig import get_random_weight_shift
@@ -488,3 +489,30 @@ def test_random_weight_shift():
             if weight_shifts[i] != weight_shifts[j]:
                 is_different = True
     assert is_different
+
+
+def test_weight_shift_is_correct():
+    nn = NeuralNetwork()
+    neuron_input1 = InputNeuron(value=2)
+    neuron_input2 = InputNeuron(value=3)
+    neuron_hidden1 = HiddenNeuron()
+    neuron_output1 = OutputNeuron()
+
+    nn.add_input_neuron(neuron_input1)
+    nn.add_input_neuron(neuron_input2)
+    nn.add_hidden_neuron(neuron_hidden1)
+    nn.add_output_neuron(neuron_output1)
+
+    nn.add_connection(neuron_input1, neuron_hidden1, 1)
+    nn.add_connection(neuron_input2, neuron_hidden1, 2)
+    nn.add_connection(neuron_hidden1, neuron_output1, 3)
+
+    nn.set_expected_output_values([1, 0])
+
+    nn_child = nn.create_child()
+    nn_child.random_mutate_weight(0.5)
+
+    change_weight_shift_direction_last_modified_connection(nn, nn_child)
+
+    assert nn.connections[nn_child.connections.index(
+        nn.last_modified_connection)].weight_shift_up_down != nn.last_modified_connection.weight_shift_up_down

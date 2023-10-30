@@ -24,6 +24,14 @@ def mutate_weight(connection: Connection, weight_shift: float):
     NeuralNetwork.last_modified_connection = connection
 
 
+def change_weight_shift_direction(connection):
+    connection.weight_shift_up_down = not connection.weight_shift_up_down
+
+
+def change_weight_shift_direction_last_modified_connection(nn_parent, nn_child):
+    change_weight_shift_direction(nn_parent.connections[nn_child.connections.index(nn_child.last_modified_connection)])
+
+
 class NeuralNetwork:
     def __init__(self):
         self.input_neurons = []
@@ -31,7 +39,7 @@ class NeuralNetwork:
         self.output_neurons = []
         self.connections = []
 
-    last_modified_connection: Connection = None
+    last_modified_connection: Connection
 
     def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
@@ -59,9 +67,9 @@ class NeuralNetwork:
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
             else:
-                nn_parent.connections[nn_child.connections.index(
-                    nn_parent.last_modified_connection)].weight_shift_up_down = \
-                    not nn_parent.last_modified_connection.weight_shift_up_down
+                if nn_child.last_modified_connection is not None:
+                    change_weight_shift_direction_last_modified_connection(nn_parent, nn_child)
+
             nn_child = deepcopy(nn_parent)
             nn_child.mutate()
         self.copy(nn_parent)
