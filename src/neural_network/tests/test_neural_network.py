@@ -444,10 +444,6 @@ def test_tick_cycle():
     assert nn_fitness >= min_fitness
 
 
-# TODO: test copy
-# TODO: test get_fitness
-
-
 def test_random_activation_function():
     neurons = []
 

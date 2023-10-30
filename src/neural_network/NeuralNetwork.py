@@ -31,7 +31,7 @@ class NeuralNetwork:
         self.output_neurons = []
         self.connections = []
 
-    last_modified_connection = None
+    last_modified_connection: Connection = None
 
     def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
@@ -60,7 +60,8 @@ class NeuralNetwork:
                 print("New fitness: " + str(current_fitness))
             else:
                 nn_parent.connections[nn_child.connections.index(
-                    nn_parent.last_modified_connection)].weight_shift_up_down = not nn_parent.last_modified_connection.weight_shift_up_down
+                    nn_parent.last_modified_connection)].weight_shift_up_down = \
+                    not nn_parent.last_modified_connection.weight_shift_up_down
             nn_child = deepcopy(nn_parent)
             nn_child.mutate()
         self.copy(nn_parent)
