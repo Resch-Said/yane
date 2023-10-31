@@ -491,7 +491,6 @@ def test_random_weight_shift():
     assert is_different
 
 
-# TODO: fix random out of range error
 def test_weight_shift_is_correct():
     nn_parent = NeuralNetwork()
     neuron_input1 = InputNeuron(value=2)
