@@ -19,8 +19,8 @@ def get_fire_rate_min():
     return load_json_config()["fire_rate"][0]
 
 
-def get_random_fire_rate_shift():
-    return random.randint(load_json_config()["fire_rate_shift"][0], load_json_config()["fire_rate_shift"][1])
+def get_random_fire_rate():
+    return random.randint(load_json_config()["fire_rate"][0], load_json_config()["fire_rate"][1])
 
 
 def get_random_weight_shift():
