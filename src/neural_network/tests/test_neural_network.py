@@ -493,5 +493,4 @@ def test_train_without_setting_connections():
     nn.train(-0.1, max_iterations=10000)
 
     nn.print()
-
     assert nn.get_fitness() >= -0.1

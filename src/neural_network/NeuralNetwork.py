@@ -287,7 +287,13 @@ class NeuralNetwork:
         if random.random() < get_mutation_activation_function_probability():
             self.random_mutate_activation_function()
 
+        if random.random() < get_mutation_fire_rate_probability():
+            self.random_mutate_fire_rate()
+
     def print(self):
+        self.reset_input_neurons()
+        self.reset_fire_rate()
+        
         print("Input neurons: " + str(len(self.input_neurons)))
         print("Hidden neurons: " + str(len(self.hidden_neurons)))
         print("Output neurons: " + str(len(self.output_neurons)))
@@ -295,13 +301,16 @@ class NeuralNetwork:
         print("")
 
         for neuron in self.input_neurons:
-            print("Input neuron: " + str(neuron.value) + " activation: " + str(neuron.activation_function))
+            print("Input neuron: " + str(neuron.value) + " | activation: " + str(
+                neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
 
         for neuron in self.hidden_neurons:
-            print("Hidden neuron: " + str(neuron.value) + " activation: " + str(neuron.activation_function))
+            print("Hidden neuron: " + str(neuron.value) + " | activation: " + str(
+                neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
 
         for neuron in self.output_neurons:
-            print("Output neuron: " + str(neuron.value) + " activation: " + str(neuron.activation_function))
+            print("Output neuron: " + str(neuron.value) + " | activation: " + str(
+                neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
 
         for connection in self.connections:
             print("Connection: " + str(connection.weight))
@@ -371,3 +380,9 @@ class NeuralNetwork:
         random_neuron = self.get_random_neuron()
         random_neuron.activation_function = get_random_activation_function()
         print("Activation function mutated: " + str(random_neuron.activation_function))
+
+    def random_mutate_fire_rate(self):
+        random_neuron = self.get_random_neuron()
+        random_neuron.fire_rate_fixed = get_random_fire_rate()
+        random_neuron.fire_rate_variable = random_neuron.fire_rate_fixed
+        print("Fire rate mutated: " + str(random_neuron.fire_rate_fixed))
