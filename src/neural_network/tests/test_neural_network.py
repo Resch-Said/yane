@@ -2,7 +2,7 @@ from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight, \
-    change_weight_shift_direction_last_modified_connection
+    change_weight_shift_direction
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
 from src.neural_network.YaneConfig import get_random_weight_shift
@@ -493,30 +493,31 @@ def test_random_weight_shift():
 
 # TODO: fix random out of range error
 def test_weight_shift_is_correct():
-    nn = NeuralNetwork()
+    nn_parent = NeuralNetwork()
     neuron_input1 = InputNeuron(value=2)
     neuron_input2 = InputNeuron(value=3)
     neuron_hidden1 = HiddenNeuron()
     neuron_output1 = OutputNeuron()
 
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden1)
-    nn.add_output_neuron(neuron_output1)
+    nn_parent.add_input_neuron(neuron_input1)
+    nn_parent.add_input_neuron(neuron_input2)
+    nn_parent.add_hidden_neuron(neuron_hidden1)
+    nn_parent.add_output_neuron(neuron_output1)
 
-    nn.add_connection(neuron_input1, neuron_hidden1, 1)
-    nn.add_connection(neuron_input2, neuron_hidden1, 2)
-    nn.add_connection(neuron_hidden1, neuron_output1, 3)
+    nn_parent.add_connection(neuron_input1, neuron_hidden1, 1)
+    nn_parent.add_connection(neuron_input2, neuron_hidden1, 2)
+    nn_parent.add_connection(neuron_hidden1, neuron_output1, 3)
 
-    nn.set_expected_output_values([1, 0])
+    nn_parent.set_expected_output_values([1, 0])
 
-    nn_child = nn.create_child()
+    nn_child = nn_parent.create_child()
     nn_child.random_mutate_weight(0.5)
 
-    change_weight_shift_direction_last_modified_connection(nn, nn_child)
+    child_connection = nn_child.last_modified_connection
 
-    assert nn.connections[nn_child.connections.index(
-        nn.last_modified_connection)].weight_shift_up_down != nn.last_modified_connection.weight_shift_up_down
+    change_weight_shift_direction(nn_parent.get_last_modified_connection())
+
+    assert child_connection.weight_shift_direction != nn_parent.get_last_modified_connection().weight_shift_direction
 
 
 def test_train_with_multiple_inputs():

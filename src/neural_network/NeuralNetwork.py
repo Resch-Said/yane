@@ -17,7 +17,7 @@ def get_total_fire_rate(working_neurons):
 
 
 def mutate_weight(connection: Connection, weight_shift: float):
-    if connection.weight_shift_up_down:
+    if connection.weight_shift_direction:
         connection.weight += weight_shift
     else:
         connection.weight -= weight_shift
@@ -25,11 +25,7 @@ def mutate_weight(connection: Connection, weight_shift: float):
 
 
 def change_weight_shift_direction(connection):
-    connection.weight_shift_up_down = not connection.weight_shift_up_down
-
-
-def change_weight_shift_direction_last_modified_connection(nn_parent, nn_child):
-    change_weight_shift_direction(nn_parent.connections[nn_child.connections.index(nn_child.last_modified_connection)])
+    connection.weight_shift_direction = not connection.weight_shift_direction
 
 
 class NeuralNetwork:
@@ -84,7 +80,8 @@ class NeuralNetwork:
                 print("New fitness: " + str(current_fitness))
             else:
                 if nn_child.last_modified_connection is not None:
-                    change_weight_shift_direction_last_modified_connection(nn_parent, nn_child)
+                    change_weight_shift_direction(nn_parent.get_last_modified_connection())
+                    # change_weight_shift_direction_last_modified_connection(nn_parent, nn_child)
 
             nn_child = deepcopy(nn_parent)
             nn_child.mutate()
@@ -95,6 +92,11 @@ class NeuralNetwork:
         for neuron in self.output_neurons:
             fitness -= abs(neuron.value - neuron.expected_value)
         return fitness
+
+    def get_last_modified_connection(self):
+        for connection in self.connections:
+            if connection.deep_id == NeuralNetwork.last_modified_connection.deep_id:
+                return connection
 
     def clear_hidden_neurons(self):
         for neuron in self.hidden_neurons:
@@ -280,14 +282,11 @@ class NeuralNetwork:
         for input_value, neuron in zip(param, self.input_neurons):
             neuron.value_fixed = input_value
 
-    # TODO: Make Random Mutate Connection save
-    # TODO: No duplicate connections
     def random_mutate_connection(self):
         random_neuron_from = self.get_random_neuron()
         random_neuron_to = self.get_random_neuron()
 
         if self.connections.__contains__(self.get_connection_between_neurons(random_neuron_from, random_neuron_to)):
-            print("Connection already exists")
             return
         self.add_connection(random_neuron_from, random_neuron_to, 0)
         print("Connection added")
