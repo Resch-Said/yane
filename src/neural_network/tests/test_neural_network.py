@@ -494,3 +494,15 @@ def test_train_without_setting_connections():
 
     nn.print()
     assert nn.get_fitness() >= -0.1
+
+
+def test_train_without_hidden_neurons():
+    nn = NeuralNetwork(10, 0, 6)
+
+    nn.set_input_neurons([5, 10, 2, 3, 8, 1, 2, 3, 4, 5])
+    nn.set_expected_output_values([1, 2, 1, 0, -5, 100])
+
+    nn.train(-0.1, max_iterations=10000)
+
+    nn.print()
+    assert nn.get_fitness() >= -0.1

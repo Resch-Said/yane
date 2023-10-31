@@ -158,7 +158,7 @@ class NeuralNetwork:
     def remove_neuron(self, neuron: Neuron):
         for connection in self.connections:
             if connection.neuron_from == neuron or connection.neuron_to == neuron:
-                self.connections.remove(connection)
+                self.remove_connection(connection)
 
         if neuron in self.input_neurons:
             self.input_neurons.remove(neuron)
@@ -189,7 +189,7 @@ class NeuralNetwork:
     def remove_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
             if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
-                self.connections.remove(connection)
+                self.remove_connection(connection)
 
     def get_connection_weight(self, neuron_from, neuron_to):
         for connection in self.connections:
@@ -290,10 +290,13 @@ class NeuralNetwork:
         if random.random() < get_mutation_fire_rate_probability():
             self.random_mutate_fire_rate()
 
+        if random.random() < get_mutation_neuron_probability():
+            self.random_mutate_neuron()
+
     def print(self):
         self.reset_input_neurons()
         self.reset_fire_rate()
-        
+
         print("Input neurons: " + str(len(self.input_neurons)))
         print("Hidden neurons: " + str(len(self.hidden_neurons)))
         print("Output neurons: " + str(len(self.output_neurons)))
@@ -339,7 +342,7 @@ class NeuralNetwork:
     def remove_random_connection(self):
         if len(self.connections) > 0:
             random_connection = random.choice(self.connections)
-            self.connections.remove(random_connection)
+            self.remove_connection(random_connection)
             print("Connection removed")
 
     # TODO: Make get_random_weight_shift less random and more intelligent
@@ -386,3 +389,45 @@ class NeuralNetwork:
         random_neuron.fire_rate_fixed = get_random_fire_rate()
         random_neuron.fire_rate_variable = random_neuron.fire_rate_fixed
         print("Fire rate mutated: " + str(random_neuron.fire_rate_fixed))
+
+    def random_mutate_neuron(self):
+        if random.random() < 0.5:
+            self.create_random_neuron()
+        else:
+            self.remove_random_neuron()
+
+        print("Neuron mutated")
+
+    # Neurons are only created between connected neurons
+    def create_random_neuron(self):
+        random_neuron_from = self.get_random_neuron()
+        random_neuron_to = self.get_random_neuron()
+        new_neuron = HiddenNeuron()
+
+        connection = self.get_connection_between_neurons(random_neuron_from, random_neuron_to)
+        if connection is None:
+            return
+
+        self.add_hidden_neuron(new_neuron)
+
+        self.add_connection(random_neuron_from, new_neuron, 1)
+        self.add_connection(new_neuron, random_neuron_to, connection.weight)
+
+        self.remove_connection(connection)
+
+    # Does not remove input or output neurons
+    def remove_random_neuron(self):
+        random_neuron = self.get_random_hidden_neuron()
+
+        if random_neuron is not None:
+            self.remove_neuron(random_neuron)
+
+    def get_random_hidden_neuron(self):
+        if len(self.hidden_neurons) == 0:
+            return None
+
+        random_neuron = random.choice(self.hidden_neurons)
+        return random_neuron
+
+    def remove_connection(self, connection):
+        self.connections.remove(connection)
