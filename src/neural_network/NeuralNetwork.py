@@ -97,7 +97,7 @@ class NeuralNetwork:
 
             new_fitness = nn_child.get_fitness()
 
-            if new_fitness > current_fitness:
+            if new_fitness >= current_fitness:
                 nn_parent = nn_child
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
@@ -284,6 +284,9 @@ class NeuralNetwork:
         if random.random() < get_mutation_connection_probability():
             self.random_mutate_connection()
 
+        if random.random() < get_mutation_activation_function_probability():
+            self.random_mutate_activation_function()
+
     def print(self):
         print("Input neurons: " + str(len(self.input_neurons)))
         print("Hidden neurons: " + str(len(self.hidden_neurons)))
@@ -292,13 +295,13 @@ class NeuralNetwork:
         print("")
 
         for neuron in self.input_neurons:
-            print("Input neuron: " + str(neuron.value))
+            print("Input neuron: " + str(neuron.value) + " activation: " + str(neuron.activation_function))
 
         for neuron in self.hidden_neurons:
-            print("Hidden neuron: " + str(neuron.value))
+            print("Hidden neuron: " + str(neuron.value) + " activation: " + str(neuron.activation_function))
 
         for neuron in self.output_neurons:
-            print("Output neuron: " + str(neuron.value))
+            print("Output neuron: " + str(neuron.value) + " activation: " + str(neuron.activation_function))
 
         for connection in self.connections:
             print("Connection: " + str(connection.weight))
@@ -363,3 +366,8 @@ class NeuralNetwork:
 
         NeuralNetwork.last_modified_connection = connection
         return fitness_improved
+
+    def random_mutate_activation_function(self):
+        random_neuron = self.get_random_neuron()
+        random_neuron.activation_function = get_random_activation_function()
+        print("Activation function mutated: " + str(random_neuron.activation_function))
