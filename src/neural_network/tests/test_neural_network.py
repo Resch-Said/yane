@@ -1,8 +1,7 @@
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.NeuralNetwork import NeuralNetwork, mutate_weight, \
-    change_weight_shift_direction
+from src.neural_network.NeuralNetwork import NeuralNetwork, change_weight_shift_direction
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
 from src.neural_network.YaneConfig import get_random_weight_shift
@@ -98,7 +97,7 @@ def test_remove_connection():
     nn.add_connection(neuron_from, neuron_to)
 
     assert nn.connections != []
-    nn.remove_connection(neuron_from, neuron_to)
+    nn.remove_connection_between_neurons(neuron_from, neuron_to)
     assert nn.connections == []
 
 
@@ -308,38 +307,6 @@ def test_forward_propagation_consistent():
     assert neuron_output2.value == 20
 
 
-def test_weight_mutation():
-    nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2)
-    neuron_input2 = InputNeuron(value=3)
-    neuron_hidden1 = HiddenNeuron()
-    neuron_hidden2 = HiddenNeuron()
-    neuron_output1 = OutputNeuron()
-    neuron_output2 = OutputNeuron()
-
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden1)
-    nn.add_hidden_neuron(neuron_hidden2)
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
-
-    nn.add_connection(neuron_input1, neuron_hidden1, 1)
-    nn.add_connection(neuron_input2, neuron_hidden1, 2)
-    nn.add_connection(neuron_input2, neuron_hidden2, 2)
-    nn.add_connection(neuron_hidden1, neuron_output1, 4)
-    nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    nn.add_connection(neuron_input2, neuron_output2, 5)
-    nn.add_connection(neuron_hidden1, neuron_output2, 3)
-
-    mutate_weight(nn.get_connection_between_neurons(neuron_input1, neuron_hidden1), 0.5)
-
-    assert nn.get_connection_between_neurons(neuron_input1, neuron_hidden1).weight == 1.5 or \
-           nn.get_connection_between_neurons(neuron_input1, neuron_hidden1).weight == 0.5
-
-    assert nn.get_connection_between_neurons(neuron_input1, neuron_hidden2) is None
-
-
 def test_random_weight_mutation():
     nn = NeuralNetwork()
     neuron_input1 = InputNeuron(value=2)
@@ -353,7 +320,7 @@ def test_random_weight_mutation():
     nn.add_connection(neuron_input1, neuron_output1, 1)
     nn.add_connection(neuron_input1, neuron_output2, 1)
 
-    nn.random_mutate_weight(0.5)
+    nn.random_mutate_weight()
 
     first_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output1).weight != 1
     second_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output2).weight != 1
@@ -400,21 +367,19 @@ def test_train():
     nn.add_connection(neuron_input2, neuron_output2, 5)
     nn.add_connection(neuron_hidden1, neuron_output2, 3)
 
-    nn.set_expected_output_values([5, 0])
+    nn.set_expected_output_values([1, 5])
 
     # Test if implementing custom fitness function works
-    def fitness_function(self):
+    def custom_fitness(self):
         fitness = 0
         for neuron in self.output_neurons:
             fitness -= abs(neuron.value - neuron.expected_value)
         return fitness
 
-    NeuralNetwork.get_fitness = fitness_function
+    NeuralNetwork.custom_fitness = custom_fitness
 
     min_fitness = -0.1
-    nn.train(min_fitness, max_iterations=10000)
-    # nn.forward_propagation()
-    print(nn.get_output_values())
+    nn.train(min_fitness, max_iterations=1000)
 
     assert nn.get_fitness() >= min_fitness
 
@@ -436,7 +401,7 @@ def test_tick_cycle():
     nn.add_connection(neuron_hidden2, neuron_output1, 3)
     nn.add_connection(neuron_output1, neuron_input1, 4)
 
-    nn.set_expected_output_values([1, 0])
+    nn.set_expected_output_values([1, 2])
 
     min_fitness = -0.1
     nn.train(min_fitness)
@@ -510,7 +475,7 @@ def test_weight_shift_is_correct():
     nn_parent.set_expected_output_values([1, 0])
 
     nn_child = nn_parent.create_child()
-    nn_child.random_mutate_weight(0.5)
+    nn_child.random_mutate_weight()
 
     child_connection = nn_child.last_modified_connection
 
@@ -519,13 +484,14 @@ def test_weight_shift_is_correct():
     assert child_connection.weight_shift_direction != nn_parent.get_last_modified_connection().weight_shift_direction
 
 
-def test_train_with_multiple_inputs():
+def test_train_without_setting_connections():
     nn = NeuralNetwork(2, 2, 2)
 
     nn.set_input_neurons([5, 10])
     nn.set_expected_output_values([1, 2])
 
     nn.train(-0.1, max_iterations=10000)
-    nn.forward_propagation()
+
+    nn.print()
 
     assert nn.get_fitness() >= -0.1
