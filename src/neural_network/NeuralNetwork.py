@@ -223,6 +223,11 @@ class NeuralNetwork:
         return expected_output_values
 
     def set_expected_output_values(self, param):
+
+        while len(param) > len(self.output_neurons):
+            new_neuron = OutputNeuron()
+            self.add_output_neuron(new_neuron)
+
         for expected_value, neuron in zip(param, self.output_neurons):
             neuron.expected_value = expected_value
 
@@ -319,6 +324,11 @@ class NeuralNetwork:
             print("Connection: " + str(connection.weight))
 
     def set_input_neurons(self, param):
+
+        while len(param) > len(self.input_neurons):
+            new_neuron = InputNeuron()
+            self.add_input_neuron(new_neuron)
+
         for input_value, neuron in zip(param, self.input_neurons):
             neuron.value_fixed = input_value
 
