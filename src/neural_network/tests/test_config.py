@@ -32,5 +32,5 @@ def test_load_default_config_from_json_2():
     assert get_mutation_connection() == 0.1
     assert get_mutation_neuron() == 0.1
     assert get_mutation_weight() == 0.1
-    assert get_mutation_fire_rate() == 0.1
+    assert get_mutation_fire_rate_probability() == 0.1
     assert get_mutation_activation_function() == 0.1

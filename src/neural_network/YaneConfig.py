@@ -48,8 +48,8 @@ def get_mutation_weight_probability():
     return load_json_config()["mutation_weight_probability"]
 
 
-def get_mutation_fire_rate():
-    return load_json_config()["mutation_fire_rate"]
+def get_mutation_fire_rate_probability():
+    return load_json_config()["mutation_fire_rate_probability"]
 
 
 def get_mutation_activation_function_probability():
@@ -69,7 +69,6 @@ def create_default_json_config():
         "allow_early_output": True,
         "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
         "fire_rate": [1, 10],  # How often a neuron is allowed to fire before the next input. [min, max]
-        "fire_rate_shift": [1, 1],  # How much the fire rate can change when mutating. [min, max]
         "weight_shift": [0.01, 0.1],  # How much the weight can change when optimizing. [min, max]
         "mutation_random_weight": [-1, 1],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
