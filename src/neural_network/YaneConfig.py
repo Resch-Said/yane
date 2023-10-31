@@ -36,24 +36,29 @@ def get_binary_threshold():
     return load_json_config()["binary_threshold"]
 
 
-def get_mutation_connection():
-    return load_json_config()["mutation_connection"]
+def get_mutation_connection_probability():
+    return load_json_config()["mutation_connection_probability"]
 
 
-def get_mutation_neuron():
-    return load_json_config()["mutation_neuron"]
+def get_mutation_neuron_probability():
+    return load_json_config()["mutation_neuron_probability"]
 
 
-def get_mutation_weight():
-    return load_json_config()["mutation_weight"]
+def get_mutation_weight_probability():
+    return load_json_config()["mutation_weight_probability"]
 
 
 def get_mutation_fire_rate():
     return load_json_config()["mutation_fire_rate"]
 
 
-def get_mutation_activation_function():
-    return load_json_config()["mutation_activation_function"]
+def get_mutation_activation_function_probability():
+    return load_json_config()["mutation_activation_function_probability"]
+
+
+def get_mutation_random_weight():
+    return random.uniform(load_json_config()["mutation_random_weight"][0],
+                          load_json_config()["mutation_random_weight"][1])
 
 
 def create_default_json_config():
@@ -65,14 +70,15 @@ def create_default_json_config():
         "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
         "fire_rate": [1, 10],  # How often a neuron is allowed to fire before the next input. [min, max]
         "fire_rate_shift": [1, 1],  # How much the fire rate can change when mutating. [min, max]
-        "weight_shift": [0.01, 0.1],  # How much the weight can change when mutating. [min, max]
+        "weight_shift": [0.01, 0.1],  # How much the weight can change when optimizing. [min, max]
+        "mutation_random_weight": [-1, 1],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
-        "mutation_connection": 0.1,  # chance that a new connection is created
-        "mutation_neuron": 0.1,  # chance that a new neuron is created
-        "mutation_weight": 0.1,  # chance that a weight is mutated
-        "mutation_fire_rate": 0.1,  # chance that a fire rate is mutated
-        "mutation_activation_function": 0.1  # chance that an activation function is mutated
+        "mutation_connection_probability": 0.1,  # chance that a new connection is created
+        "mutation_neuron_probability": 0.1,  # chance that a new neuron is created
+        "mutation_weight_probability": 0.1,  # chance that a weight is mutated
+        "mutation_fire_rate_probability": 0.1,  # chance that a fire rate is mutated
+        "mutation_activation_function_probability_probability": 0.1  # chance that an activation function is mutated
     }
     with open('yane_config.json', 'w') as json_config_file:
         json.dump(json_config, json_config_file)
