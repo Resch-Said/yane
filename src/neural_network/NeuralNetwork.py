@@ -21,9 +21,12 @@ def change_weight_shift_direction(connection):
 
 
 def mutate_weight(random_connection: Connection):
-    random_connection.weight = get_mutation_random_weight()
+    random_connection.weight = get_mutation_random_weight(json_config)
 
     NeuralNetwork.last_modified_connection = random_connection
+
+
+json_config = load_json_config()
 
 
 class NeuralNetwork:
@@ -145,7 +148,7 @@ class NeuralNetwork:
         self.reset_input_neurons()
         self.reset_fire_rate()
 
-        if get_clear_on_new_input():
+        if get_clear_on_new_input(json_config):
             self.clear_hidden_neurons()
             self.clear_output_neurons()
 
@@ -296,19 +299,19 @@ class NeuralNetwork:
         return nn_child
 
     def mutate(self):
-        if random.random() < get_mutation_weight_probability():
+        if random.random() < get_mutation_weight_probability(json_config):
             self.random_mutate_weight()
 
-        if random.random() < get_mutation_connection_probability():
+        if random.random() < get_mutation_connection_probability(json_config):
             self.random_mutate_connection()
 
-        if random.random() < get_mutation_activation_function_probability():
+        if random.random() < get_mutation_activation_function_probability(json_config):
             self.random_mutate_activation_function()
 
-        if random.random() < get_mutation_fire_rate_probability():
+        if random.random() < get_mutation_fire_rate_probability(json_config):
             self.random_mutate_fire_rate()
 
-        if random.random() < get_mutation_neuron_probability():
+        if random.random() < get_mutation_neuron_probability(json_config):
             self.random_mutate_neuron()
 
     def print(self):
@@ -380,9 +383,9 @@ class NeuralNetwork:
 
         while fitness_improved_up or fitness_improved_down:
             if connection.weight_shift_direction:
-                connection.weight += get_random_weight_shift()
+                connection.weight += get_random_weight_shift(json_config)
             else:
-                connection.weight -= get_random_weight_shift()
+                connection.weight -= get_random_weight_shift(json_config)
 
             new_fitness = self.get_fitness()
 
@@ -405,11 +408,11 @@ class NeuralNetwork:
 
     def random_mutate_activation_function(self):
         random_neuron = self.get_random_neuron()
-        random_neuron.activation_function = get_random_activation_function()
+        random_neuron.activation_function = get_random_activation_function(json_config)
 
     def random_mutate_fire_rate(self):
         random_neuron = self.get_random_neuron()
-        random_neuron.fire_rate_fixed = get_random_fire_rate()
+        random_neuron.fire_rate_fixed = get_random_fire_rate(json_config)
         random_neuron.fire_rate_variable = random_neuron.fire_rate_fixed
 
     def random_mutate_neuron(self):

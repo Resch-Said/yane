@@ -37,3 +37,29 @@ def test_train_simple():
     nc.neural_networks[0].print()
 
     assert nc.neural_networks[0].fitness > -0.1
+
+
+def test_train_simple_2():
+    nc = NeuroCluster()
+
+    nc.set_input_neurons([5, 10])
+    nc.set_expected_output_values(list(range(20)))
+
+    nc.train_population()
+
+    nc.neural_networks[0].print()
+
+    assert nc.neural_networks[0].fitness > -0.1
+
+
+def test_train_simple_3():
+    nc = NeuroCluster()
+
+    nc.set_input_neurons([5, 10])
+    nc.set_expected_output_values(list(range(5)))
+
+    nc.train_population()
+
+    nc.neural_networks[0].print()
+
+    assert nc.neural_networks[0].fitness > -0.1
