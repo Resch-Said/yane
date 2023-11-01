@@ -88,7 +88,7 @@ def main():
     nc = NeuroCluster()
 
     nc.set_input_neurons([5, 10])
-    nc.set_expected_output_values(list(range(7)))
+    nc.set_expected_output_values(list(range(10)))
 
     nc.train_population()
 

@@ -271,27 +271,20 @@ class NeuralNetwork:
 
     def forward_propagation(self):  # One tick cycle
         self.clear_neurons()
-
         working_neurons = self.get_neuron_forward_order()
-        total_fire_rate = get_total_fire_rate(working_neurons)
 
-        while total_fire_rate > 0:
-            for neuron in working_neurons:
-                if neuron.fire_rate_variable <= 0:
-                    continue
-                else:
+        while working_neurons:
+            for neuron in working_neurons[:]:
+                if neuron.fire_rate_variable > 0:
                     neuron.fire_rate_variable -= 1
-                    total_fire_rate -= 1
                     ActivationFunction.activate(neuron)
-
+                else:
+                    working_neurons.remove(neuron)
                 for connection in self.get_connections(neuron):
                     connection.neuron_to.value += neuron.value * connection.weight
 
     def get_connections(self, neuron):
-        connections = []
-        for connection in self.connections:
-            if connection.neuron_from == neuron:
-                connections.append(connection)
+        connections = [connection for connection in self.connections if connection.neuron_from == neuron]
         return connections
 
     def create_child(self):
