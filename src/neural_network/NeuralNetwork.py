@@ -33,6 +33,7 @@ class NeuralNetwork:
         self.hidden_neurons = []
         self.output_neurons = []
         self.connections = []
+        self.fitness = 0
 
         if input_neurons_count is not None:
             for i in range(input_neurons_count):
@@ -74,8 +75,8 @@ class NeuralNetwork:
         mutate_weight(random_connection)
 
     def optimize_weights(self, fitness_tolerance=0.01):
+        self.get_fitness()
         nn_parent = self
-        nn_parent.forward_propagation()
         nn_child = nn_parent.create_child()
 
         fitness_improved = True
@@ -86,14 +87,16 @@ class NeuralNetwork:
                 result = nn_child.optimize_weight_shift(connection, fitness_tolerance)
                 if result:
                     fitness_improved = True
-
         self.copy(nn_child)
+        self.get_fitness()
 
     # First: Optimize weights of parent
     # Second: Create child
     # Third: mutate child
     # Fourth: Optimize weights of child
     # Fifth: Compare fitness of parent and child
+    # TODO: Remove training function and move it to NeuroCluster.
+    # There is no point to only train 1 neural network and not having a population of neural networks.
     def train(self, min_fitness=-0.1, max_iterations=1000, fitness_tolerance=0.01):
         nn_parent = self
         nn_parent.optimize_weights(fitness_tolerance)
@@ -116,7 +119,8 @@ class NeuralNetwork:
 
     def get_fitness(self):
         self.forward_propagation()
-        return self.custom_fitness()
+        self.fitness = self.custom_fitness()
+        return self.fitness
 
     def custom_fitness(self):
         fitness = 0
@@ -244,6 +248,7 @@ class NeuralNetwork:
         self.hidden_neurons = copy(nn_current.hidden_neurons)
         self.output_neurons = copy(nn_current.output_neurons)
         self.connections = copy(nn_current.connections)
+        self.fitness = copy(nn_current.fitness)
 
     def reset_fire_rate(self):
         for neuron in self.input_neurons:

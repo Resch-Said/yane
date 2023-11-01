@@ -61,6 +61,14 @@ def get_mutation_random_weight():
                           load_json_config()["mutation_random_weight"][1])
 
 
+def get_population_size():
+    return load_json_config()["population_size"]
+
+
+def get_population_survival_rate():
+    return load_json_config()["population_survival_rate"]
+
+
 def create_default_json_config():
     json_config = {
         # if true, yane can cancel forward propagation if it thinks the output is already good enough. Might increase
@@ -77,7 +85,9 @@ def create_default_json_config():
         "mutation_neuron_probability": 0.5,  # chance that a new neuron is created
         "mutation_weight_probability": 0.5,  # chance that a weight is mutated
         "mutation_fire_rate_probability": 0.5,  # chance that a fire rate is mutated
-        "mutation_activation_function_probability": 0.5  # chance that an activation function is mutated
+        "mutation_activation_function_probability": 0.5,  # chance that an activation function is mutated
+        "population_size": 100,  # the amount of neural networks in the population
+        "population_survival_rate": 0.5,  # the amount of neural networks that survive
     }
     with open('yane_config.json', 'w') as json_config_file:
         json.dump(json_config, json_config_file)
