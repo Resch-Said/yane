@@ -330,9 +330,9 @@ class NeuralNetwork:
 
         for connection in self.connections:
             print("Connection: " + str(connection.weight) + " | from: " + str(
-                type(connection.neuron_from).__name__) + self.get_neuron_index(
-                connection.neuron_from) + " | to: " + str(
-                type(connection.neuron_to).__name__) + self.get_neuron_index(connection.neuron_to))
+                type(connection.neuron_from).__name__) + str(
+                self.get_neuron_index(connection.neuron_from)) + " | to: " + str(
+                type(connection.neuron_to).__name__) + str(self.get_neuron_index(connection.neuron_to)))
 
     def set_input_neurons(self, param):
 
