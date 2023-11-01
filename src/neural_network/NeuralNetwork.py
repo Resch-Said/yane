@@ -22,7 +22,6 @@ def change_weight_shift_direction(connection):
 
 def mutate_weight(random_connection: Connection):
     random_connection.weight = get_mutation_random_weight()
-    print("Weight mutated: " + str(random_connection.weight))
 
     NeuralNetwork.last_modified_connection = random_connection
 
@@ -48,6 +47,18 @@ class NeuralNetwork:
                 self.add_output_neuron(OutputNeuron())
 
     last_modified_connection: Connection = None
+
+    def get_neuron_index(self, neuron):
+        if type(neuron) is InputNeuron:
+            if self.input_neurons.__contains__(neuron):
+                return str(self.input_neurons.index(neuron))
+        elif type(neuron) is HiddenNeuron:
+            if self.hidden_neurons.__contains__(neuron):
+                return str(self.hidden_neurons.index(neuron))
+        elif type(neuron) is OutputNeuron:
+            if self.output_neurons.__contains__(neuron):
+                return str(self.output_neurons.index(neuron))
+        return -1
 
     def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
         for connection in self.connections:
@@ -76,7 +87,6 @@ class NeuralNetwork:
                 if result:
                     fitness_improved = True
 
-        print("Optimization finished: " + str(nn_child.get_fitness()))
         self.copy(nn_child)
 
     # First: Optimize weights of parent
@@ -101,8 +111,6 @@ class NeuralNetwork:
                 nn_parent = nn_child
                 current_fitness = new_fitness
                 print("New fitness: " + str(current_fitness))
-            else:
-                print("Optimization not better")
 
         self.copy(nn_parent)
 
@@ -321,7 +329,10 @@ class NeuralNetwork:
                 neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
 
         for connection in self.connections:
-            print("Connection: " + str(connection.weight))
+            print("Connection: " + str(connection.weight) + " | from: " + str(
+                type(connection.neuron_from).__name__) + self.get_neuron_index(
+                connection.neuron_from) + " | to: " + str(
+                type(connection.neuron_to).__name__) + self.get_neuron_index(connection.neuron_to))
 
     def set_input_neurons(self, param):
 
@@ -343,7 +354,6 @@ class NeuralNetwork:
         random_neuron_to = self.get_random_neuron()
         if not self.connections.__contains__(self.get_connection_between_neurons(random_neuron_from, random_neuron_to)):
             self.add_connection(random_neuron_from, random_neuron_to, 0)
-            print("Connection added")
 
     def get_random_neuron(self) -> Neuron:
         random_neuron = random.choice(self.input_neurons + self.hidden_neurons + self.output_neurons)
@@ -353,7 +363,6 @@ class NeuralNetwork:
         if len(self.connections) > 0:
             random_connection = random.choice(self.connections)
             self.remove_connection(random_connection)
-            print("Connection removed")
 
     # TODO: Make get_random_weight_shift less random and more intelligent
     # Example: Start with a big weight shift and then decrease the weight shift
@@ -392,21 +401,17 @@ class NeuralNetwork:
     def random_mutate_activation_function(self):
         random_neuron = self.get_random_neuron()
         random_neuron.activation_function = get_random_activation_function()
-        print("Activation function mutated: " + str(random_neuron.activation_function))
 
     def random_mutate_fire_rate(self):
         random_neuron = self.get_random_neuron()
         random_neuron.fire_rate_fixed = get_random_fire_rate()
         random_neuron.fire_rate_variable = random_neuron.fire_rate_fixed
-        print("Fire rate mutated: " + str(random_neuron.fire_rate_fixed))
 
     def random_mutate_neuron(self):
         if random.random() < 0.5:
             self.create_random_neuron()
         else:
             self.remove_random_neuron()
-
-        print("Neuron mutated")
 
     # Neurons are only created between connected neurons
     def create_random_neuron(self):

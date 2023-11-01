@@ -4,6 +4,7 @@ from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork, change_weight_shift_direction
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
+from src.neural_network.TrainingData import get_input_data, get_output_data, get_data_size
 from src.neural_network.YaneConfig import get_random_weight_shift
 
 
@@ -505,4 +506,35 @@ def test_train_without_parameters():
     nn.train(-0.1, max_iterations=10000)
 
     nn.print()
+    assert nn.get_fitness() >= -0.1
+
+
+def test_train_with_json_dataset():
+    nn = NeuralNetwork()
+
+    def custom_fitness(self):
+        fitness = 0
+
+        for j in range(get_data_size()):
+            self.set_input_neurons(get_input_data(j))
+            self.set_expected_output_values(get_output_data(j))
+            self.forward_propagation()
+
+            for neuron in self.output_neurons:
+                fitness -= abs(neuron.value - neuron.expected_value)
+        return fitness
+
+    NeuralNetwork.custom_fitness = custom_fitness
+
+    nn.train(-0.1, max_iterations=10000, fitness_tolerance=0.001)
+
+    nn.print()
+
+    for i in range(get_data_size()):
+        nn.set_input_neurons(get_input_data(i))
+        nn.set_expected_output_values(get_output_data(i))
+        nn.forward_propagation()
+        print("Input: " + str(get_input_data(i)) + " Expected: " + str(get_output_data(i)) + " Output: " + str(
+            nn.get_output_values()))
+
     assert nn.get_fitness() >= -0.1
