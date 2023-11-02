@@ -1,7 +1,10 @@
 from enum import Enum
+
 import numpy as np
 
-from src.neural_network.YaneConfig import get_binary_threshold
+from src.neural_network.YaneConfig import get_binary_threshold, load_json_config
+
+json_config = load_json_config()
 
 
 def sigmoid(x):
@@ -21,7 +24,7 @@ def linear(x):
 
 
 def binary(x):
-    return 1 if x > get_binary_threshold() else 0
+    return 1 if x > get_binary_threshold(json_config) else 0
 
 
 class ActivationFunction(str, Enum):

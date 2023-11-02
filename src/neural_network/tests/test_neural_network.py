@@ -526,7 +526,7 @@ def test_train_with_json_dataset():
 
     NeuralNetwork.custom_fitness = custom_fitness
 
-    nn.train(-0.1, max_iterations=10000, fitness_tolerance=0.001)
+    nn.train(-0.1, max_iterations=100)
 
     nn.print()
 

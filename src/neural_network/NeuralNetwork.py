@@ -21,9 +21,12 @@ def change_weight_shift_direction(connection):
 
 
 def mutate_weight(random_connection: Connection):
-    random_connection.weight = get_mutation_random_weight()
+    random_connection.weight = get_mutation_random_weight(json_config)
 
     NeuralNetwork.last_modified_connection = random_connection
+
+
+json_config = load_json_config()
 
 
 class NeuralNetwork:
@@ -33,6 +36,7 @@ class NeuralNetwork:
         self.hidden_neurons = []
         self.output_neurons = []
         self.connections = []
+        self.fitness = 0
 
         if input_neurons_count is not None:
             for i in range(input_neurons_count):
@@ -74,8 +78,8 @@ class NeuralNetwork:
         mutate_weight(random_connection)
 
     def optimize_weights(self, fitness_tolerance=0.01):
+        self.get_fitness()
         nn_parent = self
-        nn_parent.forward_propagation()
         nn_child = nn_parent.create_child()
 
         fitness_improved = True
@@ -86,14 +90,16 @@ class NeuralNetwork:
                 result = nn_child.optimize_weight_shift(connection, fitness_tolerance)
                 if result:
                     fitness_improved = True
-
         self.copy(nn_child)
+        self.get_fitness()
 
     # First: Optimize weights of parent
     # Second: Create child
     # Third: mutate child
     # Fourth: Optimize weights of child
     # Fifth: Compare fitness of parent and child
+    # TODO: Remove training function and move it to NeuroCluster.
+    # There is no point to only train 1 neural network and not having a population of neural networks.
     def train(self, min_fitness=-0.1, max_iterations=1000, fitness_tolerance=0.01):
         nn_parent = self
         nn_parent.optimize_weights(fitness_tolerance)
@@ -116,7 +122,8 @@ class NeuralNetwork:
 
     def get_fitness(self):
         self.forward_propagation()
-        return self.custom_fitness()
+        self.fitness = self.custom_fitness()
+        return self.fitness
 
     def custom_fitness(self):
         fitness = 0
@@ -141,7 +148,7 @@ class NeuralNetwork:
         self.reset_input_neurons()
         self.reset_fire_rate()
 
-        if get_clear_on_new_input():
+        if get_clear_on_new_input(json_config):
             self.clear_hidden_neurons()
             self.clear_output_neurons()
 
@@ -244,6 +251,7 @@ class NeuralNetwork:
         self.hidden_neurons = copy(nn_current.hidden_neurons)
         self.output_neurons = copy(nn_current.output_neurons)
         self.connections = copy(nn_current.connections)
+        self.fitness = copy(nn_current.fitness)
 
     def reset_fire_rate(self):
         for neuron in self.input_neurons:
@@ -263,27 +271,20 @@ class NeuralNetwork:
 
     def forward_propagation(self):  # One tick cycle
         self.clear_neurons()
-
         working_neurons = self.get_neuron_forward_order()
-        total_fire_rate = get_total_fire_rate(working_neurons)
 
-        while total_fire_rate > 0:
-            for neuron in working_neurons:
-                if neuron.fire_rate_variable <= 0:
-                    continue
-                else:
+        while working_neurons:
+            for neuron in working_neurons[:]:
+                if neuron.fire_rate_variable > 0:
                     neuron.fire_rate_variable -= 1
-                    total_fire_rate -= 1
                     ActivationFunction.activate(neuron)
-
+                else:
+                    working_neurons.remove(neuron)
                 for connection in self.get_connections(neuron):
                     connection.neuron_to.value += neuron.value * connection.weight
 
     def get_connections(self, neuron):
-        connections = []
-        for connection in self.connections:
-            if connection.neuron_from == neuron:
-                connections.append(connection)
+        connections = [connection for connection in self.connections if connection.neuron_from == neuron]
         return connections
 
     def create_child(self):
@@ -291,19 +292,19 @@ class NeuralNetwork:
         return nn_child
 
     def mutate(self):
-        if random.random() < get_mutation_weight_probability():
+        if random.random() < get_mutation_weight_probability(json_config):
             self.random_mutate_weight()
 
-        if random.random() < get_mutation_connection_probability():
+        if random.random() < get_mutation_connection_probability(json_config):
             self.random_mutate_connection()
 
-        if random.random() < get_mutation_activation_function_probability():
+        if random.random() < get_mutation_activation_function_probability(json_config):
             self.random_mutate_activation_function()
 
-        if random.random() < get_mutation_fire_rate_probability():
+        if random.random() < get_mutation_fire_rate_probability(json_config):
             self.random_mutate_fire_rate()
 
-        if random.random() < get_mutation_neuron_probability():
+        if random.random() < get_mutation_neuron_probability(json_config):
             self.random_mutate_neuron()
 
     def print(self):
@@ -375,9 +376,9 @@ class NeuralNetwork:
 
         while fitness_improved_up or fitness_improved_down:
             if connection.weight_shift_direction:
-                connection.weight += get_random_weight_shift()
+                connection.weight += get_random_weight_shift(json_config)
             else:
-                connection.weight -= get_random_weight_shift()
+                connection.weight -= get_random_weight_shift(json_config)
 
             new_fitness = self.get_fitness()
 
@@ -400,11 +401,11 @@ class NeuralNetwork:
 
     def random_mutate_activation_function(self):
         random_neuron = self.get_random_neuron()
-        random_neuron.activation_function = get_random_activation_function()
+        random_neuron.activation_function = get_random_activation_function(json_config)
 
     def random_mutate_fire_rate(self):
         random_neuron = self.get_random_neuron()
-        random_neuron.fire_rate_fixed = get_random_fire_rate()
+        random_neuron.fire_rate_fixed = get_random_fire_rate(json_config)
         random_neuron.fire_rate_variable = random_neuron.fire_rate_fixed
 
     def random_mutate_neuron(self):
