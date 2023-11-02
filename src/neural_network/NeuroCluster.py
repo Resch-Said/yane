@@ -64,13 +64,6 @@ class NeuroCluster:
 
         for i in range(int(len(self.neural_networks) * get_population_survival_rate(json_config))):
             self.neural_networks.pop()
-            if random.random() < 0.5:
-                random_nn = random.choice(self.neural_networks)
-                random_nn2 = random.choice(self.neural_networks)
-                if random_nn.fitness > random_nn2.fitness:
-                    self.neural_networks.remove(random_nn2)
-                else:
-                    self.neural_networks.remove(random_nn)
 
     def print(self):
         pass

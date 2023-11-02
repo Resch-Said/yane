@@ -19,7 +19,7 @@ def test_train_dataset():
         return fitness
 
     NeuralNetwork.custom_fitness = custom_fitness
-
+    
     nc.train_population()
     # nc.print()
 
