@@ -62,7 +62,7 @@ def get_mutation_random_weight(json_config):
 
 
 def get_population_size(json_config):
-    return json_config["population_size"]
+    return json_config["population_size_reference"]
 
 
 def get_population_survival_rate(json_config):
@@ -76,18 +76,19 @@ def create_default_json_config():
         # propagation. If false, yane will always execute forward propagation until the end.
         "allow_early_output": True,
         "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
-        "fire_rate": [1, 10],  # How often a neuron is allowed to fire before the next input. [min, max]
-        "weight_shift": [0.01, 0.1],  # How much the weight can change when optimizing. [min, max]
-        "mutation_random_weight": [-1, 1],  # The range of the random weight when mutating
+        "weight_shift": [0.01, 0.1],  # How much the weight can change shift in one direction. [min, max]
+        "mutation_random_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
         "mutation_connection_probability": 0.5,  # chance that a new connection is created
         "mutation_neuron_probability": 0.5,  # chance that a new neuron is created
         "mutation_weight_probability": 0.5,  # chance that a weight is mutated
-        "mutation_fire_rate_probability": 0.5,  # chance that a fire rate is mutated
         "mutation_activation_function_probability": 0.5,  # chance that an activation function is mutated
-        "population_size": 50,  # the amount of neural networks in the population
-        "population_survival_rate": 0.5,  # the amount of neural networks that survive
+        "population_size_reference": 100,  # The approximate amount of genomes in a population. May fluctuate.
+
+        # The factor that is multiplied with the net cost to calculate the fitness.
+        # If to high, the net cost will be prioritized over the fitness.
+        "net_cost_factor": 0.0001
     }
     with open('yane_config.json', 'w') as json_config_file:
         json.dump(json_config, json_config_file)
@@ -99,3 +100,7 @@ def load_json_config():
     with open('yane_config.json') as json_config_file:
         json_config = json.load(json_config_file)
     return json_config
+
+
+def get_net_cost_factor(yane_config):
+    return yane_config["net_cost_factor"]
