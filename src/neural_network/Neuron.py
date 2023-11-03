@@ -1,21 +1,55 @@
-import random
+from copy import deepcopy
 
-from src.neural_network.YaneConfig import get_fire_rate_min, get_fire_rate_max, get_random_activation_function, \
-    load_json_config
-
-json_config = load_json_config()
+from src.neural_network.ActivationFunction import ActivationFunction
 
 
 class Neuron:
-    def __init__(self, value=0.0, fire_rate=None, activation_function=None):
+    ID = 0
 
-        if fire_rate is None:
-            fire_rate = random.randint(get_fire_rate_min(json_config), get_fire_rate_max(json_config))
+    def __init__(self):
+        self.value = 0.0
+        self.bias = 1.0
+        self.next_connections = []
+        self.activation = ActivationFunction.SIGMOID
+        self.id = Neuron.ID
+        Neuron.ID += 1
 
-        if activation_function is None:
-            activation_function = get_random_activation_function(json_config)
+    def __str__(self):
+        return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Bias: " + str(
+            self.bias) + " Activation: " + str(self.activation)
 
+    def set_value(self, value):
         self.value = value
-        self.fire_rate_fixed = fire_rate
-        self.fire_rate_variable = fire_rate
-        self.activation_function = activation_function
+
+    def set_bias(self, bias):
+        self.bias = bias
+
+    def set_activation(self, activation):
+        self.activation = activation
+
+    def get_value(self):
+        return self.value
+
+    def get_bias(self):
+        return self.bias
+
+    def get_activation(self):
+        return self.activation
+
+    def get_next_connections(self):
+        return self.next_connections
+
+    def add_next_connection(self, connection):
+        self.next_connections.append(connection)
+
+    def activate(self):
+        self.value = ActivationFunction.activate(self.activation, self.value)
+
+    def reset(self):
+        self.value = 0.0
+
+    def get_id(self):
+        return self.id
+
+    def copy(self):
+        return deepcopy(self)
