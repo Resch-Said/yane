@@ -1,13 +1,47 @@
-from src.neural_network.Neuron import Neuron
+from copy import deepcopy
 
 
 class Connection:
-    deep_id = 0
+    ID = 0
 
-    def __init__(self, neuron_from: Neuron, neuron_to: Neuron, weight=1.0):
-        self.neuron_from = neuron_from
-        self.neuron_to = neuron_to
+    def __init__(self):
+        self.weight = 1.0
+        self.in_neuron = None
+        self.out_neuron = None
+        self.enabled = True
+        self.id = Connection.ID
+        Connection.ID += 1
+
+    def set_weight(self, weight):
         self.weight = weight
-        self.weight_shift_direction = True  # True = Up, False = Down
-        self.deep_id = Connection.deep_id  # For comparing connections between parent and child
-        Connection.deep_id += 1
+
+    def set_in_neuron(self, neuron):
+        self.in_neuron = neuron
+
+    def set_out_neuron(self, neuron):
+        self.out_neuron = neuron
+
+    def set_enabled(self, enabled):
+        self.enabled = enabled
+
+    def get_weight(self):
+        return self.weight
+
+    def get_in_neuron(self):
+        return self.in_neuron
+
+    def get_out_neuron(self):
+        return self.out_neuron
+
+    def is_enabled(self):
+        return self.enabled
+
+    def __str__(self):
+        return "Connection: " + str(self.id) + " from " + str(self.in_neuron.id) + " to " + str(
+            self.out_neuron.id) + " with weight " + str(self.weight) + " and enabled: " + str(self.enabled)
+
+    def get_id(self):
+        return self.id
+
+    def copy(self):
+        return deepcopy(self)
