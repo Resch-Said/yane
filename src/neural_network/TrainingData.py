@@ -1,16 +1,16 @@
 import json
 
 
-def get_input_data(pos):
-    return load_data()[pos]['input']
+def get_input_data(dataset, pos):
+    return dataset[pos]['input']
 
 
-def get_output_data(pos):
-    return load_data()[pos]['output']
+def get_output_data(dataset, pos):
+    return dataset[pos]['output']
 
 
-def get_data_size():
-    return len(load_data())
+def get_data_size(dataset):
+    return len(dataset)
 
 
 def load_data(file_path='dataset.json'):
