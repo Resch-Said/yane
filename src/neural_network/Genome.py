@@ -106,6 +106,17 @@ def crossover_connections(genome1, genome2) -> list:
     return connection_genes
 
 
+def combine_neuron_connection_genes(connection_genes, neuron_genes):
+    if connection_genes is not None and neuron_genes is not None:
+        for connection in connection_genes:
+            for neuron in neuron_genes:
+                if neuron.get_id() == connection.get_in_neuron().get_id():
+                    connection.set_in_neuron(neuron)
+                if neuron.get_id() == connection.get_out_neuron().get_id():
+                    connection.set_out_neuron(neuron)
+            add_connection(connection)
+
+
 class Genome:
     def __init__(self, neuron_genes=None, connection_genes=None):
         self.brain = NeuralNetwork()
@@ -117,14 +128,7 @@ class Genome:
                 self.add_neuron(neuron)
 
         # TODO: Make sure this works
-        if connection_genes is not None:
-            for connection in connection_genes:
-                for neuron in neuron_genes:
-                    if neuron.get_id() == connection.get_in_neuron().get_id():
-                        connection.set_in_neuron(neuron)
-                    if neuron.get_id() == connection.get_out_neuron().get_id():
-                        connection.set_out_neuron(neuron)
-                add_connection(connection)
+        combine_neuron_connection_genes(connection_genes, neuron_genes)
 
     @classmethod
     def crossover(cls, genome1, genome2) -> 'Genome':
