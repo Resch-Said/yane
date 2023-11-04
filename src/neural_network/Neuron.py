@@ -55,6 +55,8 @@ class Neuron:
         return deepcopy(self)
 
     def fire(self):
+        self.activate()
+
         for connection in self.next_connections:
             next_neuron: Neuron = connection.get_out_neuron()
             next_neuron.set_value(next_neuron.get_value() + self.value * connection.get_weight())
