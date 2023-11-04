@@ -33,98 +33,42 @@ class Genome:
 
     @classmethod
     def crossover_neurons(cls, genome1, genome2) -> list:
-        genome1_neuron_finished = False
-        genome2_neuron_finished = False
-        index_pointer_genome1 = 0
-        index_pointer_genome2 = 0
-        genome1_neuron_size = len(genome1.get_brain().get_all_neurons())
-        genome2_neuron_size = len(genome2.get_brain().get_all_neurons())
-        genome1_neurons = genome1.get_brain().get_all_neurons()
-        genome2_neurons = genome2.get_brain().get_all_neurons()
 
-        neuron_genes = []
+        neuron_genes1 = genome1.get_brain().get_all_neurons()
+        neuron_genes2 = genome2.get_brain().get_all_neurons()
 
-        while True:
+        return cls.crossover_genes(neuron_genes1, neuron_genes2)
 
-            if index_pointer_genome1 >= genome1_neuron_size:
-                genome1_neuron_finished = True
+    @classmethod
+    def crossover_genes(cls, gene1, gene2) -> list:
+        iter_gene1 = iter(gene1)
+        iter_gene2 = iter(gene2)
+        gene1_gene = next(iter_gene1, None)
+        gene2_gene = next(iter_gene2, None)
 
-            if index_pointer_genome2 >= genome2_neuron_size:
-                genome2_neuron_finished = True
+        new_genes = []
 
-            if genome1_neuron_finished and genome2_neuron_finished:
-                break
-
-            if genome1_neuron_finished:
-                neuron_genes.append(genome2_neurons[index_pointer_genome2].copy())
-                index_pointer_genome2 += 1
-            elif genome2_neuron_finished:
-                neuron_genes.append(genome1_neurons[index_pointer_genome1].copy())
-                index_pointer_genome1 += 1
-            elif genome1_neurons[index_pointer_genome1].get_id() == genome2_neurons[index_pointer_genome2].get_id():
+        while gene1_gene is not None and gene2_gene is not None:
+            if gene1_gene.get_id() == gene2_gene.get_id():
                 if random() < 0.5:
-                    neuron_genes.append(genome1_neurons[index_pointer_genome1].copy())
+                    new_genes.append(gene1_gene.copy())
                 else:
-                    neuron_genes.append(genome2_neurons[index_pointer_genome2].copy())
-                index_pointer_genome1 += 1
-                index_pointer_genome2 += 1
-            elif genome1_neurons[index_pointer_genome1].get_id() < genome2_neurons[index_pointer_genome2].get_id():
-                neuron_genes.append(genome1_neurons[index_pointer_genome1].copy())
-                index_pointer_genome1 += 1
-            elif genome1_neurons[index_pointer_genome1].get_id() > genome2_neurons[index_pointer_genome2].get_id():
-                neuron_genes.append(genome2_neurons[index_pointer_genome2].copy())
-                index_pointer_genome2 += 1
+                    new_genes.append(gene2_gene.copy())
 
-        return neuron_genes
+                gene1_gene = next(iter_gene1, None)
+                gene2_gene = next(iter_gene2, None)
+            elif gene1_gene.get_id() < gene2_gene.get_id():
+                new_genes.append(gene1_gene.copy())
+                gene1_gene = next(iter_gene1, None)
+            elif gene1_gene.get_id() > gene2_gene.get_id():
+                new_genes.append(gene2_gene.copy())
+                gene2_gene = next(iter_gene2, None)
+
+        return new_genes
 
     @classmethod
     def crossover_connections(cls, genome1, genome2) -> list:
-        index_pointer_genome1 = 0
-        index_pointer_genome2 = 0
-        genome1_connection_size = len(genome1.get_brain().get_all_connections())
-        genome2_connection_size = len(genome2.get_brain().get_all_connections())
-
-        genome1_connections = genome1.get_brain().get_all_connections()
-        genome2_connections = genome2.get_brain().get_all_connections()
-        genome1_connection_finished = False
-        genome2_connection_finished = False
-
-        connection_genes = []
-
-        while True:
-            if index_pointer_genome1 >= genome1_connection_size:
-                genome1_connection_finished = True
-
-            if index_pointer_genome2 >= genome2_connection_size:
-                genome2_connection_finished = True
-
-            if genome1_connection_finished and genome2_connection_finished:
-                break
-
-            if genome1_connection_finished:
-                connection_genes.append(genome2_connections[index_pointer_genome2].copy())
-                index_pointer_genome2 += 1
-            elif genome2_connection_finished:
-                connection_genes.append(genome1_connections[index_pointer_genome1].copy())
-                index_pointer_genome1 += 1
-            elif (genome1_connections[index_pointer_genome1].get_id() ==
-                  genome2_connections[index_pointer_genome2].get_id()):
-                if random() < 0.5:
-                    connection_genes.append(genome1_connections[index_pointer_genome1].copy())
-                else:
-                    connection_genes.append(genome2_connections[index_pointer_genome2].copy())
-                index_pointer_genome1 += 1
-                index_pointer_genome2 += 1
-            elif (genome1_connections[index_pointer_genome1].get_id() <
-                  genome2_connections[index_pointer_genome2].get_id()):
-                connection_genes.append(genome1_connections[index_pointer_genome1].copy())
-                index_pointer_genome1 += 1
-            elif (genome1_connections[index_pointer_genome1].get_id() >
-                  genome2_connections[index_pointer_genome2].get_id()):
-                connection_genes.append(genome2_connections[index_pointer_genome2].copy())
-                index_pointer_genome2 += 1
-
-        return connection_genes
+        return cls.crossover_genes(genome1, genome2)
 
     @classmethod
     def combine_neuron_connection_genes(cls, connection_genes, neuron_genes):
