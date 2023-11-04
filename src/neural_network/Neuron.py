@@ -36,7 +36,7 @@ class Neuron:
     def get_activation(self):
         return self.activation
 
-    def get_next_connections(self):
+    def get_next_connections(self) -> list:
         return self.next_connections
 
     def add_next_connection(self, connection):
@@ -58,3 +58,6 @@ class Neuron:
         for connection in self.next_connections:
             next_neuron: Neuron = connection.get_out_neuron()
             next_neuron.set_value(next_neuron.get_value() + self.value * connection.get_weight())
+
+    def set_connections(self, connections):
+        self.next_connections = connections

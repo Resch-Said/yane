@@ -7,6 +7,10 @@ from src.neural_network.OutputNeuron import OutputNeuron
 yane_config = YaneConfig.load_json_config()
 
 
+def add_connection(connection):
+    connection.get_in_neuron().add_next_connection(connection)
+
+
 class NeuralNetwork:
     def __init__(self):
         self.input_neurons = []
@@ -14,7 +18,8 @@ class NeuralNetwork:
         self.output_neurons = []
 
     def get_all_neurons(self):
-        return [neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons]
+        return sorted([neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons],
+                      key=lambda x: x.get_id())
 
     def add_input_neuron(self, neuron: InputNeuron):
         self.input_neurons.append(neuron)
@@ -48,6 +53,12 @@ class NeuralNetwork:
                 return neuron
 
         return None
+
+    def get_all_connections(self):
+        connections = []
+        for neuron in self.get_all_neurons():
+            connections += neuron.get_next_connections()
+        return sorted(list(set(connections)), key=lambda x: x.get_id())
 
     def remove_neuron(self, neuron):
         if neuron in self.input_neurons:
@@ -87,7 +98,7 @@ class NeuralNetwork:
             for neuron in self.output_neurons:
                 neuron.set_value(0.0)
 
-    def get_forward_order_list(self):
+    def get_forward_order_list(self) -> list:
         forward_order_list = [neuron for neuron in self.input_neurons]
 
         neuron: Neuron
@@ -133,3 +144,12 @@ class NeuralNetwork:
             net_cost += len(neuron.get_next_connections())
 
         return net_cost
+
+    def remove_all_connections(self):
+        for neuron in self.get_all_neurons():
+            neuron.next_connections = []
+
+    # TODO: implement this method
+    def mutate(self):
+        self.mutate_neurons()
+        self.mutate_connections()
