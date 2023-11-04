@@ -9,16 +9,16 @@ from src.neural_network.Population import Population
 yane_config = YaneConfig.load_json_config()
 
 
-def crossover(genome1, genome2) -> Genome:
-    return Genome.crossover(genome1, genome2)
-
-
 class NeuroEvolution:
     def __init__(self, output_neurons=1):
-        self.population = Population()
+        self.population = Population(output_neurons=output_neurons)
         self.evaluation_list = []
         self.ready_for_population_list = []
         self.finished = False
+
+    @classmethod
+    def crossover(cls, genome1, genome2) -> Genome:
+        return Genome.crossover(genome1, genome2)
 
     def get_population(self):
         return self.population
@@ -71,7 +71,7 @@ class NeuroEvolution:
             genome1 = self.get_random_genome()
             genome2 = self.get_random_genome()
 
-            child_genome = crossover(genome1, genome2)
+            child_genome = self.crossover(genome1, genome2)
             child_genome.mutate()
 
     def reduce_overpopulation_multiprocessing(self):

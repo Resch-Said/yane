@@ -6,8 +6,11 @@ from src.neural_network.OutputNeuron import OutputNeuron
 
 class Population:
 
-    def __init__(self):
+    def __init__(self, output_neurons=1):
         self.genomes = []
+        for i in range(output_neurons):
+            new_output_neuron: OutputNeuron = OutputNeuron()
+            self.add_output_neuron(new_output_neuron)
 
     def add_genome(self, genome):
         insort(self.genomes, genome, key=lambda x: x.get_fitness())
@@ -37,7 +40,7 @@ class Population:
         if len(self.genomes) <= 0:
             new_genome = Genome()
             self.add_genome(new_genome)
-
+            
         genome: Genome
         for genome in self.genomes:
             genome.add_output_neuron(neuron)
