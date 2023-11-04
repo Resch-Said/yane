@@ -48,7 +48,7 @@ class Genome:
 
         new_genes = []
 
-        while gene1_gene is not None and gene2_gene is not None:
+        while gene1_gene is not None or gene2_gene is not None:
             if gene1_gene.get_id() == gene2_gene.get_id():
                 if random() < 0.5:
                     new_genes.append(gene1_gene.copy())
