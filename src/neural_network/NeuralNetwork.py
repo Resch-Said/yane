@@ -1,6 +1,8 @@
 from src.neural_network import YaneConfig
+from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.Neuron import Neuron
+from src.neural_network.OutputNeuron import OutputNeuron
 
 yane_config = YaneConfig.load_json_config()
 
@@ -11,14 +13,25 @@ class NeuralNetwork:
         self.hidden_neurons = []
         self.output_neurons = []
 
-    def add_input_neuron(self, neuron):
+    def get_all_neurons(self):
+        return [neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons]
+
+    def add_input_neuron(self, neuron: InputNeuron):
         self.input_neurons.append(neuron)
 
-    def add_hidden_neuron(self, neuron):
+    def add_hidden_neuron(self, neuron: HiddenNeuron):
         self.hidden_neurons.append(neuron)
 
-    def add_output_neuron(self, neuron):
+    def add_output_neuron(self, neuron: OutputNeuron):
         self.output_neurons.append(neuron)
+
+    def add_neuron(self, neuron: Neuron):
+        if isinstance(neuron, InputNeuron):
+            self.add_input_neuron(neuron)
+        elif isinstance(neuron, HiddenNeuron):
+            self.add_hidden_neuron(neuron)
+        elif isinstance(neuron, OutputNeuron):
+            self.add_output_neuron(neuron)
 
     def get_input_neurons(self):
         return self.input_neurons
@@ -30,17 +43,10 @@ class NeuralNetwork:
         return self.output_neurons
 
     def get_neuron_by_id(self, neuron_id):
-        for neuron in self.input_neurons:
+        for neuron in self.get_all_neurons():
             if neuron.get_id() == neuron_id:
                 return neuron
 
-        for neuron in self.hidden_neurons:
-            if neuron.get_id() == neuron_id:
-                return neuron
-
-        for neuron in self.output_neurons:
-            if neuron.get_id() == neuron_id:
-                return neuron
         return None
 
     def remove_neuron(self, neuron):
@@ -67,6 +73,8 @@ class NeuralNetwork:
 
         for neuron in forward_order_list:
             neuron.fire()
+
+        return self.get_output_data()
 
     def clear_values(self):
         if YaneConfig.get_clear_on_new_input(yane_config):
@@ -100,19 +108,19 @@ class NeuralNetwork:
         return output_data
 
     def evaluate(self):
-        self.custom_evaluate()
+        self.custom_evaluation()
 
     # You need to override this method like this:
     # def custom_evaluate(self):
     #   Your code here to evaluate the neural network or in simple words, to calculate the fitness of the genome
+    #   remember to also call the method forward_propagation(self, data) to set the input data and calculate the output
     #   return fitness
     # NeuralNetwork.custom_evaluate = custom_evaluate
-    def custom_evaluate(self):
+    def custom_evaluation(self):
         raise Exception("You need to override the method custom_evaluate(self) in the class NeuralNetwork")
 
-    def get_net_cost(self):
+    def calculate_net_cost(self):
         net_cost = 0.0
-
         neuron: Neuron
 
         for neuron in self.input_neurons:
