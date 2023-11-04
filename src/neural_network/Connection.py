@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+from src.neural_network.Neuron import Neuron
+
 
 class Connection:
     ID = 0
@@ -27,21 +29,21 @@ class Connection:
     def get_weight(self):
         return self.weight
 
-    def get_in_neuron(self):
+    def get_in_neuron(self) -> Neuron:
         return self.in_neuron
 
-    def get_out_neuron(self):
+    def get_out_neuron(self) -> Neuron:
         return self.out_neuron
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return self.enabled
 
     def __str__(self):
         return "Connection: " + str(self.id) + " from " + str(self.in_neuron.id) + " to " + str(
             self.out_neuron.id) + " with weight " + str(self.weight) + " and enabled: " + str(self.enabled)
 
-    def get_id(self):
+    def get_id(self) -> int:
         return self.id
 
-    def copy(self):
+    def copy(self) -> 'Connection':
         return deepcopy(self)

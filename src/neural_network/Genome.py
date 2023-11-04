@@ -116,11 +116,15 @@ class Genome:
             for neuron in neuron_genes:
                 self.add_neuron(neuron)
 
-        # TODO: Make sure that the connections are added correctly because of deepcopy.
-        #  Otherwise, we will have to use the ID's to add the connections.
+        # TODO: Make sure this works
         if connection_genes is not None:
             for connection in connection_genes:
-                self.add_connection(connection)
+                for neuron in neuron_genes:
+                    if neuron.get_id() == connection.get_in_neuron().get_id():
+                        connection.set_in_neuron(neuron)
+                    if neuron.get_id() == connection.get_out_neuron().get_id():
+                        connection.set_out_neuron(neuron)
+                add_connection(connection)
 
     @classmethod
     def crossover(cls, genome1, genome2) -> 'Genome':
