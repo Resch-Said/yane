@@ -10,11 +10,11 @@ yane_config = YaneConfig.load_json_config()
 class Connection:
     ID = 0
 
-    def __init__(self):
-        self.weight = 1.0
-        self.in_neuron = None
-        self.out_neuron = None
-        self.enabled = True
+    def __init__(self, in_neuron: Neuron = None, out_neuron: Neuron = None, weight: float = 1.0, enabled: bool = True):
+        self.weight = weight
+        self.in_neuron = in_neuron
+        self.out_neuron = out_neuron
+        self.enabled = enabled
         self.id = Connection.ID
         Connection.ID += 1
 

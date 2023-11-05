@@ -9,6 +9,7 @@ from src.neural_network.Population import Population
 yane_config = YaneConfig.load_json_config()
 
 
+# TODO: Limit breeding (length of evaluation list) to half of max population size
 class NeuroEvolution:
     def __init__(self, output_neurons=1):
         self.population = Population(output_neurons=output_neurons)
@@ -67,6 +68,8 @@ class NeuroEvolution:
         # p_genome_evaluator -> Evaluation list/ready for population list
         # p_genome_integrator -> ready for population list/Population
 
+        # TODO: insert locks more deeply in the code instead of just in the top methods
+        #   Also use with lock: instead of lock.acquire() and lock.release()
         lock = threading.Lock()
 
         p_population_limiter = threading.Thread(target=self.reduce_overpopulation_multithreading, args=(lock,))

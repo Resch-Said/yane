@@ -72,3 +72,6 @@ class Neuron:
 
     def mutate_activation_function(self):
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
+
+    def remove_next_connection(self, con):
+        self.next_connections.remove(con)

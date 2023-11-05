@@ -57,9 +57,12 @@ def test_get_id():
     con = Connection()
     assert con.get_id() == 1
 
+    con2 = None
+
     for i in range(100):
-        con = Connection()
-    assert con.get_id() == 101
+        con2 = Connection()
+    assert con2.get_id() == 101
+    assert con.get_id() == 1
 
 
 def test_copy():

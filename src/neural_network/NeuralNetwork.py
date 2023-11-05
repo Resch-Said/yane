@@ -6,6 +6,8 @@ from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
+from src.neural_network.exceptions.InvalidNeuron import InvalidNeuron
+from src.neural_network.exceptions.InvalidNeuronTypeException import InvalidNeuronTypeException
 
 yane_config = YaneConfig.load_json_config()
 
@@ -20,26 +22,50 @@ class NeuralNetwork:
         return sorted([neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons],
                       key=lambda x: x.get_id())
 
-    @classmethod
-    def add_connection(cls, connection):
+    def add_connection(self, connection):
+        if self.get_all_neurons().__contains__(connection.get_in_neuron()) is False:
+            raise InvalidNeuron("Neuron in is not in the neural network")
+
+        if self.get_all_neurons().__contains__(connection.get_out_neuron()) is False:
+            raise InvalidNeuron("Neuron out is not in the neural network")
+
         connection.get_in_neuron().add_next_connection(connection)
 
     def add_input_neuron(self, neuron: InputNeuron):
+        if not isinstance(neuron, InputNeuron):
+            raise InvalidNeuronTypeException(
+                "Invalid neuron type. Can only add InputNeuron")
+
         self.input_neurons.append(neuron)
 
     def add_hidden_neuron(self, neuron: HiddenNeuron):
+        if not isinstance(neuron, HiddenNeuron):
+            raise InvalidNeuronTypeException(
+                "Invalid neuron type. Can only add HiddenNeuron")
+
         self.hidden_neurons.append(neuron)
 
     def add_output_neuron(self, neuron: OutputNeuron):
+        if not isinstance(neuron, OutputNeuron):
+            raise InvalidNeuronTypeException(
+                "Invalid neuron type. Can only add OutputNeuron")
+
         self.output_neurons.append(neuron)
 
     def add_neuron(self, neuron: Neuron):
+
+        if self.get_all_neurons().__contains__(neuron):
+            raise InvalidNeuron("Neuron already exists in the neural network")
+
         if isinstance(neuron, InputNeuron):
             self.add_input_neuron(neuron)
         elif isinstance(neuron, HiddenNeuron):
             self.add_hidden_neuron(neuron)
         elif isinstance(neuron, OutputNeuron):
             self.add_output_neuron(neuron)
+        else:
+            raise InvalidNeuronTypeException(
+                "Invalid neuron type. Can only add InputNeuron, HiddenNeuron or OutputNeuron")
 
     def get_input_neurons(self):
         return self.input_neurons
@@ -63,13 +89,18 @@ class NeuralNetwork:
             connections += neuron.get_next_connections()
         return sorted(list(set(connections)), key=lambda x: x.get_id())
 
-    def remove_neuron(self, neuron):
-        if neuron in self.input_neurons:
-            self.input_neurons.remove(neuron)
-        elif neuron in self.hidden_neurons:
-            self.hidden_neurons.remove(neuron)
-        elif neuron in self.output_neurons:
-            self.output_neurons.remove(neuron)
+    def remove_neuron(self, remove_neuron):
+        if remove_neuron in self.input_neurons:
+            self.input_neurons.remove(remove_neuron)
+        elif remove_neuron in self.hidden_neurons:
+            self.hidden_neurons.remove(remove_neuron)
+        elif remove_neuron in self.output_neurons:
+            self.output_neurons.remove(remove_neuron)
+
+        for neuron in self.get_all_neurons():
+            for con in neuron.get_next_connections():
+                if con.get_out_neuron() == remove_neuron:
+                    neuron.remove_next_connection(con)
 
     def set_input_data(self, data):
         while len(data) > len(self.input_neurons):
@@ -152,7 +183,6 @@ class NeuralNetwork:
         for neuron in self.get_all_neurons():
             neuron.next_connections = []
 
-    # TODO: implement this method
     def mutate(self):
         self.mutate_neuron_genes()
         self.mutate_connection_genes()
@@ -162,9 +192,7 @@ class NeuralNetwork:
 
         neuron: Neuron
         for neuron in neuron_genes:
-            if random.random() < YaneConfig.get_mutation_bias_probability(yane_config):
-                neuron.mutate_bias()
-            elif random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
+            if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
                 neuron.mutate_activation_function()
             elif random.random() < YaneConfig.get_mutation_neuron_probability(yane_config):
                 self.add_random_neuron()

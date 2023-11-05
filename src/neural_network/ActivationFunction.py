@@ -3,6 +3,7 @@ from enum import Enum
 import numpy as np
 
 from src.neural_network import YaneConfig
+from src.neural_network.exceptions.InvalidActivation import InvalidActivation
 
 yane_config = YaneConfig.load_json_config()
 
@@ -28,7 +29,7 @@ class ActivationFunction(str, Enum):
         elif name == "binary":
             return cls.BINARY
         else:
-            raise Exception("Activation function not found")
+            raise InvalidActivation("Activation function not found")
 
     @classmethod
     def activate(cls, activation_function, value):
@@ -63,7 +64,7 @@ class ActivationFunction(str, Enum):
 
     @classmethod
     def binary(cls, value):
-        if value > YaneConfig.get_binary_threshold(yane_config):
+        if value >= YaneConfig.get_binary_threshold(yane_config):
             return 1
         else:
             return 0
