@@ -3,7 +3,7 @@ from random import random
 
 from src.neural_network import YaneConfig
 from src.neural_network.HiddenNeuron import HiddenNeuron
-from src.neural_network.NeuralNetwork import NeuralNetwork, add_connection
+from src.neural_network.NeuralNetwork import NeuralNetwork
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
 
@@ -26,6 +26,7 @@ class Genome:
     @classmethod
     def crossover(cls, genome1, genome2) -> 'Genome':
         neuron_genes = cls.crossover_neurons(genome1, genome2)
+
         connection_genes = cls.crossover_connections(genome1, genome2)
 
         child_genome = Genome(neuron_genes, connection_genes)
@@ -43,32 +44,49 @@ class Genome:
     def crossover_genes(cls, gene1, gene2) -> list:
         iter_gene1 = iter(gene1)
         iter_gene2 = iter(gene2)
-        gene1_gene = next(iter_gene1, None)
-        gene2_gene = next(iter_gene2, None)
+        gene1 = next(iter_gene1, None)
+        gene2 = next(iter_gene2, None)
 
         new_genes = []
 
-        while gene1_gene is not None or gene2_gene is not None:
-            if gene1_gene.get_id() == gene2_gene.get_id():
-                if random() < 0.5:
-                    new_genes.append(gene1_gene.copy())
-                else:
-                    new_genes.append(gene2_gene.copy())
+        while gene1 is not None and gene2 is not None:
 
-                gene1_gene = next(iter_gene1, None)
-                gene2_gene = next(iter_gene2, None)
-            elif gene1_gene.get_id() < gene2_gene.get_id():
-                new_genes.append(gene1_gene.copy())
-                gene1_gene = next(iter_gene1, None)
-            elif gene1_gene.get_id() > gene2_gene.get_id():
-                new_genes.append(gene2_gene.copy())
-                gene2_gene = next(iter_gene2, None)
+            if gene1 is None:
+                new_genes.append(gene2.copy())
+                gene2 = next(iter_gene2, None)
+                continue
+            elif gene2 is None:
+                new_genes.append(gene1.copy())
+                gene1 = next(iter_gene1, None)
+                continue
+
+            if gene1.get_id() == gene2.get_id():
+                if random() < 0.5:
+                    new_genes.append(gene1.copy())
+                else:
+                    new_genes.append(gene2.copy())
+
+                gene1 = next(iter_gene1, None)
+                gene2 = next(iter_gene2, None)
+            elif gene1.get_id() < gene2.get_id():
+                new_genes.append(gene1.copy())
+                gene1 = next(iter_gene1, None)
+            elif gene1.get_id() > gene2.get_id():
+                new_genes.append(gene2.copy())
+                gene2 = next(iter_gene2, None)
 
         return new_genes
 
     @classmethod
     def crossover_connections(cls, genome1, genome2) -> list:
-        return cls.crossover_genes(genome1, genome2)
+
+        connection_genes1 = genome1.get_brain().get_all_connections()
+        connection_genes2 = genome2.get_brain().get_all_connections()
+
+        if len(connection_genes1) <= 0 or len(connection_genes2) <= 0:
+            return []
+
+        return cls.crossover_genes(connection_genes1, connection_genes2)
 
     @classmethod
     def combine_neuron_connection_genes(cls, connection_genes, neuron_genes):
@@ -79,7 +97,7 @@ class Genome:
                         connection.set_in_neuron(neuron)
                     if neuron.get_id() == connection.get_out_neuron().get_id():
                         connection.set_out_neuron(neuron)
-                add_connection(connection)
+                NeuralNetwork.add_connection(connection)
 
     def get_brain(self):
         return self.brain
@@ -98,8 +116,11 @@ class Genome:
 
     def evaluate(self):
         self.set_net_cost(self.get_brain().calculate_net_cost())
-        self.set_fitness(
-            self.get_brain().evaluate() - self.get_net_cost() * YaneConfig.get_net_cost_factor(yane_config))
+
+        fitness_result = self.get_brain().evaluate()
+        net_cost = self.get_net_cost()
+
+        self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
         return self.get_fitness()
 
     def copy(self):
@@ -119,3 +140,7 @@ class Genome:
 
     def mutate(self):
         self.brain.mutate()
+
+    def print(self):
+        print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()))
+        self.brain.print()
