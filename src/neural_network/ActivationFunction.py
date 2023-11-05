@@ -7,7 +7,7 @@ from src.neural_network import YaneConfig
 yane_config = YaneConfig.load_json_config()
 
 
-class ActivationFunction(Enum, str):
+class ActivationFunction(str, Enum):
     LINEAR = "linear"
     SIGMOID = "sigmoid"
     TANH = "tanh"
@@ -16,6 +16,7 @@ class ActivationFunction(Enum, str):
 
     @classmethod
     def get_function(cls, name):
+        name = name.lower()
         if name == "linear":
             return cls.LINEAR
         elif name == "sigmoid":
