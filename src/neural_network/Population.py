@@ -14,6 +14,7 @@ class Population:
 
     def add_genome(self, genome):
         insort(self.genomes, genome, key=lambda x: x.get_fitness())
+        self.sort()
 
     def pop_genome(self):
         self.genomes.pop()
@@ -39,8 +40,9 @@ class Population:
     def add_output_neuron(self, neuron: OutputNeuron):
         if len(self.genomes) <= 0:
             new_genome = Genome()
+            new_genome.add_output_neuron(neuron)
+            new_genome.evaluate()
             self.add_genome(new_genome)
-            
-        genome: Genome
-        for genome in self.genomes:
-            genome.add_output_neuron(neuron)
+        else:
+            for genome in self.genomes:
+                genome.add_output_neuron(neuron)
