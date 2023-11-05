@@ -1,4 +1,7 @@
+import random
+
 from src.neural_network import YaneConfig
+from src.neural_network.Connection import Connection
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.Neuron import Neuron
@@ -7,19 +10,19 @@ from src.neural_network.OutputNeuron import OutputNeuron
 yane_config = YaneConfig.load_json_config()
 
 
-def add_connection(connection):
-    connection.get_in_neuron().add_next_connection(connection)
-
-
 class NeuralNetwork:
     def __init__(self):
         self.input_neurons = []
         self.hidden_neurons = []
         self.output_neurons = []
 
-    def get_all_neurons(self):
+    def get_all_neurons(self) -> list:
         return sorted([neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons],
                       key=lambda x: x.get_id())
+
+    @classmethod
+    def add_connection(cls, connection):
+        connection.get_in_neuron().add_next_connection(connection)
 
     def add_input_neuron(self, neuron: InputNeuron):
         self.input_neurons.append(neuron)
@@ -119,7 +122,7 @@ class NeuralNetwork:
         return output_data
 
     def evaluate(self):
-        self.custom_evaluation()
+        return self.custom_evaluation()
 
     # You need to override this method like this:
     # def custom_evaluate(self):
@@ -151,5 +154,101 @@ class NeuralNetwork:
 
     # TODO: implement this method
     def mutate(self):
-        self.mutate_neurons()
-        self.mutate_connections()
+        self.mutate_neuron_genes()
+        self.mutate_connection_genes()
+
+    def mutate_neuron_genes(self):
+        neuron_genes = self.get_all_neurons()
+
+        neuron: Neuron
+        for neuron in neuron_genes:
+            if random.random() < YaneConfig.get_mutation_bias_probability(yane_config):
+                neuron.mutate_bias()
+            elif random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
+                neuron.mutate_activation_function()
+            elif random.random() < YaneConfig.get_mutation_neuron_probability(yane_config):
+                self.add_random_neuron()
+
+    def mutate_connection_genes(self):
+        connection_genes = self.get_all_connections()
+
+        if len(connection_genes) <= 0:
+            self.add_random_connection()
+
+        connection: Connection
+        for connection in connection_genes:
+            if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
+                connection.mutate_weight()
+            elif random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
+                connection.mutate_enabled()
+            elif random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
+                connection.mutate_weight_shift()
+            elif random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
+                self.add_random_connection()
+
+    def add_random_connection(self):
+        random_neuron_in: Neuron = self.get_random_neuron()
+        random_neuron_out: Neuron = self.get_random_neuron()
+
+        if random_neuron_in.get_next_connections().__contains__(random_neuron_out):
+            return
+
+        if random_neuron_in is None or random_neuron_out is None:
+            raise Exception("Neuron in or neuron out is None")
+
+        connection = Connection()
+        connection.set_in_neuron(random_neuron_in)
+        connection.set_out_neuron(random_neuron_out)
+        connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
+        NeuralNetwork.add_connection(connection)
+
+    def get_random_neuron(self):
+        neurons = self.get_all_neurons()
+
+        if len(neurons) > 0:
+            return random.choice(neurons)
+        else:
+            return None
+
+    def add_random_neuron(self):
+        if len(self.get_all_connections()) == 0:
+            return
+
+        connection = random.choice(self.get_all_connections())
+        neuron_in: Neuron = connection.get_in_neuron()
+        neuron_out: Neuron = connection.get_out_neuron()
+
+        if neuron_in is None or neuron_out is None:
+            raise Exception("Neuron in or neuron out is None")
+
+        new_neuron = HiddenNeuron()
+        new_connection = Connection()
+
+        # A ---> B
+        # A ---> C
+        # A ---> B ---> C
+
+        new_connection.set_in_neuron(neuron_in)
+        new_connection.set_out_neuron(new_neuron)
+        connection.set_in_neuron(new_neuron)
+
+        new_connection.set_weight(1.0)
+
+        NeuralNetwork.add_connection(new_connection)
+        neuron_in.get_next_connections().remove(connection)
+
+    def print(self):
+        print("Neural Network:")
+        print("Input Neurons:")
+        for neuron in self.input_neurons:
+            print(neuron)
+        print("Hidden Neurons:")
+        for neuron in self.hidden_neurons:
+            print(neuron)
+        print("Output Neurons:")
+        for neuron in self.output_neurons:
+            print(neuron)
+        print("Connections:")
+        for connection in self.get_all_connections():
+            print(connection)
+        print("End of Neural Network")
