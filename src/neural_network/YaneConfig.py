@@ -11,18 +11,6 @@ def get_clear_on_new_input(json_config):
     return json_config["clear_on_new_input"]
 
 
-def get_fire_rate_max(json_config):
-    return json_config["fire_rate"][1]
-
-
-def get_fire_rate_min(json_config):
-    return json_config["fire_rate"][0]
-
-
-def get_random_fire_rate(json_config):
-    return random.randint(json_config["fire_rate"][0], json_config["fire_rate"][1])
-
-
 def get_random_weight_shift(json_config):
     weight_shift = random.uniform(json_config["weight_shift"][0], json_config["weight_shift"][1])
     return weight_shift
@@ -48,17 +36,20 @@ def get_mutation_weight_probability(json_config):
     return json_config["mutation_weight_probability"]
 
 
-def get_mutation_fire_rate_probability(json_config):
-    return json_config["mutation_fire_rate_probability"]
-
-
 def get_mutation_activation_function_probability(json_config):
     return json_config["mutation_activation_function_probability"]
 
 
-def get_mutation_random_weight(json_config):
-    return random.uniform(json_config["mutation_random_weight"][0],
-                          json_config["mutation_random_weight"][1])
+def get_random_mutation_weight(json_config):
+    return random.uniform(get_mutation_weight_min(json_config), get_mutation_weight_max(json_config))
+
+
+def get_mutation_weight_min(json_config):
+    return json_config["mutation_weight"][0]
+
+
+def get_mutation_weight_max(json_config):
+    return json_config["mutation_weight"][1]
 
 
 def get_population_size(json_config):
@@ -73,6 +64,14 @@ def get_mutation_shift_probability(json_config):
     return json_config["mutation_shift_probability"]
 
 
+def get_mutation_bias_shift(json_config):
+    return random.uniform(json_config["bias_shift"][0], json_config["bias_shift"][1])
+
+
+def get_mutation_enabled_probability(json_config):
+    return json_config["mutation_enabled_probability"]
+
+
 def create_default_json_config():
     json_config = {
         # if true, yane can cancel forward propagation if it thinks the output is already good enough. Might increase
@@ -81,7 +80,8 @@ def create_default_json_config():
         "allow_early_output": True,
         "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
         "weight_shift": [0.1, 0.1],  # How much the weight can change shift in one direction. [min, max]
-        "mutation_random_weight": [-2, 2],  # The range of the random weight when mutating
+        "bias_shift": [0.1, 0.1],  # How much the bias can change shift in one direction. [min, max]
+        "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
         "mutation_connection_probability": 0.1,  # chance that a new connection is created
@@ -90,6 +90,7 @@ def create_default_json_config():
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         "mutation_shift_probability": 0.1,  # chance that a weight is shifted
         "mutation_activation_function_probability": 0.1,  # chance that an activation function is mutated
+        "mutation_enabled_probability": 0.1,  # chance that a connection is enabled/disabled
         "population_size_reference": 100,  # The approximate amount of genomes in a population. May fluctuate.
 
         # The factor that is multiplied with the net cost to calculate the fitness.
