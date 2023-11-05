@@ -1,6 +1,10 @@
+import random
 from copy import deepcopy
 
+from src.neural_network import YaneConfig
 from src.neural_network.Neuron import Neuron
+
+yane_config = YaneConfig.load_json_config()
 
 
 class Connection:
@@ -47,3 +51,20 @@ class Connection:
 
     def copy(self) -> 'Connection':
         return deepcopy(self)
+
+    def mutate_weight(self):
+        self.weight = YaneConfig.get_random_mutation_weight(yane_config)
+
+    def mutate_enabled(self):
+        self.enabled = not self.enabled
+
+    def mutate_weight_shift(self):
+        if random.random() < 0.5:
+            self.weight += YaneConfig.get_random_weight_shift(yane_config)
+        else:
+            self.weight -= YaneConfig.get_random_weight_shift(yane_config)
+
+        if self.weight < YaneConfig.get_mutation_weight_min(yane_config):
+            self.weight = YaneConfig.get_mutation_weight_min(yane_config)
+        elif self.weight > YaneConfig.get_mutation_weight_max(yane_config):
+            self.weight = YaneConfig.get_mutation_weight_max(yane_config)
