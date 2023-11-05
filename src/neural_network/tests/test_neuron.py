@@ -202,3 +202,22 @@ def test_input_neuron():
 
     with pytest.raises(Exception):
         neuron.set_activation(ActivationFunction.SIGMOID)
+
+
+def test_wrong_connection():
+    neuron = Neuron()
+    neuron2 = Neuron()
+    connection = Connection(neuron2, neuron)
+    with pytest.raises(InvalidConnection):
+        neuron.add_next_connection(connection)
+
+
+def test_remove_connection():
+    neuron = Neuron()
+    neuron2 = Neuron()
+    connection = Connection(neuron, neuron2)
+    neuron.add_next_connection(connection)
+
+    assert connection in neuron.get_next_connections()
+    neuron.remove_next_connection(connection)
+    assert connection not in neuron.get_next_connections()
