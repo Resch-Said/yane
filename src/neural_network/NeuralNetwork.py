@@ -18,6 +18,10 @@ class NeuralNetwork:
         self.hidden_neurons = []
         self.output_neurons = []
 
+        bias_neuron = InputNeuron()
+        bias_neuron.set_value(1.0)
+        self.add_input_neuron(bias_neuron)
+
     def get_all_neurons(self) -> list:
         return sorted([neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons],
                       key=lambda x: x.get_id())
@@ -103,16 +107,20 @@ class NeuralNetwork:
                     neuron.remove_next_connection(con)
 
     def set_input_data(self, data):
-        while len(data) > len(self.input_neurons):
+        while len(data) > len(self.input_neurons) - 1:
             new_neuron = InputNeuron()
             self.add_input_neuron(new_neuron)
 
         for i, v in enumerate(data):
-            self.input_neurons[i].set_value(v)
+            self.input_neurons[i + 1].set_value(v)
+        for i in range(len(data), len(self.input_neurons) - 1):
+            self.input_neurons[i + 1].set_value(0.0)
 
-    def forward_propagation(self, data):
-        self.clear_values()
-        self.set_input_data(data)
+    def forward_propagation(self, data=None):
+        self.clear_output()
+
+        if data is not None:
+            self.set_input_data(data)
 
         forward_order_list = self.get_forward_order_list()
 
@@ -122,18 +130,19 @@ class NeuralNetwork:
         return self.get_output_data()
 
     def clear_values(self):
-        if YaneConfig.get_clear_on_new_input(yane_config):
-            for neuron in self.input_neurons:
-                neuron.set_value(0.0)
+        for neuron in self.hidden_neurons:
+            neuron.set_value(0.0)
 
-            for neuron in self.hidden_neurons:
-                neuron.set_value(0.0)
-
-            for neuron in self.output_neurons:
-                neuron.set_value(0.0)
+        for neuron in self.output_neurons:
+            neuron.set_value(0.0)
 
     def get_forward_order_list(self) -> list:
-        forward_order_list = [neuron for neuron in self.input_neurons]
+
+        forward_order_list = []
+
+        for neuron in self.get_input_neurons():
+            if len(neuron.get_next_connections()) > 0:
+                forward_order_list.append(neuron)
 
         neuron: Neuron
 
@@ -280,3 +289,15 @@ class NeuralNetwork:
         for connection in self.get_all_connections():
             print(connection)
         print("End of Neural Network")
+
+    def get_input_data(self):
+        input_data = []
+
+        for neuron in self.input_neurons:
+            input_data.append(neuron.get_value())
+
+        return input_data
+
+    def clear_output(self):
+        for neuron in self.output_neurons:
+            neuron.set_value(0.0)
