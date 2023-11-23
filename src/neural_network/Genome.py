@@ -123,6 +123,7 @@ class Genome:
         fitness_result = callback_evaluator(self)
         net_cost = self.get_net_cost()
 
+        # TODO: Remove netcost as soon as fitness prioritization is implemented
         self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
         return self.get_fitness()
 
@@ -147,3 +148,6 @@ class Genome:
     def print(self):
         print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()))
         self.brain.print()
+
+    def get_neurons(self):
+        return self.brain.get_all_neurons()
