@@ -555,6 +555,7 @@ def test_add_random_neuron():
     assert input1.next_connections[0].get_out_neuron() == new_neuron
     assert new_neuron.next_connections[0].get_in_neuron() == new_neuron
     assert new_neuron.next_connections[0].get_out_neuron() == out1
+    assert input1.next_connections[0].get_weight() == 1.0
 
     assert len(nn.get_all_connections()) == 2
 
