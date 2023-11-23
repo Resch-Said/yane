@@ -18,6 +18,7 @@ class NeuralNetwork:
         self.input_neurons = []
         self.hidden_neurons = []
         self.output_neurons = []
+        self.forward_order_list = None
 
         bias_neuron = InputNeuron()
         bias_neuron.set_value(1.0)
@@ -123,9 +124,10 @@ class NeuralNetwork:
         if data is not None:
             self.set_input_data(data)
 
-        forward_order_list = self.get_forward_order_list()
+        if self.forward_order_list is None:
+            self.forward_order_list = self.get_forward_order_list()
 
-        for neuron in forward_order_list:
+        for neuron in self.forward_order_list:
             neuron.fire()
 
         return self.get_output_data()
