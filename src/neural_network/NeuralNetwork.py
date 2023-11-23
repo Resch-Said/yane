@@ -224,33 +224,31 @@ class NeuralNetwork:
         else:
             return None
 
-    # Fix neuron out not in network
     def add_random_neuron(self):
         if len(self.get_all_connections()) == 0:
             return
 
         connection = random.choice(self.get_all_connections())
         neuron_in: Neuron = connection.get_in_neuron()
-        neuron_out: Neuron = connection.get_out_neuron()
-
-        if neuron_in is None or neuron_out is None:
-            raise Exception("Neuron in or neuron out is None")
 
         new_neuron = HiddenNeuron()
         new_connection = Connection()
 
-        # A ---> B
+        self.add_neuron(new_neuron)
+
         # A ---> C
         # A ---> B ---> C
 
         new_connection.set_in_neuron(neuron_in)
         new_connection.set_out_neuron(new_neuron)
         connection.set_in_neuron(new_neuron)
-
+        neuron_in.remove_next_connection(connection)
+        new_neuron.add_next_connection(connection)
         new_connection.set_weight(1.0)
 
         self.add_connection(new_connection)
-        neuron_in.get_next_connections().remove(connection)
+
+        return new_neuron
 
     def print(self):
         print("Neural Network:")

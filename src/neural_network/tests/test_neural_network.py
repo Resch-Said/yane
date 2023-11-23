@@ -544,9 +544,22 @@ def test_add_random_neuron():
     out1 = OutputNeuron()
     nn.add_neuron(input1)
     nn.add_neuron(out1)
-    nn.add_random_connection()
 
-    nn.add_random_neuron()
+    nn.add_connection(Connection(input1, out1))
+
+    assert len(nn.get_all_connections()) == 1
+
+    new_neuron = nn.add_random_neuron()
+
+    assert input1.next_connections[0].get_in_neuron() == input1
+    assert input1.next_connections[0].get_out_neuron() == new_neuron
+    assert new_neuron.next_connections[0].get_in_neuron() == new_neuron
+    assert new_neuron.next_connections[0].get_out_neuron() == out1
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.print()
+
     assert len(nn.get_all_neurons()) == 4
     assert len(nn.get_input_neurons()) == 2
     assert len(nn.get_hidden_neurons()) == 1
