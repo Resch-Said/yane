@@ -6,6 +6,7 @@ from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
+from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 from src.neural_network.exceptions.InvalidNeuron import InvalidNeuron
 from src.neural_network.exceptions.InvalidNeuronTypeException import InvalidNeuronTypeException
 
@@ -161,31 +162,9 @@ class NeuralNetwork:
 
         return output_data
 
-    def evaluate(self):
-        return self.custom_evaluation()
-
-    # You need to override this method like this:
-    # def custom_evaluate(self):
-    #   Your code here to evaluate the neural network or in simple words, to calculate the fitness of the genome
-    #   remember to also call the method forward_propagation(self, data) to set the input data and calculate the output
-    #   return fitness
-    # NeuralNetwork.custom_evaluate = custom_evaluate
-    def custom_evaluation(self):
-        raise Exception("You need to override the method custom_evaluate(self) in the class NeuralNetwork")
-
     def calculate_net_cost(self):
-        net_cost = 0.0
-        neuron: Neuron
-
-        for neuron in self.input_neurons:
-            net_cost += len(neuron.get_next_connections())
-
-        for neuron in self.hidden_neurons:
-            net_cost += len(neuron.get_next_connections())
-
-        for neuron in self.output_neurons:
-            net_cost += len(neuron.get_next_connections())
-
+        net_cost = len(self.get_all_connections())
+        net_cost += len(self.get_all_neurons())
         return net_cost
 
     def remove_all_connections(self):
@@ -227,17 +206,15 @@ class NeuralNetwork:
         random_neuron_in: Neuron = self.get_random_neuron()
         random_neuron_out: Neuron = self.get_random_neuron()
 
-        if random_neuron_in.get_next_connections().__contains__(random_neuron_out):
-            return
-
-        if random_neuron_in is None or random_neuron_out is None:
-            raise Exception("Neuron in or neuron out is None")
-
         connection = Connection()
         connection.set_in_neuron(random_neuron_in)
         connection.set_out_neuron(random_neuron_out)
         connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
-        NeuralNetwork.add_connection(connection)
+
+        try:
+            self.add_connection(connection)
+        except InvalidConnection:
+            print("Couldn't add random connection. Probably because it already exists")
 
     def get_random_neuron(self):
         neurons = self.get_all_neurons()
@@ -247,6 +224,7 @@ class NeuralNetwork:
         else:
             return None
 
+    # Fix neuron out not in network
     def add_random_neuron(self):
         if len(self.get_all_connections()) == 0:
             return
@@ -271,7 +249,7 @@ class NeuralNetwork:
 
         new_connection.set_weight(1.0)
 
-        NeuralNetwork.add_connection(new_connection)
+        self.add_connection(new_connection)
         neuron_in.get_next_connections().remove(connection)
 
     def print(self):

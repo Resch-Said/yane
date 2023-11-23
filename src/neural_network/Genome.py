@@ -114,10 +114,13 @@ class Genome:
     def set_net_cost(self, net_cost):
         self.net_cost = net_cost
 
-    def evaluate(self):
+    # callback_evaluator is a function that takes a genome as a parameter and returns a fitness value
+    # This function is used to evaluate the fitness of a genome
+    # You have to implement this function yourself since it is specific to your problem
+    def evaluate(self, callback_evaluator):
         self.set_net_cost(self.get_brain().calculate_net_cost())
 
-        fitness_result = self.get_brain().evaluate()
+        fitness_result = callback_evaluator(self)
         net_cost = self.get_net_cost()
 
         self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
