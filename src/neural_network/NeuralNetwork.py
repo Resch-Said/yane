@@ -20,10 +20,6 @@ class NeuralNetwork:
         self.output_neurons = []
         self.forward_order_list = None
 
-        bias_neuron = InputNeuron()
-        bias_neuron.set_value(1.0)
-        self.add_input_neuron(bias_neuron)
-
     def get_all_neurons(self) -> list:
         return sorted([neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons],
                       key=lambda x: x.get_id())
@@ -109,14 +105,14 @@ class NeuralNetwork:
                     neuron.remove_next_connection(con)
 
     def set_input_data(self, data):
-        while len(data) > len(self.input_neurons) - 1:
+        while len(data) > len(self.input_neurons):
             new_neuron = InputNeuron()
             self.add_input_neuron(new_neuron)
 
         for i, v in enumerate(data):
-            self.input_neurons[i + 1].set_value(v)
-        for i in range(len(data), len(self.input_neurons) - 1):
-            self.input_neurons[i + 1].set_value(0.0)
+            self.input_neurons[i].set_value(v)
+        for i in range(len(data), len(self.input_neurons)):
+            self.input_neurons[i].set_value(0.0)
 
     def forward_propagation(self, data=None):
         self.clear_output()

@@ -20,8 +20,8 @@ def test_get_all_neurons():
     nn.add_neuron(OutputNeuron())
     nn.add_neuron(OutputNeuron())
 
-    assert len(nn.get_all_neurons()) == 7
-    assert len(nn.get_input_neurons()) == 3
+    assert len(nn.get_all_neurons()) == 6
+    assert len(nn.get_input_neurons()) == 2
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 3
 
@@ -36,7 +36,7 @@ def test_get_all_neurons():
 
 def test_add_connection():
     nn = NeuralNetwork()
-    assert len(nn.get_all_neurons()) == 1  # Bias neuron is added by default
+    assert len(nn.get_all_neurons()) == 0
 
     with pytest.raises(Exception):  # Raise because connection is empty
         nn.add_connection(Connection())
@@ -63,61 +63,61 @@ def test_add_connection():
 
 def test_add_input_neuron():
     nn = NeuralNetwork()
-    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 0
 
     nn.add_input_neuron(InputNeuron())
-    assert len(nn.get_all_neurons()) == 2
-    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 1
 
 
 def test_add_hidden_neuron():
     nn = NeuralNetwork()
-    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 0
 
     nn.add_hidden_neuron(HiddenNeuron())
-    assert len(nn.get_all_neurons()) == 2
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 1
 
 
 def test_add_output_neuron():
     nn = NeuralNetwork()
-    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 0
 
     nn.add_output_neuron(OutputNeuron())
-    assert len(nn.get_all_neurons()) == 2
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 1
 
 
 def test_add_neuron():
     nn = NeuralNetwork()
-    assert len(nn.get_all_neurons()) == 1
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 0
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 0
 
     new_neuron = InputNeuron()
 
     nn.add_neuron(InputNeuron())
-    assert len(nn.get_all_neurons()) == 2
-    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 1
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 0
 
     nn.add_neuron(InputNeuron())
-    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_all_neurons()) == 2
 
     nn.add_hidden_neuron(HiddenNeuron())
-    assert len(nn.get_all_neurons()) == 4
-    assert len(nn.get_input_neurons()) == 3
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 2
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 0
 
     nn.add_neuron(OutputNeuron())
-    assert len(nn.get_all_neurons()) == 5
-    assert len(nn.get_input_neurons()) == 3
+    assert len(nn.get_all_neurons()) == 4
+    assert len(nn.get_input_neurons()) == 2
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 1
 
@@ -128,8 +128,8 @@ def test_add_neuron():
         nn.add_input_neuron(Neuron())
 
     nn.add_input_neuron(InputNeuron())
-    assert len(nn.get_all_neurons()) == 6
-    assert len(nn.get_input_neurons()) == 4
+    assert len(nn.get_all_neurons()) == 5
+    assert len(nn.get_input_neurons()) == 3
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 1
 
@@ -142,8 +142,8 @@ def test_add_neuron():
     with pytest.raises(Exception):
         nn.add_output_neuron(Neuron())
 
-    assert len(nn.get_all_neurons()) == 8
-    assert len(nn.get_input_neurons()) == 4
+    assert len(nn.get_all_neurons()) == 7
+    assert len(nn.get_input_neurons()) == 3
     assert len(nn.get_hidden_neurons()) == 2
     assert len(nn.get_output_neurons()) == 2
 
@@ -167,9 +167,9 @@ def test_get_input_neurons():
     nn.add_input_neuron(neuron)
     nn.add_input_neuron(neuron2)
 
-    assert len(nn.get_input_neurons()) == 3  # 2 input neurons + 1 bias neuron
-    assert nn.get_input_neurons()[1].get_id() == neuron.get_id()
-    assert nn.get_input_neurons()[2].get_id() == neuron2.get_id()
+    assert len(nn.get_input_neurons()) == 2
+    assert nn.get_input_neurons()[0].get_id() == neuron.get_id()
+    assert nn.get_input_neurons()[1].get_id() == neuron2.get_id()
 
 
 def test_get_hidden_neurons():
@@ -257,26 +257,26 @@ def test_remove_neuron():
     nn.add_neuron(neuron2)
     nn.add_neuron(neuron3)
 
-    assert len(nn.get_all_neurons()) == 4
-    assert len(nn.get_input_neurons()) == 2
-    assert len(nn.get_hidden_neurons()) == 1
-    assert len(nn.get_output_neurons()) == 1
-
-    nn.remove_neuron(neuron)
     assert len(nn.get_all_neurons()) == 3
     assert len(nn.get_input_neurons()) == 1
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 1
 
-    nn.remove_neuron(neuron2)
+    nn.remove_neuron(neuron)
     assert len(nn.get_all_neurons()) == 2
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1
+
+    nn.remove_neuron(neuron2)
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 1
 
     nn.remove_neuron(neuron3)
-    assert len(nn.get_all_neurons()) == 1
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 0
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 0
 
@@ -290,8 +290,8 @@ def test_remove_neuron_with_connections():
     nn.add_neuron(neuron2)
     nn.add_neuron(neuron3)
 
-    assert len(nn.get_all_neurons()) == 4
-    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 1
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 1
 
@@ -302,12 +302,12 @@ def test_remove_neuron_with_connections():
     assert len(nn.get_all_connections()) == 3
 
     nn.remove_neuron(neuron2)
-    assert len(nn.get_all_neurons()) == 3
-    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_all_neurons()) == 2
+    assert len(nn.get_input_neurons()) == 1
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 1
 
-    assert len(nn.get_all_connections()) == 1  # 2 connections removed because neuron 2 had 2 connections
+    assert len(nn.get_all_connections()) == 1
 
     # Check if all associations to neuron2 are removed
     for neuron in nn.get_all_neurons():
@@ -316,16 +316,16 @@ def test_remove_neuron_with_connections():
             assert con.get_out_neuron() != neuron2
 
     nn.remove_neuron(neuron1)
-    assert len(nn.get_all_neurons()) == 2
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 1
 
     assert len(nn.get_all_connections()) == 0
 
     nn.remove_neuron(neuron3)
-    assert len(nn.get_all_neurons()) == 1
-    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_all_neurons()) == 0
+    assert len(nn.get_input_neurons()) == 0
     assert len(nn.get_hidden_neurons()) == 0
     assert len(nn.get_output_neurons()) == 0
 
@@ -335,18 +335,18 @@ def test_remove_neuron_with_connections():
 def test_set_input_data():
     nn = NeuralNetwork()
     nn.set_input_data([2, 3, 4])
-    assert nn.get_input_data() == [1, 2, 3, 4]
-    assert len(nn.get_input_neurons()) == 4  # 3 input neurons + 1 bias neuron
+    assert nn.get_input_data() == [2, 3, 4]
+    assert len(nn.get_input_neurons()) == 3
 
     nn.set_input_data([0, 4, 6])
-    assert nn.get_input_data() == [1, 0, 4, 6]
-    assert len(nn.get_input_neurons()) == 4  # 3 input neurons + 1 bias neuron
+    assert nn.get_input_data() == [0, 4, 6]
+    assert len(nn.get_input_neurons()) == 3
     nn.set_input_data([1])
-    assert nn.get_input_data() == [1, 1, 0, 0]
+    assert nn.get_input_data() == [1, 0, 0]
     nn.set_input_data([1, 2, 1, 2, 5])
-    assert nn.get_input_data() == [1, 1, 2, 1, 2, 5]
+    assert nn.get_input_data() == [1, 2, 1, 2, 5]
     nn.set_input_data([])
-    assert nn.get_input_data() == [1, 0, 0, 0, 0, 0]
+    assert nn.get_input_data() == [0, 0, 0, 0, 0]
 
 
 def test_forward_propagation():
@@ -378,7 +378,7 @@ def test_forward_propagation():
     nn.forward_propagation()
     assert nn.get_output_data() == expected_output
     assert nn.get_output_data() == expected_output
-    assert nn.get_input_data() == [1, 1, 2]
+    assert nn.get_input_data() == [1, 2]
 
 
 def test_forward_propagation_recurrent_connection():
@@ -422,7 +422,7 @@ def test_forward_propagation_recurrent_connection():
 
     assert nn.get_output_data() == expected_output
     assert nn.get_output_data() == expected_output
-    assert nn.get_input_data() == [1, 1, 2]
+    assert nn.get_input_data() == [1, 2]
 
 
 def test_get_forward_order_list():
@@ -467,7 +467,7 @@ def test_calculate_net_cost():
     nn.add_connection(Connection(hidden1, out1))
     nn.add_connection(Connection(out1, hidden1))
 
-    assert nn.calculate_net_cost() == 10
+    assert nn.calculate_net_cost() == 9
 
 
 def test_remove_all_connections():
@@ -561,7 +561,7 @@ def test_add_random_neuron():
 
     nn.print()
 
-    assert len(nn.get_all_neurons()) == 4
-    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 1
     assert len(nn.get_hidden_neurons()) == 1
     assert len(nn.get_output_neurons()) == 1
