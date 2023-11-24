@@ -26,6 +26,11 @@ class GeneDummyTest:
     def copy(self):
         return deepcopy(self)
 
+    @classmethod
+    def next_id(cls):
+        cls.ID += 1
+        return cls.ID - 1
+
 
 def test_crossover_neurons():
     input1 = InputNeuron()
@@ -93,7 +98,7 @@ def test_crossover_genes():
     genes2[0].set_value(1)
     genes2[1].set_value(1)
     genes2[2].set_value(1)
-    genes2[2].id = 5
+    genes2[2].id = GeneDummyTest.next_id()
     genes2[3].set_value(1)
     genes2[4].set_value(1)
 
@@ -127,11 +132,13 @@ def test_crossover_genes_no_duplications():
     genes2[0].set_value(1)
     genes2[1].set_value(1)
     genes2[2].set_value(1)
-    genes2[2].id = 5
+    genes2[2].id = GeneDummyTest.next_id()
     genes2[3].set_value(1)
     genes2[4].set_value(1)
 
     genes3 = Genome.crossover_genes(genes1, genes2)
+
+    print_gene(genes3)
 
     for i in range(len(genes3)):
         for j in range(len(genes3)):
