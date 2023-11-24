@@ -11,7 +11,7 @@ yane_config = YaneConfig.load_json_config()
 
 
 class Genome:
-    def __init__(self, neuron_genes=None, connection_genes=None):
+    def __init__(self, neuron_genes=None):
         self.brain = NeuralNetwork()
         self.fitness = 0.0
         self.net_cost = 0.0
