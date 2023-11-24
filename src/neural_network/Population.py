@@ -37,6 +37,7 @@ class Population:
             total += genome.get_fitness()
         return total / len(self.genomes)
 
+    # TODO: find better way to initialize population
     def add_output_neuron(self, neuron: OutputNeuron):
         if len(self.genomes) <= 0:
             new_genome = Genome()
