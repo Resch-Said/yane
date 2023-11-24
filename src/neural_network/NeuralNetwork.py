@@ -21,8 +21,7 @@ class NeuralNetwork:
         self.forward_order_list = None
 
     def get_all_neurons(self) -> list:
-        return sorted([neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons],
-                      key=lambda x: x.get_id())
+        return [neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons]
 
     def add_connection(self, connection):
         if self.get_all_neurons().__contains__(connection.get_in_neuron()) is False:
@@ -89,7 +88,7 @@ class NeuralNetwork:
         connections = []
         for neuron in self.get_all_neurons():
             connections += neuron.get_next_connections()
-        return sorted(list(set(connections)), key=lambda x: x.get_id())
+        return list(set(connections))
 
     def remove_neuron(self, remove_neuron):
         if remove_neuron in self.input_neurons:

@@ -37,6 +37,10 @@ class Genome:
 
     @classmethod
     def crossover_genes(cls, gene1, gene2) -> list:
+
+        gene1.sort(key=lambda x: x.get_id())
+        gene2.sort(key=lambda x: x.get_id())
+
         iter_gene1 = iter(gene1)
         iter_gene2 = iter(gene2)
         gene1 = next(iter_gene1, None)
@@ -44,7 +48,7 @@ class Genome:
 
         new_genes = []
 
-        while gene1 is not None and gene2 is not None:
+        while (gene1 is not None) or (gene2 is not None):
 
             if gene1 is None:
                 new_genes.append(gene2.copy())
