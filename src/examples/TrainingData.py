@@ -13,6 +13,6 @@ def get_data_size(dataset):
     return len(dataset)
 
 
-def load_data(file_path='dataset.json'):
+def load_data(file_path):
     with open(file_path) as dataset_file:
         return json.load(dataset_file)
