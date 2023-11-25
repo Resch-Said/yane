@@ -23,8 +23,8 @@ class Genome:
     @classmethod
     def crossover(cls, genome1, genome2) -> 'Genome':
         neuron_genes = cls.crossover_neurons(genome1, genome2)
-
         child_genome = Genome(neuron_genes)
+
         return child_genome
 
     @classmethod
@@ -97,7 +97,7 @@ class Genome:
     def evaluate(self, callback_evaluator):
         self.set_net_cost(self.get_brain().calculate_net_cost())
 
-        fitness_result = callback_evaluator()
+        fitness_result = callback_evaluator(self)
         net_cost = self.get_net_cost()
 
         # TODO: Remove net cost as soon as fitness prioritization is implemented
@@ -135,5 +135,13 @@ class Genome:
     def set_input_data(self, data):
         self.brain.set_input_data(data)
 
-    def forward_propagation(self):
-        self.brain.forward_propagation()
+    def forward_propagation(self, data=None):
+        self.brain.forward_propagation(data)
+
+    def get_outputs(self) -> list:
+        return self.brain.get_output_data()
+
+    def set_number_of_outputs(self, number_of_outputs):
+        for i in range(number_of_outputs):
+            output_neuron = OutputNeuron()
+            self.add_output_neuron(output_neuron)
