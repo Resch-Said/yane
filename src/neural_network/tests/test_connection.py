@@ -103,7 +103,7 @@ def test_copy_2():
 def test_mutate_weight():
     con = Connection()
     con.set_weight(0.5)
-    con.mutate_weight()
+    con.mutate_weight_random()
 
     assert con.get_weight() != 0.5
 

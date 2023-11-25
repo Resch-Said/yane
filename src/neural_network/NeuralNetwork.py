@@ -103,6 +103,10 @@ class NeuralNetwork:
                 if con.get_out_neuron() == remove_neuron:
                     neuron.remove_next_connection(con)
 
+    def remove_connection(self, remove_connection):
+        if remove_connection in self.get_all_connections():
+            remove_connection.get_in_neuron().remove_next_connection(remove_connection)
+
     def set_input_data(self, data):
         while len(data) > len(self.input_neurons):
             new_neuron = InputNeuron()
@@ -180,7 +184,7 @@ class NeuralNetwork:
             if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
                 neuron.mutate_activation_function()
             elif random.random() < YaneConfig.get_mutation_neuron_probability(yane_config):
-                self.add_random_neuron()
+                self.add_or_remove_random_neuron()
 
     def mutate_connection_genes(self):
         connection_genes = self.get_all_connections()
@@ -191,13 +195,13 @@ class NeuralNetwork:
         connection: Connection
         for connection in connection_genes:
             if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
-                connection.mutate_weight()
+                connection.mutate_weight_random()
             elif random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
                 connection.mutate_enabled()
             elif random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
                 connection.mutate_weight_shift()
             elif random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
-                self.add_random_connection()
+                self.add_or_remove_random_connection()
 
     def add_random_connection(self):
         random_neuron_in: Neuron = self.get_random_neuron()
@@ -212,6 +216,13 @@ class NeuralNetwork:
             self.add_connection(connection)
         except InvalidConnection:
             print("Couldn't add random connection. Probably because it already exists")
+
+    def remove_random_connection(self):
+        connections = self.get_all_connections()
+
+        if len(connections) > 0:
+            connection = random.choice(connections)
+            self.remove_connection(connection)
 
     def get_random_neuron(self):
         neurons = self.get_all_neurons()
@@ -274,3 +285,22 @@ class NeuralNetwork:
     def clear_output(self):
         for neuron in self.output_neurons:
             neuron.set_value(0.0)
+
+    def add_or_remove_random_connection(self):
+        if random.random() < 0.5:
+            self.add_random_connection()
+        else:
+            self.remove_random_connection()
+
+    def add_or_remove_random_neuron(self):
+        if random.random() < 0.5:
+            self.add_random_neuron()
+        else:
+            self.remove_random_neuron()
+
+    def remove_random_neuron(self):
+        neurons = self.get_all_neurons()
+
+        if len(neurons) > 0:
+            neuron = random.choice(neurons)
+            self.remove_neuron(neuron)

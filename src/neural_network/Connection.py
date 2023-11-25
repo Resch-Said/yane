@@ -51,7 +51,7 @@ class Connection:
     def copy(self) -> 'Connection':
         return deepcopy(self)
 
-    def mutate_weight(self):
+    def mutate_weight_random(self):
         self.weight = YaneConfig.get_random_mutation_weight(yane_config)
 
     def mutate_enabled(self):

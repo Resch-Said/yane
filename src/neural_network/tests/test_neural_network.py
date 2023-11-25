@@ -281,6 +281,82 @@ def test_remove_neuron():
     assert len(nn.get_output_neurons()) == 0
 
 
+def test_remove_connection():
+    nn = NeuralNetwork()
+    input1 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
+
+    assert len(nn.get_all_connections()) == 0
+
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.remove_connection(nn.get_all_connections()[0])
+    assert len(nn.get_all_connections()) == 1
+
+    nn.remove_connection(nn.get_all_connections()[0])
+    assert len(nn.get_all_connections()) == 0
+
+
+def test_remove_random_connection():
+    nn = NeuralNetwork()
+    input1 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
+
+    assert len(nn.get_all_connections()) == 0
+
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.remove_random_connection()
+    assert len(nn.get_all_connections()) == 1
+
+    nn.remove_random_connection()
+    assert len(nn.get_all_connections()) == 0
+
+
+def test_remove_random_neuron():
+    nn = NeuralNetwork()
+    input1 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
+
+    assert len(nn.get_all_neurons()) == 3
+
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 2
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_all_connections()) == 0
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 0
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 0
+
+
 def test_remove_neuron_with_connections():
     nn = NeuralNetwork()
     neuron1 = InputNeuron()
