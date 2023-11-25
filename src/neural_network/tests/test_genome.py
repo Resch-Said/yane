@@ -39,7 +39,6 @@ class GeneDummyTest:
 
 def test_crossover_neurons():
     input1 = InputNeuron()
-    hidden1 = HiddenNeuron()
     out1 = OutputNeuron()
 
     genome1 = Genome()

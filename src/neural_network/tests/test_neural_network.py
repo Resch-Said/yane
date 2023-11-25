@@ -443,8 +443,8 @@ def test_forward_propagation():
 
     nn.forward_propagation()
 
-    expected_output = input1.get_value() * input1.get_next_connections()[0].get_weight() + \
-                      input2.get_value() * input2.get_next_connections()[0].get_weight()
+    expected_output = (input1.get_value() * input1.get_next_connections()[0].get_weight() +
+                       input2.get_value() * input2.get_next_connections()[0].get_weight())
     expected_output = ActivationFunction.activate(hidden1.get_activation(), expected_output)
     expected_output = expected_output * hidden1.get_next_connections()[0].get_weight()
     expected_output = ActivationFunction.activate(out1.get_activation(), expected_output)
@@ -477,19 +477,19 @@ def test_forward_propagation_recurrent_connection():
 
     nn.forward_propagation()
 
-    expected_output = input1.get_value() * input1.get_next_connections()[0].get_weight() + \
-                      input2.get_value() * input2.get_next_connections()[0].get_weight()
+    expected_output = (input1.get_value() * input1.get_next_connections()[0].get_weight() +
+                       input2.get_value() * input2.get_next_connections()[0].get_weight())
     expected_output = ActivationFunction.activate(hidden1.get_activation(), expected_output)
     expected_output = expected_output * hidden1.get_next_connections()[0].get_weight()
     expected_output = ActivationFunction.activate(out1.get_activation(), expected_output)
 
     assert nn.get_output_data() == expected_output
 
-    recurrend_value = out1.get_value() * out1.get_next_connections()[0].get_weight()
-    assert hidden1.get_value() == recurrend_value
+    recurrent_value = out1.get_value() * out1.get_next_connections()[0].get_weight()
+    assert hidden1.get_value() == recurrent_value
 
-    expected_output = input1.get_value() * input1.get_next_connections()[0].get_weight() + \
-                      input2.get_value() * input2.get_next_connections()[0].get_weight() + recurrend_value
+    expected_output = (input1.get_value() * input1.get_next_connections()[0].get_weight() +
+                       input2.get_value() * input2.get_next_connections()[0].get_weight() + recurrent_value)
     expected_output = ActivationFunction.activate(hidden1.get_activation(), expected_output)
     expected_output = expected_output * hidden1.get_next_connections()[0].get_weight()
     expected_output = ActivationFunction.activate(out1.get_activation(), expected_output)
