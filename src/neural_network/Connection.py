@@ -1,8 +1,7 @@
 import random
 from copy import deepcopy
 
-from src.neural_network import YaneConfig
-from src.neural_network.Neuron import Neuron
+from src.neural_network import YaneConfig, Neuron
 
 yane_config = YaneConfig.load_json_config()
 

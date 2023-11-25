@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from src.neural_network import YaneConfig
+from src.neural_network import YaneConfig, Connection
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 
@@ -32,7 +32,7 @@ class Neuron:
     def get_activation(self):
         return self.activation
 
-    def get_next_connections(self) -> list:
+    def get_next_connections(self) -> list[Connection]:
         return self.next_connections
 
     def add_next_connection(self, connection):
