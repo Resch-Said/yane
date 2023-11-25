@@ -97,7 +97,7 @@ class Genome:
     def evaluate(self, callback_evaluator):
         self.set_net_cost(self.get_brain().calculate_net_cost())
 
-        fitness_result = callback_evaluator(self)
+        fitness_result = callback_evaluator()
         net_cost = self.get_net_cost()
 
         # TODO: Remove net cost as soon as fitness prioritization is implemented
@@ -128,3 +128,12 @@ class Genome:
 
     def get_neurons(self):
         return self.brain.get_all_neurons()
+
+    def add_connection(self, connection):
+        self.brain.add_connection(connection)
+
+    def set_input_data(self, data):
+        self.brain.set_input_data(data)
+
+    def forward_propagation(self):
+        self.brain.forward_propagation()
