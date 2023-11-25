@@ -11,6 +11,9 @@ class InputNeuron(Neuron):
 
     def fire(self):
         for connection in self.next_connections:
+            if not connection.is_enabled():
+                continue
+
             next_neuron: Neuron = connection.get_out_neuron()
             next_neuron.set_value(next_neuron.get_value() + self.value * connection.get_weight())
 
