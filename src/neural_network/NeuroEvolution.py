@@ -11,10 +11,10 @@ yane_config = YaneConfig.load_json_config()
 
 # TODO: Limit breeding (length of evaluation list) to half of max population size
 class NeuroEvolution:
-    def __init__(self, output_neurons=1):
-        self.population = Population(output_neurons=output_neurons)
-        self.evaluation_queue = []
-        self.ready_for_population_queue = []
+    def __init__(self):
+        self.population = Population()
+        self.evaluation_queue: list[Genome] = []
+        self.ready_for_population_queue: list[Genome] = []
         self.finished = False
 
     @classmethod
@@ -30,7 +30,7 @@ class NeuroEvolution:
     def get_ready_for_population_list(self):
         return self.ready_for_population_queue
 
-    def add_evaluation(self, genome):
+    def add_evaluation(self, genome: Genome):
         self.evaluation_queue.append(genome)
 
     def add_ready_for_population(self, genome):
@@ -41,9 +41,6 @@ class NeuroEvolution:
 
     def remove_ready_for_population(self, genome):
         self.ready_for_population_queue.remove(genome)
-
-    def add_genome_evaluation(self, genome):
-        self.evaluation_queue.append(genome)
 
     def pop_genome(self):
         self.population.pop_genome()
@@ -56,9 +53,6 @@ class NeuroEvolution:
 
     def get_size(self):
         return self.population.get_size()
-
-    def add_output_neuron(self, neuron):
-        self.population.add_output_neuron(neuron)
 
     # TODO: implement this method
     def train(self, min_fitness):
@@ -87,7 +81,7 @@ class NeuroEvolution:
         p_population_condition_done.join()
 
     def check_population_condition_done_multithreading(self, lock, min_fitness):
-        timer = 5
+        timer = 1
 
         while not self.finished:
             sleep(timer)
@@ -100,7 +94,7 @@ class NeuroEvolution:
                 lock.release()
 
     def integrate_offsprings_multithreading(self, lock):
-        timer = 0
+        timer = 1
 
         while not self.finished:
 
@@ -109,13 +103,11 @@ class NeuroEvolution:
                 genome: Genome = self.get_ready_for_population_list().pop(0)
                 self.population.add_genome(genome)
                 lock.release()
-                timer = 0
             else:
                 sleep(timer)
-                timer += 1
 
     def evaluate_offsprings_multithreading(self, lock):
-        timer = 0
+        timer = 1
 
         while not self.finished:
 
@@ -129,10 +121,8 @@ class NeuroEvolution:
                 lock.acquire()
                 self.add_ready_for_population(genome)
                 lock.release()
-                timer = 0
             else:
                 sleep(timer)
-                timer += 1
 
     def breed_population_multithreading(self, lock):
 
@@ -152,17 +142,15 @@ class NeuroEvolution:
             lock.release()
 
     def reduce_overpopulation_multithreading(self, lock):
-        timer = 0
+        timer = 1
 
         while not self.finished:
             if self.get_size() > YaneConfig.get_population_size(yane_config):
                 lock.acquire()
                 self.pop_genome()
                 lock.release()
-                timer = 0
             else:
                 sleep(timer)
-                timer += 1
 
     def get_random_genome(self):
         return random.choice(self.get_genomes())
@@ -178,3 +166,6 @@ class NeuroEvolution:
 
     def get_best_fitness(self):
         return self.get_genomes()[0].get_fitness()
+
+    def add_population(self, genome: Genome):
+        self.population.add_genome(genome)
