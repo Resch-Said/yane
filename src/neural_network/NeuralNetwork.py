@@ -123,10 +123,7 @@ class NeuralNetwork:
         if data is not None:
             self.set_input_data(data)
 
-        if self.forward_order_list is None:
-            self.forward_order_list = self.get_forward_order_list()
-
-        for neuron in self.forward_order_list:
+        for neuron in self.get_forward_order_list():
             neuron.fire()
 
         return self.get_output_data()
@@ -138,22 +135,25 @@ class NeuralNetwork:
         for neuron in self.output_neurons:
             neuron.set_value(0.0)
 
-    def get_forward_order_list(self) -> list:
+    def get_forward_order_list(self) -> list[Neuron]:
 
-        forward_order_list = []
+        if self.forward_order_list is not None:
+            return self.forward_order_list
+
+        self.forward_order_list = []
 
         for neuron in self.get_input_neurons():
             if len(neuron.get_next_connections()) > 0:
-                forward_order_list.append(neuron)
+                self.forward_order_list.append(neuron)
 
         neuron: Neuron
 
-        for neuron in forward_order_list:
+        for neuron in self.forward_order_list:
             for connection in neuron.get_next_connections():
-                if connection.get_out_neuron() not in forward_order_list:
-                    forward_order_list.append(connection.get_out_neuron())
+                if connection.get_out_neuron() not in self.forward_order_list:
+                    self.forward_order_list.append(connection.get_out_neuron())
 
-        return forward_order_list
+        return self.forward_order_list
 
     def get_output_data(self):
         output_data = []
