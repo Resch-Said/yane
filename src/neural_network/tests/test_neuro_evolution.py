@@ -8,7 +8,7 @@ def test_get_population():
 
     ne.get_population().add_genome(genome)
 
-    assert ne.get_genomes() == [genome]
+    assert ne.get_genomes_population() == [genome]
 
 
 def test_get_evaluation_list():
@@ -80,8 +80,8 @@ def test_pop_genome():
 
     ne.pop_genome()
 
-    assert genome1 not in ne.get_population().get_genomes()
-    assert genome2 in ne.get_population().get_genomes()
+    assert genome1 not in ne.get_population().get_genomes_population()
+    assert genome2 in ne.get_population().get_genomes_population()
 
 
 def test_remove_genome():
@@ -97,8 +97,8 @@ def test_remove_genome():
 
     ne.remove_genome(genome2)
 
-    assert genome2 not in ne.get_population().get_genomes()
-    assert genome1 in ne.get_population().get_genomes()
+    assert genome2 not in ne.get_population().get_genomes_population()
+    assert genome1 in ne.get_population().get_genomes_population()
 
 
 def test_get_size():
