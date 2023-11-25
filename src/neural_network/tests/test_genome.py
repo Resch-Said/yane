@@ -71,8 +71,11 @@ def test_crossover_neurons2():
 
     genome1.add_neuron(hidden1)
     genome2.add_neuron(hidden2)
-    genome2.get_brain().add_random_connection()
-    genome1.get_brain().add_random_connection()
+    genome2.add_connection(Connection(hidden2, genome2.get_brain().get_output_neurons()[0], 1))
+    genome1.add_connection(Connection(hidden1, out1, 1))
+
+    assert len(genome1.get_brain().get_all_connections()) == 1
+    assert len(genome2.get_brain().get_all_connections()) == 1
 
     genome3 = Genome.crossover(genome1, genome2)
 
@@ -87,7 +90,7 @@ def test_crossover_neurons2():
     assert len(genome3.get_brain().get_all_neurons()) == 4
     assert len(genome1.get_brain().get_all_neurons()) == 3
     assert len(genome2.get_brain().get_all_neurons()) == 3
-    assert len(genome3.get_brain().get_all_connections()) in [1, 2]
+    assert len(genome3.get_brain().get_all_connections()) == 2
 
 
 def test_crossover_genes():
