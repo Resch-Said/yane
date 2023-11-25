@@ -90,7 +90,7 @@ class NeuralNetwork:
         connections = []
         for neuron in self.get_all_neurons():
             connections += neuron.get_next_connections()
-        return list(set(connections))
+        return connections
 
     def remove_neuron(self, remove_neuron):
         if remove_neuron in self.input_neurons:
