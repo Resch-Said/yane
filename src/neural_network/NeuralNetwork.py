@@ -157,7 +157,7 @@ class NeuralNetwork:
 
         return self.forward_order_list
 
-    def get_output_data(self):
+    def get_output_data(self) -> list:
         output_data = []
 
         for neuron in self.output_neurons:
@@ -175,27 +175,28 @@ class NeuralNetwork:
             neuron.next_connections = []
 
     def mutate(self):
-        self.mutate_neuron_genes()
-        self.mutate_connection_genes()
+        self.mutate_neurons()
+        self.mutate_connections()
 
-    def mutate_neuron_genes(self):
-        neuron_genes = self.get_all_neurons()
+    def mutate_neurons(self):
+        neurons = self.get_hidden_neurons() + self.get_output_neurons()
 
         neuron: Neuron
-        for neuron in neuron_genes:
+        for neuron in neurons:
             if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
                 neuron.mutate_activation_function()
-            elif random.random() < YaneConfig.get_mutation_neuron_probability(yane_config):
-                self.add_or_remove_random_neuron()
 
-    def mutate_connection_genes(self):
-        connection_genes = self.get_all_connections()
+        if random.random() < YaneConfig.get_mutation_neuron_probability(yane_config):
+            self.add_or_remove_random_neuron()
 
-        if len(connection_genes) <= 0:
+    def mutate_connections(self):
+        connections = self.get_all_connections()
+
+        if len(connections) <= 0:
             self.add_random_connection()
 
         connection: Connection
-        for connection in connection_genes:
+        for connection in connections:
             if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
                 connection.mutate_weight_random()
             elif random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
@@ -217,7 +218,7 @@ class NeuralNetwork:
         try:
             self.add_connection(connection)
         except InvalidConnection:
-            print("Couldn't add random connection. Probably because it already exists")
+            pass
 
     def remove_random_connection(self):
         connections = self.get_all_connections()
