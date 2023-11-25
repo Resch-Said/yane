@@ -1,9 +1,14 @@
 from copy import deepcopy
 
+from src.neural_network import YaneConfig
+from src.neural_network.ActivationFunction import ActivationFunction
+from src.neural_network.Connection import Connection
 from src.neural_network.Genome import Genome
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.OutputNeuron import OutputNeuron
+
+yane_config = YaneConfig.load_json_config()
 
 
 class GeneDummyTest:
@@ -147,7 +152,38 @@ def test_crossover_genes_no_duplications():
 
 
 def test_evaluate():
-    assert False
+    def evaluate():
+        return 1
+
+    genome = Genome()
+    assert genome.get_fitness() == 0
+
+    genome.evaluate(evaluate)
+    assert genome.get_fitness() == 1
+
+
+# Simple example how to implement evaluate function
+def test_evaluate_simple_connection():
+    genome = Genome()
+    assert genome.get_fitness() == 0
+
+    input1 = InputNeuron()
+    output1 = OutputNeuron()
+
+    genome.add_neuron(input1)
+    genome.add_neuron(output1)
+    genome.add_connection(Connection(input1, output1, 1))
+    genome.set_input_data([2])
+
+    def evaluate():
+        genome.forward_propagation()
+        return output1.get_value()
+
+    genome.evaluate(evaluate)
+    expected_result = input1.get_value() * input1.get_next_connections()[0].get_weight()
+    expected_result = ActivationFunction.activate(output1.get_activation(), expected_result)
+
+    assert genome.get_fitness() == expected_result - genome.get_net_cost() * YaneConfig.get_net_cost_factor(yane_config)
 
 
 def test_copy():
