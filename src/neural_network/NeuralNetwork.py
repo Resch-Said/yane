@@ -20,7 +20,7 @@ class NeuralNetwork:
         self.output_neurons = []
         self.forward_order_list = None
 
-    def get_all_neurons(self) -> list:
+    def get_all_neurons(self) -> list[Neuron]:
         return [neuron for neuron in self.input_neurons + self.hidden_neurons + self.output_neurons]
 
     def add_connection(self, connection):
@@ -68,23 +68,25 @@ class NeuralNetwork:
             raise InvalidNeuronTypeException(
                 "Invalid neuron type. Can only add InputNeuron, HiddenNeuron or OutputNeuron")
 
-    def get_input_neurons(self):
+    def get_input_neurons(self) -> list[InputNeuron]:
         return self.input_neurons
 
-    def get_hidden_neurons(self):
+    def get_hidden_neurons(self) -> list[HiddenNeuron]:
         return self.hidden_neurons
 
-    def get_output_neurons(self):
+    def get_output_neurons(self) -> list[OutputNeuron]:
         return self.output_neurons
 
-    def get_neuron_by_id(self, neuron_id):
+    def get_neuron_by_id(self, neuron_id) -> Neuron | None:
+        neuron: Neuron
+
         for neuron in self.get_all_neurons():
             if neuron.get_id() == neuron_id:
                 return neuron
 
         return None
 
-    def get_all_connections(self):
+    def get_all_connections(self) -> list[Connection]:
         connections = []
         for neuron in self.get_all_neurons():
             connections += neuron.get_next_connections()
