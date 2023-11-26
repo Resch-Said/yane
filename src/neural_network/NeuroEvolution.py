@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 import numpy as np
 
@@ -47,7 +48,7 @@ class NeuroEvolution:
             self.create_next_genome()
 
             if self.get_size() > YaneConfig.get_population_size(yane_config):
-                self.pop_genome()
+                self.pop_genome()  # TODO: New genomes have a hard time to not be removed
 
             print("Generation: " + str(np.round(self.current_generation)) + " Best fitness: " + str(
                 self.get_best_fitness()), end='\r')
@@ -56,7 +57,12 @@ class NeuroEvolution:
                 break
 
     def get_random_genome(self):
-        return random.choice(self.get_genomes_population())
+
+        weights = []
+        for i in range(self.get_size()):
+            weights.append(self.get_size() - i)
+
+        return random.choices(self.get_genomes_population(), weights=weights)[0]
 
     def print(self):
         print("Population size: " + str(self.get_size()))
@@ -120,10 +126,13 @@ class NeuroEvolution:
         if self.get_size() <= 0:
             return
 
-        genome1 = self.get_random_genome().copy()
-        genome2 = self.get_random_genome().copy()
+        genome1 = self.get_random_genome()
+        genome2 = self.get_random_genome()
 
-        child_genome = self.crossover(genome1, genome2)
+        # child_genome = self.crossover(genome1, genome2)
+        child_genome: Genome = deepcopy(genome1)
+        child_genome.reset_forward_order()
+
         child_genome.mutate()
 
         self.add_evaluation(child_genome)

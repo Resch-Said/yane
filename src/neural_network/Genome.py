@@ -157,3 +157,6 @@ class Genome:
         connection_genes2 = genome2.get_brain().get_all_connections()
 
         return cls.crossover_genes(connection_genes1, connection_genes2)
+
+    def reset_forward_order(self):
+        self.brain.forward_order_list = None

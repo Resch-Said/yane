@@ -235,9 +235,11 @@ class NeuralNetwork:
         else:
             return None
 
+    # TODO: It has a hard time creating new neurons
     def add_random_neuron(self):
-        if len(self.get_all_connections()) == 0:
-            return
+
+        if len(self.get_all_connections()) <= 0:
+            return None
 
         connection = random.choice(self.get_all_connections())
         neuron_in: Neuron = connection.get_in_neuron()

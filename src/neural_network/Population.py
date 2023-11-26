@@ -9,8 +9,9 @@ class Population:
         self.genomes: list[Genome] = []
 
     def add_genome(self, genome):
-        bisect.insort(self.genomes, genome, key=lambda x: -x.get_fitness())
+        bisect.insort_left(self.genomes, genome, key=lambda x: -x.get_fitness())
 
+    # TODO: make this more smarter so genomes have a chance to survive.
     def pop_genome(self):
         self.genomes.pop()
 
