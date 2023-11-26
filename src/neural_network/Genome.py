@@ -12,6 +12,7 @@ yane_config = YaneConfig.load_json_config()
 
 class Genome:
     def __init__(self, neuron_genes=None):
+        self.best_parent_fitness = None
         self.brain = NeuralNetwork()
         self.fitness = 0.0
         self.net_cost = 0.0
@@ -101,6 +102,11 @@ class Genome:
         fitness_result = callback_evaluator(self)
         net_cost = self.get_net_cost()
 
+        if self.best_parent_fitness is not None and fitness_result < self.best_parent_fitness:
+            connection = self.get_brain().get_last_weight_shift_connection()
+            if connection is not None:
+                connection.switch_weight_shift_direction()
+
         # TODO: Remove net cost as soon as fitness prioritization is implemented
         # self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
         self.set_fitness(fitness_result)
@@ -160,3 +166,6 @@ class Genome:
 
     def reset_forward_order(self):
         self.brain.forward_order_list = None
+
+    def set_best_parent_fitness(self, parent_fitness):
+        self.best_parent_fitness = parent_fitness

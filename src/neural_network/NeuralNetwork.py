@@ -15,6 +15,7 @@ yane_config = YaneConfig.load_json_config()
 
 class NeuralNetwork:
     def __init__(self):
+        self.last_weight_shift_connection = None
         self.input_neurons = []
         self.hidden_neurons = []
         self.output_neurons = []
@@ -202,7 +203,7 @@ class NeuralNetwork:
             elif random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
                 connection.mutate_enabled()
             elif random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
-                connection.mutate_weight_shift()
+                self.last_weight_shift_connection = connection.mutate_weight_shift()
             elif random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
                 self.add_or_remove_random_connection()
 
@@ -235,7 +236,6 @@ class NeuralNetwork:
         else:
             return None
 
-    # TODO: It has a hard time creating new neurons
     def add_random_neuron(self):
 
         if len(self.get_all_connections()) <= 0:
@@ -309,3 +309,6 @@ class NeuralNetwork:
         if len(neurons) > 0:
             neuron = random.choice(neurons)
             self.remove_neuron(neuron)
+
+    def get_last_weight_shift_connection(self) -> Connection:
+        return self.last_weight_shift_connection

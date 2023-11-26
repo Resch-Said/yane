@@ -1,4 +1,3 @@
-import random
 from copy import deepcopy
 
 from src.neural_network import YaneConfig, Neuron
@@ -10,6 +9,7 @@ class Connection:
     ID = 0
 
     def __init__(self, in_neuron: Neuron = None, out_neuron: Neuron = None, weight: float = 1.0, enabled: bool = True):
+        self.weight_shift_direction = True
         self.weight = weight
         self.in_neuron = in_neuron
         self.out_neuron = out_neuron
@@ -58,12 +58,23 @@ class Connection:
         self.enabled = not self.enabled
 
     def mutate_weight_shift(self):
-        if random.random() < 0.5:
-            self.weight += YaneConfig.get_random_weight_shift(yane_config)
+
+        weight_shift = YaneConfig.get_random_weight_shift(yane_config)
+
+        if self.get_weight_shift_direction():
+            self.weight += weight_shift
         else:
-            self.weight -= YaneConfig.get_random_weight_shift(yane_config)
+            self.weight -= weight_shift
 
         if self.weight < YaneConfig.get_mutation_weight_min(yane_config):
             self.weight = YaneConfig.get_mutation_weight_min(yane_config)
         elif self.weight > YaneConfig.get_mutation_weight_max(yane_config):
             self.weight = YaneConfig.get_mutation_weight_max(yane_config)
+
+        return self
+
+    def get_weight_shift_direction(self):
+        return self.weight_shift_direction
+
+    def switch_weight_shift_direction(self):
+        self.weight_shift_direction = not self.weight_shift_direction
