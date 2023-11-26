@@ -62,7 +62,7 @@ class NeuroEvolution:
         for i in range(self.get_size()):
             weights.append(self.get_size() - i)
 
-        return random.choices(self.get_genomes_population(), weights=weights)[0]
+        return random.choice(self.get_genomes_population())
 
     def print(self):
         print("Population size: " + str(self.get_size()))
@@ -73,6 +73,9 @@ class NeuroEvolution:
         return self.population.get_average_fitness()
 
     def get_best_fitness(self):
+        if self.get_size() <= 0:
+            return None
+
         return self.get_genomes_population()[0].get_fitness()
 
     def add_population(self, genome: Genome):
