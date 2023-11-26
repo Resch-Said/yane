@@ -11,62 +11,6 @@ def test_get_population():
     assert ne.get_genomes_population() == [genome]
 
 
-def test_get_evaluation_list():
-    ne = NeuroEvolution()
-    ne.get_evaluation_list().append(Genome())
-
-    assert len(ne.get_evaluation_list()) == 1
-
-
-def test_get_ready_for_population_list():
-    ne = NeuroEvolution()
-    ne.get_ready_for_population_list().append(Genome())
-
-    assert len(ne.get_ready_for_population_list()) == 1
-
-
-def test_add_evaluation():
-    ne = NeuroEvolution()
-    genome = Genome()
-
-    ne.add_evaluation(genome)
-
-    assert genome in ne.get_evaluation_list()
-    assert len(ne.get_evaluation_list()) == 1
-
-
-def test_add_ready_for_population():
-    ne = NeuroEvolution()
-    genome = Genome()
-
-    ne.add_ready_for_population(genome)
-
-    assert genome in ne.get_ready_for_population_list()
-    assert len(ne.get_ready_for_population_list()) == 1
-
-
-def test_remove_evaluation():
-    ne = NeuroEvolution()
-    genome = Genome()
-
-    ne.add_evaluation(genome)
-    ne.remove_evaluation(genome)
-
-    assert genome not in ne.get_evaluation_list()
-    assert len(ne.get_evaluation_list()) == 0
-
-
-def test_remove_ready_for_population():
-    ne = NeuroEvolution()
-    genome = Genome()
-
-    ne.add_ready_for_population(genome)
-    ne.remove_ready_for_population(genome)
-
-    assert genome not in ne.get_ready_for_population_list()
-    assert len(ne.get_ready_for_population_list()) == 0
-
-
 def test_pop_genome():
     ne = NeuroEvolution()
     genome1 = Genome()
@@ -115,10 +59,6 @@ def test_get_size():
     ne.add_population(genome2)
 
     assert ne.get_size() == 2
-
-
-def test_train():
-    assert False
 
 
 def test_get_best_fitness():

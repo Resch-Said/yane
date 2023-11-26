@@ -154,7 +154,7 @@ def test_crossover_genes_no_duplications():
 
 
 def test_evaluate():
-    def evaluate():
+    def evaluate(self: Genome):
         return 1
 
     genome = Genome()
@@ -177,7 +177,7 @@ def test_evaluate_simple_connection():
     genome.add_connection(Connection(input1, output1, 1))
     genome.set_input_data([2])
 
-    def evaluate():
+    def evaluate(self: Genome):
         genome.forward_propagation()
         return output1.get_value()
 

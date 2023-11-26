@@ -302,7 +302,7 @@ class NeuralNetwork:
             self.remove_random_neuron()
 
     def remove_random_neuron(self):
-        neurons = self.get_all_neurons()
+        neurons = self.get_hidden_neurons()
 
         if len(neurons) > 0:
             neuron = random.choice(neurons)

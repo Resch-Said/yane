@@ -1,6 +1,6 @@
 import random
-import threading
-from time import sleep
+
+import numpy as np
 
 from src.neural_network import YaneConfig
 from src.neural_network.Genome import Genome
@@ -9,38 +9,22 @@ from src.neural_network.Population import Population
 yane_config = YaneConfig.load_json_config()
 
 
-# TODO: Limit breeding (length of evaluation list) to half of max population size
 class NeuroEvolution:
     def __init__(self):
+        self.max_iterations = None
+        self.current_generation = 0
+        self.min_fitness = None
         self.population = Population()
-        self.evaluation_queue: list[Genome] = []
-        self.ready_for_population_queue: list[Genome] = []
-        self.finished = False
+        self.evaluation_list: list[Genome] = []
 
     @classmethod
     def crossover(cls, genome1, genome2) -> Genome:
-        return Genome.crossover(genome1, genome2)
+        new_genome = Genome.crossover(genome1, genome2)
+
+        return new_genome
 
     def get_population(self):
         return self.population
-
-    def get_evaluation_list(self):
-        return self.evaluation_queue
-
-    def get_ready_for_population_list(self):
-        return self.ready_for_population_queue
-
-    def add_evaluation(self, genome: Genome):
-        self.evaluation_queue.append(genome)
-
-    def add_ready_for_population(self, genome):
-        self.ready_for_population_queue.append(genome)
-
-    def remove_evaluation(self, genome):
-        self.evaluation_queue.remove(genome)
-
-    def remove_ready_for_population(self, genome):
-        self.ready_for_population_queue.remove(genome)
 
     def pop_genome(self):
         self.population.pop_genome()
@@ -48,124 +32,98 @@ class NeuroEvolution:
     def remove_genome(self, genome):
         self.population.remove_genome(genome)
 
-    def get_genomes(self):
+    def get_genomes_population(self):
         return self.population.get_genomes()
 
     def get_size(self):
         return self.population.get_size()
 
     # TODO: implement this method
-    def train(self, min_fitness):
+    def train(self, callback_evaluation):
+        while True:
+            self.current_generation += 1 / YaneConfig.get_population_size(yane_config)
 
-        # p_population_limiter -> Population
-        # p_population_breeder -> Population
-        # p_genome_evaluator -> Evaluation list/ready for population list
-        # p_genome_integrator -> ready for population list/Population
+            self.evaluate_next_genome(callback_evaluation)
+            self.create_next_genome()
 
-        # TODO: insert locks more deeply in the code instead of just in the top methods
-        #   Also use with lock: instead of lock.acquire() and lock.release()
-        lock = threading.Lock()
-
-        p_population_limiter = threading.Thread(target=self.reduce_overpopulation_multithreading, args=(lock,))
-        p_population_breeder = threading.Thread(target=self.breed_population_multithreading, args=(lock,))
-        p_genome_evaluator = threading.Thread(target=self.evaluate_offsprings_multithreading, args=(lock,))
-        p_genome_integrator = threading.Thread(target=self.integrate_offsprings_multithreading, args=(lock,))
-        p_population_condition_done = threading.Thread(target=self.check_population_condition_done_multithreading,
-                                                       args=(lock, min_fitness))
-
-        p_population_limiter.start()
-        p_population_breeder.start()
-        p_genome_evaluator.start()
-        p_genome_integrator.start()
-        p_population_condition_done.start()
-        p_population_condition_done.join()
-
-    def check_population_condition_done_multithreading(self, lock, min_fitness):
-        timer = 1
-
-        while not self.finished:
-            sleep(timer)
-            if self.get_size() > 0:
-                lock.acquire()
-                best_fitness = self.get_best_fitness()
-                self.print()
-                if best_fitness >= min_fitness:
-                    self.finished = True
-                lock.release()
-
-    def integrate_offsprings_multithreading(self, lock):
-        timer = 1
-
-        while not self.finished:
-
-            if len(self.get_ready_for_population_list()) > 0:
-                lock.acquire()
-                genome: Genome = self.get_ready_for_population_list().pop(0)
-                self.population.add_genome(genome)
-                lock.release()
-            else:
-                sleep(timer)
-
-    def evaluate_offsprings_multithreading(self, lock):
-        timer = 1
-
-        while not self.finished:
-
-            if len(self.get_evaluation_list()) > 0:
-                lock.acquire()
-                genome: Genome = self.get_evaluation_list().pop(0)
-                lock.release()
-
-                genome.evaluate()
-
-                lock.acquire()
-                self.add_ready_for_population(genome)
-                lock.release()
-            else:
-                sleep(timer)
-
-    def breed_population_multithreading(self, lock):
-
-        while not self.finished:
-            lock.acquire()
-            genome1 = self.get_random_genome()
-            genome2 = self.get_random_genome()
-            lock.release()
-
-            lock.acquire()
-            child_genome = self.crossover(genome1, genome2)
-            lock.release()
-
-            child_genome.mutate()
-            lock.acquire()
-            self.add_evaluation(child_genome)
-            lock.release()
-
-    def reduce_overpopulation_multithreading(self, lock):
-        timer = 1
-
-        while not self.finished:
             if self.get_size() > YaneConfig.get_population_size(yane_config):
-                lock.acquire()
                 self.pop_genome()
-                lock.release()
-            else:
-                sleep(timer)
+
+            print("Generation: " + str(np.round(self.current_generation)) + " Best fitness: " + str(
+                self.get_best_fitness()), end='\r')
+
+            if self.check_best_fitness() or self.check_max_iterations():
+                break
 
     def get_random_genome(self):
-        return random.choice(self.get_genomes())
+        return random.choice(self.get_genomes_population())
 
     def print(self):
         print("Population size: " + str(self.get_size()))
         print("Average fitness: " + str(self.get_average_fitness()))
         print("Best fitness: " + str(self.get_best_fitness()))
-        print("Output values: " + str(self.get_genomes()[0].get_brain().get_output_data()))
 
     def get_average_fitness(self):
         return self.population.get_average_fitness()
 
     def get_best_fitness(self):
-        return self.get_genomes()[0].get_fitness()
+        return self.get_genomes_population()[0].get_fitness()
 
     def add_population(self, genome: Genome):
         self.population.add_genome(genome)
+
+    def set_max_generations(self, iterations):
+        self.max_iterations = iterations
+
+    def check_best_fitness(self):
+        if self.min_fitness is None:
+            return
+
+        if self.get_best_fitness() >= self.min_fitness:
+            return True
+
+        return False
+
+    def check_max_iterations(self):
+        if self.max_iterations is None:
+            return
+
+        if self.current_generation >= self.max_iterations:
+            return True
+
+        return False
+
+    def set_number_of_outputs(self, number_of_outputs):
+        if self.get_size() <= 0:
+            genome = Genome()
+            genome.set_number_of_outputs(number_of_outputs)
+            self.add_evaluation(genome)
+        else:
+            for genome in self.get_genomes_population():
+                genome.set_number_of_outputs(number_of_outputs)
+
+    def evaluate_next_genome(self, callback_evaluation):
+        if len(self.get_evaluation_list()) <= 0:
+            return
+
+        genome = self.get_evaluation_list().pop()
+        genome.evaluate(callback_evaluation)
+        self.add_population(genome)
+
+    def add_evaluation(self, genome):
+        self.evaluation_list.append(genome)
+
+    def get_evaluation_list(self):
+        return self.evaluation_list
+
+    def create_next_genome(self):
+        if self.get_size() <= 0:
+            return
+
+        genome1 = self.get_random_genome().copy()
+        genome2 = self.get_random_genome().copy()
+
+        child_genome = self.crossover(genome1, genome2)
+        child_genome.mutate()
+
+        self.add_evaluation(child_genome)

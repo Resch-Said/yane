@@ -23,6 +23,7 @@ class Genome:
     @classmethod
     def crossover(cls, genome1, genome2) -> 'Genome':
         neuron_genes = cls.crossover_neurons(genome1, genome2)
+
         child_genome = Genome(neuron_genes)
 
         return child_genome
@@ -101,7 +102,8 @@ class Genome:
         net_cost = self.get_net_cost()
 
         # TODO: Remove net cost as soon as fitness prioritization is implemented
-        self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
+        # self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
+        self.set_fitness(fitness_result)
         return self.get_fitness()
 
     def copy(self):
@@ -145,3 +147,13 @@ class Genome:
         for i in range(number_of_outputs):
             output_neuron = OutputNeuron()
             self.add_output_neuron(output_neuron)
+
+    def add_random_connection(self):
+        self.brain.add_random_connection()
+
+    @classmethod
+    def crossover_connections(cls, genome1, genome2):
+        connection_genes1 = genome1.get_brain().get_all_connections()
+        connection_genes2 = genome2.get_brain().get_all_connections()
+
+        return cls.crossover_genes(connection_genes1, connection_genes2)
