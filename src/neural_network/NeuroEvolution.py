@@ -6,66 +6,57 @@ import numpy as np
 from src.neural_network import YaneConfig
 from src.neural_network.Genome import Genome
 from src.neural_network.Population import Population
+from src.neural_network.Species import Species
 
 yane_config = YaneConfig.load_json_config()
 
 
 class NeuroEvolution:
     def __init__(self):
-        self.max_iterations = None
-        self.current_generation = 0
+        self.max_generations = None
         self.min_fitness = None
+        self.generation = 0
         self.population = Population()
         self.evaluation_list: list[Genome] = []
-
-    @classmethod
-    def crossover(cls, genome1, genome2) -> Genome:
-        new_genome = Genome.crossover(genome1, genome2)
-
-        return new_genome
 
     def get_population(self):
         return self.population
 
-    def pop_genome(self):
-        self.population.pop_genome()
+    def get_genomes_size(self):
+        return self.population.get_genomes_size()
 
-    def remove_genome(self, genome):
-        self.population.remove_genome(genome)
+    def get_generation(self):
+        return self.generation
 
-    def get_genomes_population(self):
-        return self.population.get_genomes()
-
-    def get_size(self):
-        return self.population.get_size()
-
-    # TODO: implement this method
     def train(self, callback_evaluation):
         while True:
-            self.current_generation += 1 / YaneConfig.get_population_size(yane_config)
+            current_generation = self.get_generation()
 
             self.evaluate_next_genome(callback_evaluation)
             self.create_next_genome()
 
-            if self.get_size() > YaneConfig.get_population_size(yane_config):
-                self.pop_genome()  # TODO: New genomes have a hard time to not be removed
+            self.generation += 1 / YaneConfig.get_max_population_size(yane_config)
 
-            print("Generation: " + str(np.round(self.current_generation)) + " Best fitness: " + str(
-                self.get_best_fitness()), end='\r')
+            overpopulation_count = self.get_genomes_size() - YaneConfig.get_max_population_size(yane_config)
 
-            if self.check_best_fitness() or self.check_max_iterations():
+            if overpopulation_count > 0:
+                self.clear_stagnated_species()
+                self.clear_overpopulated_species()
+                self.clear_bad_reproducers()
+
+            print("Generation: " + str(np.round(current_generation)) + " Best fitness: " + str(
+                self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
+                  "Number of species: " + str(self.get_population().get_species_size()))
+
+            if self.check_best_fitness() or self.check_max_generation():
                 break
 
     def get_random_genome(self):
-
-        weights = []
-        for i in range(self.get_size()):
-            weights.append(self.get_size() - i)
-
-        return random.choice(self.get_genomes_population())
+        return random.choice(self.get_population().get_random_species().get_genomes())
 
     def print(self):
-        print("Population size: " + str(self.get_size()))
+        print("Population size: " + str(self.get_genomes_size()))
+        print("Number of species: " + str(self.get_population().get_species_size()))
         print("Average fitness: " + str(self.get_average_fitness()))
         print("Best fitness: " + str(self.get_best_fitness()))
 
@@ -73,51 +64,51 @@ class NeuroEvolution:
         return self.population.get_average_fitness()
 
     def get_best_fitness(self):
-        if self.get_size() <= 0:
-            return None
-
-        return self.get_genomes_population()[0].get_fitness()
+        return self.population.get_best_fitness()
 
     def add_population(self, genome: Genome):
-        self.population.add_genome(genome)
+        self.get_population().add_genome(genome)
 
-    def set_max_generations(self, iterations):
-        self.max_iterations = iterations
+    def set_max_generations(self, generations):
+        self.max_generations = generations
 
     def check_best_fitness(self):
         if self.min_fitness is None:
             return
 
-        if self.get_best_fitness() >= self.min_fitness:
+        best_fitness = self.get_best_fitness()
+
+        if best_fitness is None:
+            return
+
+        if best_fitness >= self.min_fitness:
             return True
 
         return False
 
-    def check_max_iterations(self):
-        if self.max_iterations is None:
+    def check_max_generation(self):
+        if self.max_generations is None:
             return
 
-        if self.current_generation >= self.max_iterations:
+        if self.generation >= self.max_generations:
             return True
 
         return False
 
     def set_number_of_outputs(self, number_of_outputs):
-        if self.get_size() <= 0:
+        if self.get_genomes_size() <= 0:
             genome = Genome()
             genome.set_number_of_outputs(number_of_outputs)
             self.add_evaluation(genome)
         else:
-            for genome in self.get_genomes_population():
+            for genome in self.get_population().get_all_genomes():
                 genome.set_number_of_outputs(number_of_outputs)
 
     def evaluate_next_genome(self, callback_evaluation):
-        if len(self.get_evaluation_list()) <= 0:
-            return
-
-        genome = self.get_evaluation_list().pop()
-        genome.evaluate(callback_evaluation)
-        self.add_population(genome)
+        while len(self.get_evaluation_list()) > 0:
+            genome = self.get_evaluation_list().pop()
+            genome.evaluate(callback_evaluation)
+            self.add_population(genome)
 
     def add_evaluation(self, genome):
         self.evaluation_list.append(genome)
@@ -126,18 +117,60 @@ class NeuroEvolution:
         return self.evaluation_list
 
     def create_next_genome(self):
-        if self.get_size() <= 0:
+        if self.get_genomes_size() <= 0:
             return
 
-        genome1 = self.get_random_genome()
-        genome2 = self.get_random_genome()
+        random_species = self.get_population().get_random_species()
 
-        # child_genome = self.crossover(genome1, genome2)
+        # TODO: Add different crossover methods
+
+        genome1 = random_species.get_random_genome()
+        # genome2 = random_species.get_random_genome()
+
+        # child_genome = Genome.crossover(genome1, genome2)
         child_genome: Genome = deepcopy(genome1)
         child_genome.reset_forward_order()
-        # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
-        child_genome.set_best_parent_fitness(genome1.get_fitness())
+        child_genome.clear_hidden_output_neurons()
 
+        # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
+        child_genome.set_parent(genome1)
         child_genome.mutate()
 
+        genome1.set_reproduction_count(genome1.get_reproduction_count() + 1)
+        # genome2.set_reproduction_count(genome2.get_reproduction_count() + 1)
+
         self.add_evaluation(child_genome)
+
+    def get_best_species_genome(self) -> (Species, Genome):
+        return self.get_population().get_best_species_genome()
+
+    def remove_species(self, species):
+        self.get_population().remove_species(species)
+
+    def clear_overpopulated_species(self):
+        for species in self.get_population().get_species():
+            while species.get_size() > YaneConfig.get_species_size_reference(yane_config):
+                species.pop_genome()
+
+    def clear_stagnated_species(self):
+        for species in self.get_population().get_species():
+            if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
+                best_genome = species.get_best_genome()
+                best_genome.clear_hidden_output_neurons()
+                self.add_evaluation(best_genome)
+                self.remove_species(species)
+                print("Removed stagnated species")
+
+    def get_species_size(self):
+        return self.get_population().get_species_size()
+
+    def set_min_fitness(self, min_fitness):
+        self.min_fitness = min_fitness
+
+    def clear_bad_reproducers(self):
+        for species in self.get_population().get_species():
+            for genome in species.get_genomes():
+                if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
+                    if genome is not species.get_best_genome():
+                        species.remove_genome(genome)
+                        print("Removed bad reproducer")

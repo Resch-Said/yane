@@ -53,12 +53,12 @@ def test_get_size():
     genome1.set_fitness(1)
     genome2.set_fitness(2)
 
-    assert ne.get_size() == 0
+    assert ne.get_genomes_size() == 0
 
     ne.add_population(genome1)
     ne.add_population(genome2)
 
-    assert ne.get_size() == 2
+    assert ne.get_genomes_size() == 2
 
 
 def test_get_best_fitness():

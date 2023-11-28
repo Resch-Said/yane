@@ -9,7 +9,7 @@ dataset = TrainingData.load_data('dataset_3_3.json')
 length = len(dataset)
 
 yane = NeuroEvolution()
-yane.set_max_generations(1000)
+yane.set_min_fitness(0)
 yane.set_number_of_outputs(3)
 
 
@@ -19,7 +19,7 @@ def evaluate(genome: Genome):
         data_input = sample['input']
         target_output = sample['output']
 
-        genome.forward_propagation(data_input)
+        genome.forward_propagation(data_input + [1])
         predicted_output = genome.get_outputs()
 
         fitness -= np.abs(predicted_output[0] - target_output[0])
@@ -32,15 +32,17 @@ def evaluate(genome: Genome):
 yane.train(evaluate)
 
 yane.print()
+best_genome = yane.get_best_species_genome()[1]
+
 print()
-print(yane.get_genomes_population()[0].print())
+print(best_genome.print())
 print()
 
 for data in dataset:
     inputs = data['input']
     expected_output = data['output']
 
-    yane.get_genomes_population()[0].forward_propagation(inputs)
-    output = yane.get_genomes_population()[0].get_outputs()
+    best_genome.forward_propagation(inputs + [1])
+    output = best_genome.get_outputs()
 
     print("Input: " + str(inputs) + " Output: " + str(output) + " Expected: " + str(expected_output))

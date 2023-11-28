@@ -1,3 +1,4 @@
+import bisect
 from copy import deepcopy
 
 from src.neural_network import YaneConfig, Connection
@@ -35,7 +36,7 @@ class Neuron:
     def get_next_connections(self) -> list[Connection]:
         return self.next_connections
 
-    def add_next_connection(self, connection):
+    def add_next_connection(self, connection: Connection):
         if connection in self.next_connections:
             raise InvalidConnection("Cannot add connection twice")
 
@@ -49,7 +50,7 @@ class Neuron:
             if next_connection.get_out_neuron() == connection.get_out_neuron():
                 raise InvalidConnection("Cannot add connection with same out neuron twice")
 
-        self.next_connections.append(connection)
+        bisect.insort(self.next_connections, connection, key=lambda x: x.get_id())
 
     def activate(self):
         self.value = ActivationFunction.activate(self.activation, self.value)
@@ -69,7 +70,7 @@ class Neuron:
         for connection in self.next_connections:
             if not connection.is_enabled():
                 continue
-                
+
             next_neuron: Neuron = connection.get_out_neuron()
             next_neuron.set_value(next_neuron.get_value() + self.value * connection.get_weight())
 

@@ -1,3 +1,4 @@
+import bisect
 import random
 
 from src.neural_network import YaneConfig
@@ -38,21 +39,21 @@ class NeuralNetwork:
             raise InvalidNeuronTypeException(
                 "Invalid neuron type. Can only add InputNeuron")
 
-        self.input_neurons.append(neuron)
+        bisect.insort(self.input_neurons, neuron, key=lambda x: x.get_id())
 
     def add_hidden_neuron(self, neuron: HiddenNeuron):
         if not isinstance(neuron, HiddenNeuron):
             raise InvalidNeuronTypeException(
                 "Invalid neuron type. Can only add HiddenNeuron")
 
-        self.hidden_neurons.append(neuron)
+        bisect.insort(self.hidden_neurons, neuron, key=lambda x: x.get_id())
 
     def add_output_neuron(self, neuron: OutputNeuron):
         if not isinstance(neuron, OutputNeuron):
             raise InvalidNeuronTypeException(
                 "Invalid neuron type. Can only add OutputNeuron")
 
-        self.output_neurons.append(neuron)
+        bisect.insort(self.output_neurons, neuron, key=lambda x: x.get_id())
 
     def add_neuron(self, neuron: Neuron):
 
@@ -181,11 +182,10 @@ class NeuralNetwork:
 
     def mutate_neurons(self):
         neurons = self.get_hidden_neurons() + self.get_output_neurons()
+        random_neuron = random.choice(neurons)
 
-        neuron: Neuron
-        for neuron in neurons:
-            if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
-                neuron.mutate_activation_function()
+        if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
+            random_neuron.mutate_activation_function()
 
         if random.random() < YaneConfig.get_mutation_neuron_probability(yane_config):
             self.add_or_remove_random_neuron()
@@ -195,17 +195,18 @@ class NeuralNetwork:
 
         if len(connections) <= 0:
             self.add_random_connection()
+            return
 
-        connection: Connection
-        for connection in connections:
-            if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
-                connection.mutate_weight_random()
-            elif random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
-                connection.mutate_enabled()
-            elif random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
-                self.last_weight_shift_connection = connection.mutate_weight_shift()
-            elif random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
-                self.add_or_remove_random_connection()
+        random_connection = random.choice(connections)
+
+        if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
+            random_connection.mutate_weight_random()
+        if random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
+            random_connection.mutate_enabled()
+        if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
+            self.last_weight_shift_connection = random_connection.mutate_weight_shift()
+        if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
+            self.add_or_remove_random_connection()
 
     def add_random_connection(self):
         random_neuron_in: Neuron = self.get_random_neuron()
@@ -312,3 +313,21 @@ class NeuralNetwork:
 
     def get_last_weight_shift_connection(self) -> Connection:
         return self.last_weight_shift_connection
+
+    def has_neuron(self, neuron: Neuron) -> bool:
+        return self.get_all_neurons().__contains__(neuron)
+
+    def has_neuron_id(self, neuron_id) -> bool:
+        return self.get_neuron_by_id(neuron_id) is not None
+
+    def has_connection_id(self, connection_id) -> bool:
+        return self.get_connection_by_id(connection_id) is not None
+
+    def get_connection_by_id(self, connection_id):
+        connection: Connection
+
+        for connection in self.get_all_connections():
+            if connection.get_id() == connection_id:
+                return connection
+
+        return None

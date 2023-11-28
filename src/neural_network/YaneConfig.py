@@ -52,10 +52,6 @@ def get_mutation_weight_max(json_config):
     return json_config["mutation_weight"][1]
 
 
-def get_population_size(json_config):
-    return json_config["population_size_reference"]
-
-
 def get_mutation_bias_probability(json_config):
     return json_config["mutation_bias_probability"]
 
@@ -72,6 +68,52 @@ def get_mutation_enabled_probability(json_config):
     return json_config["mutation_enabled_probability"]
 
 
+def get_species_stagnation_duration(json_config):
+    return json_config["species_stagnation_duration"]
+
+
+def get_species_size_reference(json_config):
+    return json_config["species_size_reference"]
+
+
+def get_max_species_per_population(json_config):
+    return json_config["max_species_per_population"]
+
+
+def get_net_cost_factor(json_config):
+    return json_config["net_cost_factor"]
+
+
+def get_max_population_size(json_config):
+    return json_config["max_species_per_population"] * json_config["species_size_reference"]
+
+
+def get_species_compatibility_neuron_factor(yane_config):
+    return yane_config["species_compatibility_neuron_factor"]
+
+
+def get_species_compatibility_connection_factor(yane_config):
+    return yane_config["species_compatibility_connection_factor"]
+
+
+def get_species_compatibility_weight_factor(yane_config):
+    return yane_config["species_compatibility_weight_factor"]
+
+
+def get_reproduction_fraction(json_config):
+    return json_config["reproduction_fraction"]
+
+
+def get_max_bad_reproductions_in_row(json_config):
+    return json_config["max_bad_reproductions_in_row"]
+
+
+def get_impovement_threshold(json_config):
+    return json_config["improvement_threshold"]
+
+
+# TODO: Automatically stop training if no improvement after x generations
+
 def create_default_json_config():
     json_config = {
         # if true, yane can cancel forward propagation if it thinks the output is already good enough. Might increase
@@ -84,14 +126,24 @@ def create_default_json_config():
         "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
-        "mutation_connection_probability": 0.1,  # chance that a new connection is created
+        "mutation_connection_probability": 0.5,  # chance that a new connection is created
         "mutation_bias_probability": 0.1,  # chance that a bias is mutated
         "mutation_neuron_probability": 0.1,  # chance that a new neuron is created
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         "mutation_shift_probability": 0.5,  # chance that a weight is shifted
         "mutation_activation_function_probability": 0.1,  # chance that an activation function is mutated
         "mutation_enabled_probability": 0.1,  # chance that a connection is enabled/disabled
-        "population_size_reference": 100,  # The approximate amount of genomes in a population. May fluctuate.
+        # The number of generations without improvement until a species is considered stagnant
+        "species_stagnation_duration": 5,
+        "species_size_reference": 50,  # The approximate amount of genomes in a species. May fluctuate.
+        "max_species_per_population": 5,  # The approximate amount of species in a population. May fluctuate.
+        "species_compatibility_neuron_factor": 1,  # The factor that is multiplied with the neuron difference
+        "species_compatibility_connection_factor": 1,  # The factor that is multiplied with the connection difference
+        "species_compatibility_weight_factor": 0.4,  # The factor that is multiplied with the weight difference
+        "reproduction_fraction": 0.2,  # The fraction of the population that is allowed to reproduce
+        # The maximum amount of times a genome is allowed to make bad genomes in a row
+        "max_bad_reproductions_in_row": 5,
+        "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
 
         # The factor that is multiplied with the net cost to calculate the fitness.
         # If to high, the net cost will be prioritized over the fitness.
@@ -107,7 +159,3 @@ def load_json_config():
     with open('yane_config.json') as json_config_file:
         json_config = json.load(json_config_file)
     return json_config
-
-
-def get_net_cost_factor(yane_config):
-    return yane_config["net_cost_factor"]

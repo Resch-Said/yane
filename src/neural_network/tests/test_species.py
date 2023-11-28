@@ -2,11 +2,11 @@ import math
 import random
 
 from src.neural_network.Genome import Genome
-from src.neural_network.Population import Population
+from src.neural_network.Species import Species
 
 
 def test_add_genome():
-    population = Population()
+    population = Species()
     assert len(population.get_genomes()) == 0
 
     size = 100
@@ -23,7 +23,7 @@ def test_add_genome():
 
 
 def test_pop_genome():
-    population = Population()
+    population = Species()
     assert len(population.get_genomes()) == 0
 
     size = 100
@@ -47,7 +47,7 @@ def test_pop_genome():
 
 
 def test_remove_genome():
-    population = Population()
+    population = Species()
     assert len(population.get_genomes()) == 0
 
     size = 100
@@ -69,7 +69,7 @@ def test_remove_genome():
 
 
 def test_get_genomes():
-    population = Population()
+    population = Species()
     assert len(population.get_genomes()) == 0
 
     population.add_genome(Genome())
@@ -79,7 +79,7 @@ def test_get_genomes():
 
 
 def test_get_size():
-    population = Population()
+    population = Species()
     assert population.get_size() == 0
 
     population.add_genome(Genome())
@@ -91,7 +91,7 @@ def test_get_size():
 
 
 def test_get_average_fitness():
-    population = Population()
+    population = Species()
     assert population.get_average_fitness() is None
 
     size = 100

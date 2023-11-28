@@ -9,28 +9,61 @@ dataset = TrainingData.load_data('dataset_PI.json')
 length = len(dataset)
 
 yane = NeuroEvolution()
-yane.set_max_generations(10000)
+yane.set_min_fitness(-0.5)
 yane.set_number_of_outputs(10)
+
+
+# if target_output is 1: the predicted output on the index of the target output should be 1 and the rest should be 0
+def calculate_fitness(target_output, predicted_output):
+    target_output_index = target_output[0]
+
+    output_value_for_wrong_prediction = 0.4
+    output_value_for_correct_prediction = 0.6
+
+    fitness = 0.0
+
+    for i in range(len(predicted_output)):
+        if i == target_output_index:
+            fitness += 1 - np.abs(
+                predicted_output[i] - output_value_for_correct_prediction) / output_value_for_correct_prediction
+        else:
+            fitness += 1 - np.abs(
+                predicted_output[i] - output_value_for_wrong_prediction) / output_value_for_wrong_prediction
+
+    return fitness
+
+
+def calculate_fitness_2(target_output, predicted_output):
+    target_output_index = target_output[0]
+
+    target_output_value_for_wrong_prediction = 0.4
+    target_output_value_for_correct_prediction = 0.6
+
+    fitness = 0.0
+
+    for i in range(len(predicted_output)):
+        if i == target_output_index:
+            fitness -= np.abs(predicted_output[i] - target_output_value_for_correct_prediction)
+        else:
+            fitness -= np.abs(predicted_output[i] - target_output_value_for_wrong_prediction)
+
+    return fitness
+
+
+decimal_places = 5
 
 
 def evaluate(genome: Genome):
     fitness = 0.0
 
-    best_fitness = yane.get_best_fitness()
-    if best_fitness is None:
-        best_fitness = 0.0
-
-    for sample in dataset[:1 + int(np.round(best_fitness))]:
+    for sample in dataset[:decimal_places]:
         data_input = sample['input']
         target_output = sample['output']
 
         genome.forward_propagation(data_input)
         predicted_output = genome.get_outputs()
 
-        highest = np.argmax(predicted_output)
-
-        if highest == target_output[0]:
-            fitness += 1.0
+        fitness += calculate_fitness_2(target_output, predicted_output)
 
     return fitness
 
@@ -38,14 +71,14 @@ def evaluate(genome: Genome):
 yane.train(evaluate)
 
 best_fitness = yane.get_best_fitness()
-best_genome = yane.get_genomes_population()[0]
+best_genome = yane.get_best_species_genome()[1]
 
 yane.print()
 print()
 print(best_genome.print())
 print()
 
-for data in dataset[:1 + int(np.round(best_fitness))]:
+for data in dataset[:decimal_places]:
     inputs = data['input']
     expected_output = data['output']
 
