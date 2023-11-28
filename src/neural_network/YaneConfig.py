@@ -52,16 +52,8 @@ def get_mutation_weight_max(json_config):
     return json_config["mutation_weight"][1]
 
 
-def get_mutation_bias_probability(json_config):
-    return json_config["mutation_bias_probability"]
-
-
 def get_mutation_shift_probability(json_config):
     return json_config["mutation_shift_probability"]
-
-
-def get_mutation_bias_shift(json_config):
-    return random.uniform(json_config["bias_shift"][0], json_config["bias_shift"][1])
 
 
 def get_mutation_enabled_probability(json_config):
@@ -108,7 +100,7 @@ def get_max_bad_reproductions_in_row(json_config):
     return json_config["max_bad_reproductions_in_row"]
 
 
-def get_impovement_threshold(json_config):
+def get_improvement_threshold(json_config):
     return json_config["improvement_threshold"]
 
 
@@ -122,12 +114,10 @@ def create_default_json_config():
         "allow_early_output": True,
         "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
         "weight_shift": [0.01, 0.1],  # How much the weight can change shift in one direction. [min, max]
-        "bias_shift": [0.1, 0.1],  # How much the bias can change shift in one direction. [min, max]
         "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
         "mutation_connection_probability": 0.5,  # chance that a new connection is created
-        "mutation_bias_probability": 0.1,  # chance that a bias is mutated
         "mutation_neuron_probability": 0.1,  # chance that a new neuron is created
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         "mutation_shift_probability": 0.5,  # chance that a weight is shifted

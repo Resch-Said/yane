@@ -86,7 +86,7 @@ class Species:
 
         improved_percentage = (self.average_fitness - self.previous_average_fitness) / self.previous_average_fitness
 
-        if improved_percentage >= YaneConfig.get_impovement_threshold(yane_config):
+        if improved_percentage >= YaneConfig.get_improvement_threshold(yane_config):
             self.generations_without_improvement = 0
         else:
             self.generations_without_improvement += 1 / YaneConfig.get_species_size_reference(yane_config)
