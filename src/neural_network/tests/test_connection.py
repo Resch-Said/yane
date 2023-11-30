@@ -1,7 +1,8 @@
-from src.neural_network.Connection import Connection
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.Neuron import Neuron
+
+from src.neural_network.Connection import Connection
+from src.neural_network.Node import Node
 
 
 def test_set_weight():
@@ -13,28 +14,28 @@ def test_set_weight():
 def test_set_in_neuron():
     con = Connection()
     neuron = InputNeuron()
-    con.set_in_neuron(neuron)
+    con.set_in_node(neuron)
 
-    assert con.get_in_neuron() == neuron
+    assert con.get_in_node() == neuron
 
 
 def test_set_out_neuron():
     con = Connection()
-    neuron = Neuron()
-    con.set_out_neuron(neuron)
+    neuron = Node()
+    con.set_out_node(neuron)
 
-    assert con.get_out_neuron() == neuron
+    assert con.get_out_node() == neuron
 
 
 def test_set_in_out_neuron():
     con = Connection()
     in_neuron = InputNeuron()
-    out_neuron = Neuron()
-    con.set_in_neuron(in_neuron)
-    con.set_out_neuron(out_neuron)
+    out_neuron = Node()
+    con.set_in_node(in_neuron)
+    con.set_out_node(out_neuron)
 
-    assert con.get_in_neuron() == in_neuron
-    assert con.get_out_neuron() == out_neuron
+    assert con.get_in_node() == in_neuron
+    assert con.get_out_node() == out_neuron
 
 
 def test_set_enabled():
@@ -75,8 +76,8 @@ def test_copy():
     assert new_con.get_weight() == con.get_weight()
     assert new_con.is_enabled() == con.is_enabled()
     assert new_con.get_id() == con.get_id()
-    assert new_con.get_in_neuron() == con.get_in_neuron()
-    assert new_con.get_out_neuron() == con.get_out_neuron()
+    assert new_con.get_in_node() == con.get_in_node()
+    assert new_con.get_out_node() == con.get_out_node()
     assert new_con is not con
     assert id(new_con) != id(con)
 
@@ -91,13 +92,13 @@ def test_copy_2():
     neuron_in = InputNeuron()
     neuron_out = HiddenNeuron()
 
-    new_con.set_in_neuron(neuron_in)
-    new_con.set_out_neuron(neuron_out)
+    new_con.set_in_node(neuron_in)
+    new_con.set_out_node(neuron_out)
 
-    assert new_con.get_in_neuron() == neuron_in
-    assert new_con.get_out_neuron() == neuron_out
-    assert con.get_in_neuron() != neuron_in
-    assert con.get_out_neuron() != neuron_out
+    assert new_con.get_in_node() == neuron_in
+    assert new_con.get_out_node() == neuron_out
+    assert con.get_in_node() != neuron_in
+    assert con.get_out_node() != neuron_out
 
 
 def test_mutate_weight():

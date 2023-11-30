@@ -28,8 +28,8 @@ def get_mutation_connection_probability(json_config):
     return json_config["mutation_connection_probability"]
 
 
-def get_mutation_neuron_probability(json_config):
-    return json_config["mutation_neuron_probability"]
+def get_mutation_node_probability(json_config):
+    return json_config["mutation_node_probability"]
 
 
 def get_mutation_weight_probability(json_config):
@@ -80,8 +80,8 @@ def get_max_population_size(json_config):
     return json_config["max_species_per_population"] * json_config["species_size_reference"]
 
 
-def get_species_compatibility_neuron_factor(yane_config):
-    return yane_config["species_compatibility_neuron_factor"]
+def get_species_compatibility_node_factor(yane_config):
+    return yane_config["species_compatibility_node_factor"]
 
 
 def get_species_compatibility_connection_factor(yane_config):
@@ -112,13 +112,13 @@ def create_default_json_config():
         # the training time since an additional output is added, but it can reduce the execution time of forward
         # propagation. If false, yane will always execute forward propagation until the end.
         "allow_early_output": True,
-        "clear_on_new_input": True,  # if true, yane will reset all neuron values when a new input is given
+        "clear_on_new_input": True,  # if true, yane will reset all node values when a new input is given
         "weight_shift": [0.01, 0.1],  # How much the weight can change shift in one direction. [min, max]
         "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
         "mutation_connection_probability": 0.5,  # chance that a new connection is created
-        "mutation_neuron_probability": 0.1,  # chance that a new neuron is created
+        "mutation_node_probability": 0.1,  # chance that a new node is created
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         "mutation_shift_probability": 0.5,  # chance that a weight is shifted
         "mutation_activation_function_probability": 0.1,  # chance that an activation function is mutated
@@ -127,7 +127,7 @@ def create_default_json_config():
         "species_stagnation_duration": 5,
         "species_size_reference": 50,  # The approximate amount of genomes in a species. May fluctuate.
         "max_species_per_population": 5,  # The approximate amount of species in a population. May fluctuate.
-        "species_compatibility_neuron_factor": 1,  # The factor that is multiplied with the neuron difference
+        "species_compatibility_node_factor": 1,  # The factor that is multiplied with the node difference
         "species_compatibility_connection_factor": 1,  # The factor that is multiplied with the connection difference
         "species_compatibility_weight_factor": 0.4,  # The factor that is multiplied with the weight difference
         "reproduction_fraction": 0.2,  # The fraction of the population that is allowed to reproduce

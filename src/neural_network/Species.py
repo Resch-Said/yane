@@ -91,7 +91,7 @@ class Species:
         else:
             self.generations_without_improvement += 1 / YaneConfig.get_species_size_reference(yane_config)
 
-    def get_random_genome(self):
+    def get_random_genome(self) -> Genome:
         fraction = YaneConfig.get_reproduction_fraction(yane_config)
 
         reproduction_limit = int(np.ceil(fraction * self.get_size()))

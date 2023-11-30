@@ -4,16 +4,15 @@ from random import random
 import numpy as np
 
 from src.neural_network import YaneConfig
-from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork
-from src.neural_network.Neuron import Neuron
-from src.neural_network.OutputNeuron import OutputNeuron
+from src.neural_network.Node import Node
+from src.neural_network.NodeTypes import NodeTypes
 
 yane_config = YaneConfig.load_json_config()
 
 
 class Genome:
-    def __init__(self, neuron_genes=None):
+    def __init__(self, node_genes=None):
         self.bad_reproduction_count = 0
         self.brain: NeuralNetwork = NeuralNetwork()
         self.parent: Genome | None = None
@@ -21,9 +20,9 @@ class Genome:
         self.net_cost = None
         self.reproduction_count = 0
 
-        if neuron_genes is not None:
-            for neuron in neuron_genes:
-                self.add_neuron(neuron)
+        if node_genes is not None:
+            for node in node_genes:
+                self.add_node(node)
 
     @classmethod
     def crossover_connections(cls, genome1, genome2):
@@ -40,18 +39,18 @@ class Genome:
         index2 = 0
 
         while index1 < len(genes1) and index2 < len(genes2):
-            neuron1 = genes1[index1]
-            neuron2 = genes2[index2]
+            node1 = genes1[index1]
+            node2 = genes2[index2]
 
-            if neuron1.get_id() == neuron2.get_id():
-                aligned_genes.append((neuron1, neuron2))
+            if node1.get_id() == node2.get_id():
+                aligned_genes.append((node1, node2))
                 index1 += 1
                 index2 += 1
-            elif neuron1.get_id() < neuron2.get_id():
-                aligned_genes.append((neuron1, None))
+            elif node1.get_id() < node2.get_id():
+                aligned_genes.append((node1, None))
                 index1 += 1
-            elif neuron1.get_id() > neuron2.get_id():
-                aligned_genes.append((None, neuron2))
+            elif node1.get_id() > node2.get_id():
+                aligned_genes.append((None, node2))
                 index2 += 1
 
         while index1 < len(genes1):
@@ -84,16 +83,16 @@ class Genome:
         return deepcopy(new_genes)
 
     @classmethod
-    def crossover_neurons(cls, genome1, genome2) -> list:
-        neuron_genes1 = genome1.get_brain().get_all_neurons()
-        neuron_genes2 = genome2.get_brain().get_all_neurons()
+    def crossover_nodes(cls, genome1, genome2) -> list:
+        node_genes1 = genome1.get_brain().get_all_nodes()
+        node_genes2 = genome2.get_brain().get_all_nodes()
 
-        return Genome.crossover_genes(neuron_genes1, neuron_genes2)
+        return Genome.crossover_genes(node_genes1, node_genes2)
 
     @classmethod
     def crossover(cls, genome1, genome2) -> 'Genome':
-        neuron_genes = Genome.crossover_neurons(genome1, genome2)
-        child_genome = Genome(neuron_genes)
+        node_genes = Genome.crossover_nodes(genome1, genome2)
+        child_genome = Genome(node_genes)
 
         return child_genome
 
@@ -120,9 +119,9 @@ class Genome:
 
         fitness_result = callback_evaluator(self)
 
-        self.clear_hidden_output_neurons()
+        self.clear_hidden_output_nodes()
 
-        net_cost = self.get_net_cost()
+        # net_cost = self.get_net_cost()
 
         if self.parent is not None and fitness_result >= self.parent.get_fitness():
             self.parent.set_bad_reproduction_count(0)
@@ -139,31 +138,34 @@ class Genome:
         self.set_fitness(fitness_result)
         return self.get_fitness()
 
+    # Avoid deep copy because of recursion
     def copy(self):
-        return deepcopy(self)
+        new_genome = Genome()
 
-    def add_output_neuron(self, neuron: OutputNeuron):
-        self.brain.add_output_neuron(neuron)
+        for node in self.get_brain().get_all_nodes():
+            new_genome.add_node(node.copy())
 
-    def add_hidden_neuron(self, neuron: HiddenNeuron):
-        self.brain.add_hidden_neuron(neuron)
+        for connection in self.get_brain().get_all_connections():
+            new_connection = connection.copy()
+            new_connection.set_in_node(new_genome.get_brain().get_node_by_id(connection.get_in_node().get_id()))
+            new_connection.set_out_node(new_genome.get_brain().get_node_by_id(connection.get_out_node().get_id()))
+            new_genome.add_connection(new_connection)
 
-    def add_neuron(self, neuron: Neuron):
-        self.brain.add_neuron(neuron)
+        return new_genome
 
-    def remove_all_connections(self):
-        self.brain.remove_all_connections()
+    def add_node(self, node: Node):
+        self.brain.add_node(node)
 
     def mutate(self):
         self.brain.mutate()
 
     def print(self):
         print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
-            len(self.get_brain().get_forward_order_list())) + " connected neurons")
+            len(self.get_brain().get_forward_order_list())) + " connected nodes")
         self.brain.print()
 
-    def get_all_neurons(self):
-        return self.brain.get_all_neurons()
+    def get_all_nodes(self):
+        return self.brain.get_all_nodes()
 
     def add_connection(self, connection):
         self.brain.add_connection(connection)
@@ -179,11 +181,8 @@ class Genome:
 
     def set_number_of_outputs(self, number_of_outputs):
         for i in range(number_of_outputs):
-            output_neuron = OutputNeuron()
-            self.add_output_neuron(output_neuron)
-
-    def add_random_connection(self):
-        self.brain.add_random_connection()
+            output_node = Node(NodeTypes.OUTPUT)
+            self.add_node(output_node)
 
     def reset_forward_order(self):
         self.brain.forward_order_list = None
@@ -200,24 +199,24 @@ class Genome:
     # smaller is better
     def get_species_compatibility(self, genome):
 
-        neuron_difference = 0
+        node_difference = 0
         connection_difference = 0
         weight_difference = np.abs(self.get_average_weight() - genome.get_average_weight())
 
-        aligned_neurons = Genome.align_gene_ids(self.get_brain().get_all_neurons(),
-                                                genome.get_brain().get_all_neurons())
+        aligned_nodes = Genome.align_gene_ids(self.get_brain().get_all_nodes(),
+                                              genome.get_brain().get_all_nodes())
         aligned_connections = Genome.align_gene_ids(self.get_brain().get_all_connections(),
                                                     genome.get_brain().get_all_connections())
 
-        for neuron1, neuron2 in aligned_neurons:
-            if neuron1 is None or neuron2 is None:
-                neuron_difference += 1
+        for node1, node2 in aligned_nodes:
+            if node1 is None or node2 is None:
+                node_difference += 1
 
         for connection1, connection2 in aligned_connections:
             if connection1 is None or connection2 is None:
                 connection_difference += 1
 
-        return YaneConfig.get_species_compatibility_neuron_factor(yane_config) * neuron_difference + \
+        return YaneConfig.get_species_compatibility_node_factor(yane_config) * node_difference + \
             YaneConfig.get_species_compatibility_connection_factor(yane_config) * connection_difference + \
             YaneConfig.get_species_compatibility_weight_factor(yane_config) * weight_difference
 
@@ -233,9 +232,9 @@ class Genome:
 
         return sum_weight / len(self.brain.get_all_connections())
 
-    def clear_hidden_output_neurons(self):
-        for neuron in self.brain.get_hidden_neurons() + self.brain.get_output_neurons():
-            neuron.set_value(0)
+    def clear_hidden_output_nodes(self):
+        for node in self.brain.get_hidden_nodes() + self.brain.get_output_nodes():
+            node.set_value(0)
 
     def get_parent(self):
         return self.parent

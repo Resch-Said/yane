@@ -1,27 +1,27 @@
 import pytest
+from src.neural_network.InputNeuron import InputNeuron
 
 from src.neural_network import YaneConfig
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.Connection import Connection
-from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.Neuron import Neuron
+from src.neural_network.Node import Node
 from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 
 
 def test_set_value():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_value(10)
     assert neuron.get_value() == 10
 
 
 def test_set_activation():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_activation(ActivationFunction.SIGMOID)
     assert neuron.get_activation() == ActivationFunction.SIGMOID
 
 
 def test_set_activation_2():
-    neuron = Neuron()
+    neuron = Node()
 
     activation = YaneConfig.get_random_activation_function(YaneConfig.load_json_config())
 
@@ -30,22 +30,22 @@ def test_set_activation_2():
 
 
 def test_get_value():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_value(10)
     assert neuron.get_value() == 10
 
 
 def test_get_activation():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_activation(ActivationFunction.SIGMOID)
     assert neuron.get_activation() == ActivationFunction.SIGMOID
 
 
 def test_get_next_connections():
-    neuron = Neuron()
+    neuron = Node()
     connection = Connection()
-    connection.set_in_neuron(neuron)
-    connection.set_out_neuron(neuron)
+    connection.set_in_node(neuron)
+    connection.set_out_node(neuron)
     neuron.add_next_connection(connection)
 
     assert connection in neuron.get_next_connections()
@@ -57,16 +57,16 @@ def test_get_next_connections():
 
 
 def test_add_next_connection():
-    neuron = Neuron()
+    neuron = Node()
     connection = Connection()
     with pytest.raises(InvalidConnection):
         neuron.add_next_connection(connection)
 
-    connection.set_in_neuron(neuron)
+    connection.set_in_node(neuron)
     with pytest.raises(InvalidConnection):
         neuron.add_next_connection(connection)
 
-    connection.set_out_neuron(neuron)
+    connection.set_out_node(neuron)
     neuron.add_next_connection(connection)
 
     assert connection in neuron.get_next_connections()
@@ -75,28 +75,28 @@ def test_add_next_connection():
         neuron.add_next_connection(connection)
 
     connection2 = Connection()
-    connection2.set_in_neuron(neuron)
-    connection2.set_out_neuron(neuron)
+    connection2.set_in_node(neuron)
+    connection2.set_out_node(neuron)
     with pytest.raises(InvalidConnection):
         neuron.add_next_connection(connection2)
 
-    connection2.set_in_neuron(Neuron())
+    connection2.set_in_node(Node())
     with pytest.raises(InvalidConnection):
         neuron.add_next_connection(connection2)
 
-    connection2.set_in_neuron(neuron)
-    connection2.set_out_neuron(Neuron())
+    connection2.set_in_node(neuron)
+    connection2.set_out_node(Node())
     neuron.add_next_connection(connection2)
 
     assert connection2 in neuron.get_next_connections()
     assert connection in neuron.get_next_connections()
-    connection.set_out_neuron(connection2.get_out_neuron())
+    connection.set_out_node(connection2.get_out_node())
     with pytest.raises(InvalidConnection):
         neuron.add_next_connection(connection)
 
 
 def test_activate():
-    neuron = Neuron()
+    neuron = Node()
     value = 10
     neuron.set_value(value)
     neuron.activate()
@@ -105,25 +105,25 @@ def test_activate():
 
 
 def test_reset():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_value(10)
     neuron.reset()
     assert neuron.get_value() == 0.0
 
 
 def test_get_id():
-    Neuron.ID = 0
+    Node.ID = 0
 
-    neuron = Neuron()
+    neuron = Node()
     assert neuron.get_id() == 0
-    neuron = Neuron()
+    neuron = Node()
     assert neuron.get_id() == 1
-    neuron = Neuron()
+    neuron = Node()
     assert neuron.get_id() == 2
 
 
 def test_copy():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_value(10)
     neuron.set_activation(ActivationFunction.SIGMOID)
 
@@ -140,8 +140,8 @@ def test_copy():
 
 
 def test_fire():
-    neuron_from = Neuron()
-    neuron_to = Neuron()
+    neuron_from = Node()
+    neuron_to = Node()
 
     neuron_from.set_value(10)
     neuron_from.set_activation(ActivationFunction.LINEAR)
@@ -150,8 +150,8 @@ def test_fire():
     neuron_to.set_activation(ActivationFunction.LINEAR)
 
     connection = Connection()
-    connection.set_in_neuron(neuron_from)
-    connection.set_out_neuron(neuron_to)
+    connection.set_in_node(neuron_from)
+    connection.set_out_node(neuron_to)
     connection.set_weight(0.5)
 
     neuron_from.add_next_connection(connection)
@@ -168,12 +168,12 @@ def test_fire():
     assert neuron_to.get_value() != 3.0 + 10.0 * 0.5
 
     neuron_to.set_value(3)
-    neuron_to_2 = Neuron()
+    neuron_to_2 = Node()
     neuron_to_2.set_value(4)
 
     connection_2 = Connection()
-    connection_2.set_in_neuron(neuron_from)
-    connection_2.set_out_neuron(neuron_to_2)
+    connection_2.set_in_node(neuron_from)
+    connection_2.set_out_node(neuron_to_2)
     connection_2.set_weight(2)
 
     neuron_from.add_next_connection(connection_2)
@@ -186,7 +186,7 @@ def test_fire():
 
 
 def test_mutate_activation_function():
-    neuron = Neuron()
+    neuron = Node()
     neuron.set_activation(ActivationFunction.SIGMOID)
     while neuron.get_activation() == ActivationFunction.SIGMOID:
         neuron.mutate_activation_function()
@@ -205,16 +205,16 @@ def test_input_neuron():
 
 
 def test_wrong_connection():
-    neuron = Neuron()
-    neuron2 = Neuron()
+    neuron = Node()
+    neuron2 = Node()
     connection = Connection(neuron2, neuron)
     with pytest.raises(InvalidConnection):
         neuron.add_next_connection(connection)
 
 
 def test_remove_connection():
-    neuron = Neuron()
-    neuron2 = Neuron()
+    neuron = Node()
+    neuron2 = Node()
     connection = Connection(neuron, neuron2)
     neuron.add_next_connection(connection)
 

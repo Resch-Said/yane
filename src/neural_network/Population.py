@@ -109,26 +109,5 @@ class Population:
 
         return genomes
 
-    def get_species_with_most_genomes(self):
-        overpopulated_species = None
-        for species in self.species:
-            if overpopulated_species is None or species.get_size() > overpopulated_species.get_size():
-                overpopulated_species = species
-
-        return overpopulated_species
-
-    def get_worst_species(self):
-        return min(self.species, key=lambda x: x.get_average_fitness())
-
-    def get_worst_species_without_improvement(self):
-        worst_species = None
-        for species in self.species:
-            if (worst_species is None or species.get_generations_without_improvement() >
-                    YaneConfig.get_species_stagnation_duration(yane_config) and species.get_average_fitness() <
-                    worst_species.get_average_fitness()):
-                worst_species = species
-
-        return worst_species
-
     def remove_species(self, species):
         self.species.remove(species)

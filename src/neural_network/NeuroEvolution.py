@@ -1,6 +1,3 @@
-import random
-from copy import deepcopy
-
 import numpy as np
 
 from src.neural_network import YaneConfig
@@ -50,9 +47,6 @@ class NeuroEvolution:
 
             if self.check_best_fitness() or self.check_max_generation():
                 break
-
-    def get_random_genome(self):
-        return random.choice(self.get_population().get_random_species().get_genomes())
 
     def print(self):
         print("Population size: " + str(self.get_genomes_size()))
@@ -128,9 +122,9 @@ class NeuroEvolution:
         # genome2 = random_species.get_random_genome()
 
         # child_genome = Genome.crossover(genome1, genome2)
-        child_genome: Genome = deepcopy(genome1)
+        child_genome: Genome = genome1.copy()
         child_genome.reset_forward_order()
-        child_genome.clear_hidden_output_neurons()
+        child_genome.clear_hidden_output_nodes()
 
         # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
         child_genome.set_parent(genome1)
@@ -156,13 +150,10 @@ class NeuroEvolution:
         for species in self.get_population().get_species():
             if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
                 best_genome = species.get_best_genome()
-                best_genome.clear_hidden_output_neurons()
+                best_genome.clear_hidden_output_nodes()
                 self.add_evaluation(best_genome)
                 self.remove_species(species)
                 print("Removed stagnated species")
-
-    def get_species_size(self):
-        return self.get_population().get_species_size()
 
     def set_min_fitness(self, min_fitness):
         self.min_fitness = min_fitness

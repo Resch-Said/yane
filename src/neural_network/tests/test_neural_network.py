@@ -1,13 +1,13 @@
 import pytest
+from src.neural_network.HiddenNeuron import HiddenNeuron
+from src.neural_network.InputNeuron import InputNeuron
+from src.neural_network.OutputNeuron import OutputNeuron
 
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.Connection import Connection
-from src.neural_network.HiddenNeuron import HiddenNeuron
-from src.neural_network.InputNeuron import InputNeuron
 from src.neural_network.NeuralNetwork import NeuralNetwork
-from src.neural_network.Neuron import Neuron
-from src.neural_network.OutputNeuron import OutputNeuron
-from src.neural_network.exceptions.InvalidNeuron import InvalidNeuron
+from src.neural_network.Node import Node
+from src.neural_network.exceptions.InvalidNode import InvalidNode
 
 
 def test_get_all_neurons():
@@ -42,23 +42,23 @@ def test_add_connection():
         nn.add_connection(Connection())
 
     con = Connection()
-    con.set_in_neuron(InputNeuron())
-    con.set_out_neuron(OutputNeuron())
+    con.set_in_node(InputNeuron())
+    con.set_out_node(OutputNeuron())
 
     with pytest.raises(Exception):  # Raise because in_neuron is not in the network
         nn.add_connection(con)
 
-    nn.add_neuron(con.get_in_neuron())
+    nn.add_neuron(con.get_in_node())
     with pytest.raises(Exception):  # Raise because out_neuron is not in the network
         nn.add_connection(con)
 
-    nn.add_neuron(con.get_out_neuron())
+    nn.add_neuron(con.get_out_node())
     nn.add_connection(con)
 
     for neuron in nn.get_all_neurons():
         for con in neuron.get_next_connections():
-            assert con.get_in_neuron() == neuron
-            assert con.get_out_neuron() in nn.get_all_neurons()
+            assert con.get_in_node() == neuron
+            assert con.get_out_node() in nn.get_all_neurons()
 
 
 def test_add_input_neuron():
@@ -122,10 +122,10 @@ def test_add_neuron():
     assert len(nn.get_output_neurons()) == 1
 
     with pytest.raises(Exception):
-        nn.add_neuron(Neuron())
+        nn.add_neuron(Node())
 
     with pytest.raises(Exception):
-        nn.add_input_neuron(Neuron())
+        nn.add_input_neuron(Node())
 
     nn.add_input_neuron(InputNeuron())
     assert len(nn.get_all_neurons()) == 5
@@ -137,10 +137,10 @@ def test_add_neuron():
     nn.add_output_neuron(OutputNeuron())
 
     with pytest.raises(Exception):
-        nn.add_hidden_neuron(Neuron())
+        nn.add_hidden_neuron(Node())
 
     with pytest.raises(Exception):
-        nn.add_output_neuron(Neuron())
+        nn.add_output_neuron(Node())
 
     assert len(nn.get_all_neurons()) == 7
     assert len(nn.get_input_neurons()) == 3
@@ -156,7 +156,7 @@ def test_add_neuron():
             assert neuron.get_id() != ""
 
     nn.add_neuron(new_neuron)
-    with pytest.raises(InvalidNeuron):
+    with pytest.raises(InvalidNode):
         nn.add_neuron(new_neuron)
 
 
@@ -234,18 +234,18 @@ def test_get_all_connections():
     assert len(nn.get_all_connections()) == 2
 
     for con in nn.get_all_connections():
-        assert con.get_in_neuron() in nn.get_all_neurons()
-        assert con.get_out_neuron() in nn.get_all_neurons()
-        assert con.get_in_neuron() != con.get_out_neuron()
+        assert con.get_in_node() in nn.get_all_neurons()
+        assert con.get_out_node() in nn.get_all_neurons()
+        assert con.get_in_node() != con.get_out_node()
 
-        assert con.get_in_neuron().get_id() != con.get_out_neuron().get_id()
-        assert con.get_in_neuron().get_id() is not None
-        assert con.get_in_neuron().get_id() != ""
-        assert con.get_out_neuron().get_id() is not None
-        assert con.get_out_neuron().get_id() != ""
+        assert con.get_in_node().get_id() != con.get_out_node().get_id()
+        assert con.get_in_node().get_id() is not None
+        assert con.get_in_node().get_id() != ""
+        assert con.get_out_node().get_id() is not None
+        assert con.get_out_node().get_id() != ""
 
-        assert con.get_in_neuron().get_id() == neuron.get_id() or con.get_in_neuron().get_id() == neuron2.get_id()
-        assert con.get_out_neuron().get_id() == neuron2.get_id() or con.get_out_neuron().get_id() == neuron3.get_id()
+        assert con.get_in_node().get_id() == neuron.get_id() or con.get_in_node().get_id() == neuron2.get_id()
+        assert con.get_out_node().get_id() == neuron2.get_id() or con.get_out_node().get_id() == neuron3.get_id()
 
 
 def test_remove_neuron():
@@ -388,8 +388,8 @@ def test_remove_neuron_with_connections():
     # Check if all associations to neuron2 are removed
     for neuron in nn.get_all_neurons():
         for con in neuron.get_next_connections():
-            assert con.get_in_neuron() != neuron2
-            assert con.get_out_neuron() != neuron2
+            assert con.get_in_node() != neuron2
+            assert con.get_out_node() != neuron2
 
     nn.remove_neuron(neuron1)
     assert len(nn.get_all_neurons()) == 1
@@ -627,10 +627,10 @@ def test_add_random_neuron():
 
     new_neuron = nn.add_random_neuron()
 
-    assert input1.next_connections[0].get_in_neuron() == input1
-    assert input1.next_connections[0].get_out_neuron() == new_neuron
-    assert new_neuron.next_connections[0].get_in_neuron() == new_neuron
-    assert new_neuron.next_connections[0].get_out_neuron() == out1
+    assert input1.next_connections[0].get_in_node() == input1
+    assert input1.next_connections[0].get_out_node() == new_neuron
+    assert new_neuron.next_connections[0].get_in_node() == new_neuron
+    assert new_neuron.next_connections[0].get_out_node() == out1
     assert input1.next_connections[0].get_weight() == 1.0
 
     assert len(nn.get_all_connections()) == 2

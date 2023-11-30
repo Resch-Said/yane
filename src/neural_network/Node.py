@@ -1,22 +1,23 @@
 import bisect
-from copy import deepcopy
 
 from src.neural_network import YaneConfig, Connection
 from src.neural_network.ActivationFunction import ActivationFunction
+from src.neural_network.NodeTypes import NodeTypes
 from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 
 yane_config = YaneConfig.load_json_config()
 
 
-class Neuron:
+class Node:
     ID = 0
 
-    def __init__(self):
+    def __init__(self, node_type: NodeTypes):
         self.value = 0.0
         self.next_connections = []
         self.activation = ActivationFunction.SIGMOID
-        self.id = Neuron.ID
-        Neuron.ID += 1
+        self.id = Node.ID
+        self.type = node_type
+        Node.ID += 1
 
     def __str__(self):
         return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Activation: " + str(self.activation)
@@ -40,14 +41,14 @@ class Neuron:
         if connection in self.next_connections:
             raise InvalidConnection("Cannot add connection twice")
 
-        if connection.get_in_neuron() != self:
+        if connection.get_in_node() != self:
             raise InvalidConnection("Cannot add connection with different in neuron than this neuron")
 
-        if connection.get_out_neuron() is None:
+        if connection.get_out_node() is None:
             raise InvalidConnection("Cannot add connection with no out neuron")
 
         for next_connection in self.next_connections:
-            if next_connection.get_out_neuron() == connection.get_out_neuron():
+            if next_connection.get_out_node() == connection.get_out_node():
                 raise InvalidConnection("Cannot add connection with same out neuron twice")
 
         bisect.insort(self.next_connections, connection, key=lambda x: x.get_id())
@@ -61,18 +62,27 @@ class Neuron:
     def get_id(self):
         return self.id
 
+    # Avoid deep copy because of recursion
     def copy(self):
-        return deepcopy(self)
+        new_node = Node(self.type)
+        new_node.set_activation(self.activation)
+        new_node.id = self.id
+
+        return new_node
 
     def fire(self):
-        self.activate()
+        if self.type != NodeTypes.INPUT:
+            self.activate()
 
         for connection in self.next_connections:
             if not connection.is_enabled():
                 continue
 
-            next_neuron: Neuron = connection.get_out_neuron()
-            next_neuron.set_value(next_neuron.get_value() + self.value * connection.get_weight())
+            next_node: Node = connection.get_out_node()
+            next_node.set_value(next_node.get_value() + self.value * connection.get_weight())
+
+        if self.type == NodeTypes.HIDDEN:
+            self.value = 0.0
 
     def mutate_activation_function(self):
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
