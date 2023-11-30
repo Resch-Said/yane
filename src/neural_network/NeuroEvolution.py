@@ -123,8 +123,6 @@ class NeuroEvolution:
 
         # child_genome = Genome.crossover(genome1, genome2)
         child_genome: Genome = genome1.copy()
-        child_genome.reset_forward_order()
-        child_genome.clear_hidden_output_nodes()
 
         # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
         child_genome.set_parent(genome1)

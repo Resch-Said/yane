@@ -184,9 +184,6 @@ class Genome:
             output_node = Node(NodeTypes.OUTPUT)
             self.add_node(output_node)
 
-    def reset_forward_order(self):
-        self.brain.forward_order_list = None
-
     def set_parent(self, parent: 'Genome'):
         self.parent = parent
 

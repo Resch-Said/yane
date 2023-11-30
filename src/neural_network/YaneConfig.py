@@ -117,7 +117,7 @@ def create_default_json_config():
         "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
-        "mutation_connection_probability": 0.5,  # chance that a new connection is created
+        "mutation_connection_probability": 0.1,  # chance that a new connection is created
         "mutation_node_probability": 0.1,  # chance that a new node is created
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         "mutation_shift_probability": 0.5,  # chance that a weight is shifted
