@@ -7,14 +7,17 @@ yane_config = YaneConfig.load_json_config()
 class Connection:
     ID = 0
 
-    def __init__(self, in_node: Node = None, out_node: Node = None, weight: float = 1.0, enabled: bool = True):
+    def __init__(self, in_node: Node = None, out_node: Node = None, weight: float = 1.0, enabled: bool = True, ID=None):
         self.weight_shift_direction = True
         self.weight = weight
         self.in_node = in_node
         self.out_node = out_node
         self.enabled = enabled
-        self.id = Connection.ID
-        Connection.ID += 1
+        self.id = ID
+
+        if ID is None:
+            self.id = Connection.ID
+            Connection.ID += 1
 
     def set_weight(self, weight):
         self.weight = weight
@@ -48,9 +51,8 @@ class Connection:
         return self.id
 
     def copy(self) -> 'Connection':
-        new_connection = Connection(self.in_node, self.out_node, self.weight, self.enabled)
+        new_connection = Connection(self.in_node, self.out_node, self.weight, self.enabled, self.id)
         new_connection.weight_shift_direction = self.weight_shift_direction
-        new_connection.id = self.id
 
         return new_connection
 

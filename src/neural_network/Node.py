@@ -11,13 +11,16 @@ yane_config = YaneConfig.load_json_config()
 class Node:
     ID = 0
 
-    def __init__(self, node_type: NodeTypes):
+    def __init__(self, node_type: NodeTypes, ID=None):
         self.value = 0.0
         self.next_connections = []
         self.activation = ActivationFunction.SIGMOID
-        self.id = Node.ID
         self.type = node_type
-        Node.ID += 1
+        self.id = ID
+
+        if ID is None:
+            self.id = Node.ID
+            Node.ID += 1
 
     def __str__(self):
         return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Activation: " + str(self.activation)
@@ -64,9 +67,8 @@ class Node:
 
     # Avoid deep copy because of recursion
     def copy(self):
-        new_node = Node(self.type)
+        new_node = Node(self.type, self.id)
         new_node.set_activation(self.activation)
-        new_node.id = self.id
 
         return new_node
 
