@@ -1,540 +1,643 @@
-from src.neural_network.ActivationFunction import ActivationFunction
+import pytest
 from src.neural_network.HiddenNeuron import HiddenNeuron
 from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.NeuralNetwork import NeuralNetwork, change_weight_shift_direction
-from src.neural_network.Neuron import Neuron
 from src.neural_network.OutputNeuron import OutputNeuron
-from src.neural_network.TrainingData import get_input_data, get_output_data, get_data_size
-from src.neural_network.YaneConfig import get_random_weight_shift
+
+from src.neural_network.ActivationFunction import ActivationFunction
+from src.neural_network.Connection import Connection
+from src.neural_network.NeuralNetwork import NeuralNetwork
+from src.neural_network.Node import Node
+from src.neural_network.exceptions.InvalidNode import InvalidNode
 
 
-def test_neural_network_init():
+def test_get_all_neurons():
     nn = NeuralNetwork()
-    assert nn.hidden_neurons == []
-    assert nn.connections == []
+
+    nn.add_neuron(InputNeuron())
+    nn.add_neuron(InputNeuron())
+    nn.add_neuron(HiddenNeuron())
+    nn.add_neuron(OutputNeuron())
+    nn.add_neuron(OutputNeuron())
+    nn.add_neuron(OutputNeuron())
+
+    assert len(nn.get_all_neurons()) == 6
+    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 3
+
+    for neuron in nn.get_all_neurons():
+        for neuron2 in nn.get_all_neurons():
+            if neuron == neuron2:
+                continue
+            assert neuron.get_id() != neuron2.get_id()
+            assert neuron.get_id() is not None
+            assert neuron.get_id() != ""
+
+
+def test_add_connection():
+    nn = NeuralNetwork()
+    assert len(nn.get_all_neurons()) == 0
+
+    with pytest.raises(Exception):  # Raise because connection is empty
+        nn.add_connection(Connection())
+
+    con = Connection()
+    con.set_in_node(InputNeuron())
+    con.set_out_node(OutputNeuron())
+
+    with pytest.raises(Exception):  # Raise because in_neuron is not in the network
+        nn.add_connection(con)
+
+    nn.add_neuron(con.get_in_node())
+    with pytest.raises(Exception):  # Raise because out_neuron is not in the network
+        nn.add_connection(con)
+
+    nn.add_neuron(con.get_out_node())
+    nn.add_connection(con)
+
+    for neuron in nn.get_all_neurons():
+        for con in neuron.get_next_connections():
+            assert con.get_in_node() == neuron
+            assert con.get_out_node() in nn.get_all_neurons()
 
 
 def test_add_input_neuron():
     nn = NeuralNetwork()
-    neuron = InputNeuron()
-    assert nn.input_neurons == []
-    nn.add_input_neuron(neuron)
-    assert nn.input_neurons == [neuron]
+    assert len(nn.get_all_neurons()) == 0
+
+    nn.add_input_neuron(InputNeuron())
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 1
 
 
 def test_add_hidden_neuron():
     nn = NeuralNetwork()
-    neuron = HiddenNeuron()
-    assert nn.hidden_neurons == []
-    nn.add_hidden_neuron(neuron)
-    assert nn.hidden_neurons == [neuron]
+    assert len(nn.get_all_neurons()) == 0
+
+    nn.add_hidden_neuron(HiddenNeuron())
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 1
 
 
 def test_add_output_neuron():
     nn = NeuralNetwork()
-    neuron = OutputNeuron()
-    assert nn.output_neurons == []
-    nn.add_output_neuron(neuron)
-    assert nn.output_neurons == [neuron]
+    assert len(nn.get_all_neurons()) == 0
+
+    nn.add_output_neuron(OutputNeuron())
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 1
 
 
-def test_remove_input_neuron():
+def test_add_neuron():
+    nn = NeuralNetwork()
+    assert len(nn.get_all_neurons()) == 0
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 0
+
+    new_neuron = InputNeuron()
+
+    nn.add_neuron(InputNeuron())
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 0
+
+    nn.add_neuron(InputNeuron())
+    assert len(nn.get_all_neurons()) == 2
+
+    nn.add_hidden_neuron(HiddenNeuron())
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 0
+
+    nn.add_neuron(OutputNeuron())
+    assert len(nn.get_all_neurons()) == 4
+    assert len(nn.get_input_neurons()) == 2
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1
+
+    with pytest.raises(Exception):
+        nn.add_neuron(Node())
+
+    with pytest.raises(Exception):
+        nn.add_input_neuron(Node())
+
+    nn.add_input_neuron(InputNeuron())
+    assert len(nn.get_all_neurons()) == 5
+    assert len(nn.get_input_neurons()) == 3
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1
+
+    nn.add_hidden_neuron(HiddenNeuron())
+    nn.add_output_neuron(OutputNeuron())
+
+    with pytest.raises(Exception):
+        nn.add_hidden_neuron(Node())
+
+    with pytest.raises(Exception):
+        nn.add_output_neuron(Node())
+
+    assert len(nn.get_all_neurons()) == 7
+    assert len(nn.get_input_neurons()) == 3
+    assert len(nn.get_hidden_neurons()) == 2
+    assert len(nn.get_output_neurons()) == 2
+
+    for neuron in nn.get_all_neurons():
+        for neuron2 in nn.get_all_neurons():
+            if neuron == neuron2:
+                continue
+            assert neuron.get_id() != neuron2.get_id()
+            assert neuron.get_id() is not None
+            assert neuron.get_id() != ""
+
+    nn.add_neuron(new_neuron)
+    with pytest.raises(InvalidNode):
+        nn.add_neuron(new_neuron)
+
+
+def test_get_input_neurons():
     nn = NeuralNetwork()
     neuron = InputNeuron()
-    assert nn.input_neurons == []
+    neuron2 = InputNeuron()
     nn.add_input_neuron(neuron)
-    assert nn.input_neurons == [neuron]
-    nn.remove_neuron(neuron)
-    assert nn.input_neurons == []
+    nn.add_input_neuron(neuron2)
+
+    assert len(nn.get_input_neurons()) == 2
+    assert nn.get_input_neurons()[0].get_id() == neuron.get_id()
+    assert nn.get_input_neurons()[1].get_id() == neuron2.get_id()
 
 
-def test_remove_hidden_neuron():
+def test_get_hidden_neurons():
     nn = NeuralNetwork()
     neuron = HiddenNeuron()
-    assert nn.hidden_neurons == []
+    neuron2 = HiddenNeuron()
     nn.add_hidden_neuron(neuron)
-    assert nn.hidden_neurons == [neuron]
-    nn.remove_neuron(neuron)
-    assert nn.hidden_neurons == []
+    nn.add_hidden_neuron(neuron2)
+
+    assert len(nn.get_hidden_neurons()) == 2
+    assert nn.get_hidden_neurons()[0].get_id() == neuron.get_id()
+    assert nn.get_hidden_neurons()[1].get_id() == neuron2.get_id()
 
 
-def test_remove_output_neuron():
+def test_get_output_neurons():
     nn = NeuralNetwork()
     neuron = OutputNeuron()
-    assert nn.output_neurons == []
+    neuron2 = OutputNeuron()
     nn.add_output_neuron(neuron)
-    assert nn.output_neurons == [neuron]
+    nn.add_output_neuron(neuron2)
+
+    assert len(nn.get_output_neurons()) == 2
+    assert nn.get_output_neurons()[0].get_id() == neuron.get_id()
+    assert nn.get_output_neurons()[1].get_id() == neuron2.get_id()
+
+
+def test_get_neuron_by_id():
+    nn = NeuralNetwork()
+    neuron = InputNeuron()
+    neuron2 = HiddenNeuron()
+    neuron3 = OutputNeuron()
+    nn.add_neuron(neuron)
+    nn.add_neuron(neuron2)
+    nn.add_neuron(neuron3)
+
+    assert nn.get_neuron_by_id(neuron.get_id()) == neuron
+    assert nn.get_neuron_by_id(neuron2.get_id()) == neuron2
+    assert nn.get_neuron_by_id(neuron3.get_id()) == neuron3
+    assert nn.get_neuron_by_id("invalid_id") is None
+
+    assert nn.get_neuron_by_id(neuron.get_id()) != neuron2
+    assert nn.get_neuron_by_id(neuron.get_id()) != neuron3
+    assert nn.get_neuron_by_id(neuron2.get_id()) != neuron
+    assert nn.get_neuron_by_id(neuron2.get_id()) != neuron3
+    assert nn.get_neuron_by_id(neuron3.get_id()) != neuron
+    assert nn.get_neuron_by_id(neuron3.get_id()) != neuron2
+
+
+def test_get_all_connections():
+    nn = NeuralNetwork()
+    neuron = InputNeuron()
+    neuron2 = HiddenNeuron()
+    neuron3 = OutputNeuron()
+
+    nn.add_neuron(neuron)
+    nn.add_neuron(neuron2)
+    nn.add_neuron(neuron3)
+
+    nn.add_connection(Connection(neuron, neuron2))
+    nn.add_connection(Connection(neuron2, neuron3))
+
+    assert len(nn.get_all_connections()) == 2
+
+    for con in nn.get_all_connections():
+        assert con.get_in_node() in nn.get_all_neurons()
+        assert con.get_out_node() in nn.get_all_neurons()
+        assert con.get_in_node() != con.get_out_node()
+
+        assert con.get_in_node().get_id() != con.get_out_node().get_id()
+        assert con.get_in_node().get_id() is not None
+        assert con.get_in_node().get_id() != ""
+        assert con.get_out_node().get_id() is not None
+        assert con.get_out_node().get_id() != ""
+
+        assert con.get_in_node().get_id() == neuron.get_id() or con.get_in_node().get_id() == neuron2.get_id()
+        assert con.get_out_node().get_id() == neuron2.get_id() or con.get_out_node().get_id() == neuron3.get_id()
+
+
+def test_remove_neuron():
+    nn = NeuralNetwork()
+    neuron = InputNeuron()
+    neuron2 = HiddenNeuron()
+    neuron3 = OutputNeuron()
+    nn.add_neuron(neuron)
+    nn.add_neuron(neuron2)
+    nn.add_neuron(neuron3)
+
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1
+
     nn.remove_neuron(neuron)
-    assert nn.output_neurons == []
+    assert len(nn.get_all_neurons()) == 2
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1
 
+    nn.remove_neuron(neuron2)
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 1
 
-def test_add_connection_forward():
-    nn = NeuralNetwork()
-    neuron_from = Neuron()
-    neuron_to = Neuron()
-    assert nn.connections == []
-    nn.add_connection(neuron_from, neuron_to)
-
-    next_neurons = nn.get_connected_neurons_forward(neuron_from)
-    assert next_neurons == [neuron_to]
-
-
-def test_add_connection_backward():
-    nn = NeuralNetwork()
-    neuron_from = Neuron()
-    neuron_to = Neuron()
-    assert nn.connections == []
-    nn.add_connection(neuron_from, neuron_to)
-
-    next_neurons = nn.get_connected_neurons_backward(neuron_to)
-    assert next_neurons == [neuron_from]
+    nn.remove_neuron(neuron3)
+    assert len(nn.get_all_neurons()) == 0
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 0
 
 
 def test_remove_connection():
     nn = NeuralNetwork()
-    neuron_from = Neuron()
-    neuron_to = Neuron()
-    assert nn.connections == []
-    nn.add_connection(neuron_from, neuron_to)
+    input1 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
 
-    assert nn.connections != []
-    nn.remove_connection_between_neurons(neuron_from, neuron_to)
-    assert nn.connections == []
+    assert len(nn.get_all_connections()) == 0
+
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.remove_connection(nn.get_all_connections()[0])
+    assert len(nn.get_all_connections()) == 1
+
+    nn.remove_connection(nn.get_all_connections()[0])
+    assert len(nn.get_all_connections()) == 0
 
 
-# TODO: Prevent input and output neurons from being deleted
+def test_remove_random_connection():
+    nn = NeuralNetwork()
+    input1 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
+
+    assert len(nn.get_all_connections()) == 0
+
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.remove_random_connection()
+    assert len(nn.get_all_connections()) == 1
+
+    nn.remove_random_connection()
+    assert len(nn.get_all_connections()) == 0
+
+
+def test_remove_random_neuron():
+    nn = NeuralNetwork()
+    input1 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
+
+    assert len(nn.get_all_neurons()) == 3
+
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+
+    assert len(nn.get_all_connections()) == 2
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 2
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_all_connections()) == 0
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 0
+
+    nn.remove_random_neuron()
+    assert len(nn.get_all_neurons()) == 0
+
+
 def test_remove_neuron_with_connections():
     nn = NeuralNetwork()
-    neuron_from = InputNeuron()
-    neuron_to = OutputNeuron()
+    neuron1 = InputNeuron()
+    neuron2 = HiddenNeuron()
+    neuron3 = OutputNeuron()
+    nn.add_neuron(neuron1)
+    nn.add_neuron(neuron2)
+    nn.add_neuron(neuron3)
 
-    nn.add_input_neuron(neuron_from)
-    nn.add_output_neuron(neuron_to)
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1
 
-    assert nn.connections == []
-    assert len(nn.input_neurons) == 1
-    assert len(nn.output_neurons) == 1
-    nn.add_connection(neuron_from, neuron_to)
+    nn.add_connection(Connection(neuron1, neuron2))
+    nn.add_connection(Connection(neuron2, neuron3))
+    nn.add_connection(Connection(neuron1, neuron3))
 
-    assert nn.connections != []
-    nn.remove_neuron(neuron_from)
-    assert nn.connections == []
-    assert nn.output_neurons == [neuron_to]
-    assert len(nn.input_neurons) == 0
-    assert len(nn.output_neurons) == 1
+    assert len(nn.get_all_connections()) == 3
+
+    nn.remove_neuron(neuron2)
+    assert len(nn.get_all_neurons()) == 2
+    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 1
+
+    assert len(nn.get_all_connections()) == 1
+
+    # Check if all associations to neuron2 are removed
+    for neuron in nn.get_all_neurons():
+        for con in neuron.get_next_connections():
+            assert con.get_in_node() != neuron2
+            assert con.get_out_node() != neuron2
+
+    nn.remove_neuron(neuron1)
+    assert len(nn.get_all_neurons()) == 1
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 1
+
+    assert len(nn.get_all_connections()) == 0
+
+    nn.remove_neuron(neuron3)
+    assert len(nn.get_all_neurons()) == 0
+    assert len(nn.get_input_neurons()) == 0
+    assert len(nn.get_hidden_neurons()) == 0
+    assert len(nn.get_output_neurons()) == 0
+
+    assert len(nn.get_all_connections()) == 0
+
+
+def test_set_input_data():
+    nn = NeuralNetwork()
+    nn.set_input_data([2, 3, 4])
+    assert nn.get_input_data() == [2, 3, 4]
+    assert len(nn.get_input_neurons()) == 3
+
+    nn.set_input_data([0, 4, 6])
+    assert nn.get_input_data() == [0, 4, 6]
+    assert len(nn.get_input_neurons()) == 3
+    nn.set_input_data([1])
+    assert nn.get_input_data() == [1, 0, 0]
+    nn.set_input_data([1, 2, 1, 2, 5])
+    assert nn.get_input_data() == [1, 2, 1, 2, 5]
+    nn.set_input_data([])
+    assert nn.get_input_data() == [0, 0, 0, 0, 0]
 
 
 def test_forward_propagation():
     nn = NeuralNetwork()
-    neuron_from1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_from2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_to = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
 
-    nn.add_input_neuron(neuron_from1)
-    nn.add_input_neuron(neuron_from2)
-    nn.add_output_neuron(neuron_to)
-
-    nn.add_connection(neuron_from1, neuron_to, 1)
-    nn.add_connection(neuron_from2, neuron_to, 2)
-    nn.add_connection(neuron_to, neuron_from1, 3)
-
-    nn.set_all_activation_functions(ActivationFunction.LINEAR)
-
-    nn.forward_propagation()
-
-    assert neuron_to.value == 8
-    assert neuron_from1.value == 26
-
-
-def test_forward_propagation_2():
-    nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_input2 = InputNeuron(value=4, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_output_neuron(neuron_output)
-
-    nn.add_connection(neuron_input1, neuron_output, 1)
-    nn.add_connection(neuron_input2, neuron_output, 0.5)
-
-    nn.set_all_activation_functions(ActivationFunction.LINEAR)
-    nn.forward_propagation()
-
-    # output_neuron = 2*1 + 4*0.5 = 4
-    assert neuron_output.value == 4
-
-
-def test_forward_propagation_with_multiple_layers():
-    nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_input2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_hidden = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden)
-    nn.add_output_neuron(neuron_output)
-
-    nn.add_connection(neuron_input1, neuron_hidden, 1)
-    nn.add_connection(neuron_input2, neuron_hidden, 2)
-    nn.add_connection(neuron_hidden, neuron_output, 4)
-
-    # hidden_neuron = 2*1 + 3*2 = 8
-    # output_neuron = 8*4 = 32
-    nn.set_all_activation_functions(ActivationFunction.LINEAR)
-    nn.forward_propagation()
-
-    assert neuron_hidden.value == 8
-    assert neuron_output.value == 32
-
-
-def test_forward_propagation_with_multiple_layers_and_multiple_outputs():
-    nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_input2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_hidden1 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_hidden2 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output1 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output2 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden1)
-    nn.add_hidden_neuron(neuron_hidden2)
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
-
-    nn.add_connection(neuron_input1, neuron_hidden1, 1)
-    nn.add_connection(neuron_input2, neuron_hidden1, 2)
-    nn.add_connection(neuron_input2, neuron_hidden2, 2)
-    nn.add_connection(neuron_hidden1, neuron_output1, 4)
-    nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    nn.add_connection(neuron_input2, neuron_output2, 5)
-    nn.add_connection(neuron_hidden1, neuron_output2, 3)
-
-    # hidden_neuron1 = 2*1 + 3*2 = 8
-    # hidden_neuron2 = 3*2 = 6
-    # output_neuron1 = 8*4 + 6*3 = 50
-    # output_neuron2 = 3*5 + 8*3 = 39
-    nn.set_all_activation_functions(ActivationFunction.LINEAR)
-    nn.forward_propagation()
-
-    assert neuron_hidden1.value == 8
-    assert neuron_hidden2.value == 6
-    assert neuron_output1.value == 50
-    assert neuron_output2.value == 39
-
-
-def test_forward_propagation_with_multiple_layers_and_multiple_outputs_with_remove():
-    nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_input2 = InputNeuron(value=3, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_hidden1 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_hidden2 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output1 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output2 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden1)
-    nn.add_hidden_neuron(neuron_hidden2)
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
-
-    nn.add_connection(neuron_input1, neuron_hidden1, 1)
-    nn.add_connection(neuron_input2, neuron_hidden1, 2)
-    nn.add_connection(neuron_input2, neuron_hidden2, 2)
-    nn.add_connection(neuron_hidden1, neuron_output1, 4)
-    nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    nn.add_connection(neuron_input2, neuron_output2, 5)
-    nn.add_connection(neuron_hidden1, neuron_output2, 3)
-
-    # hidden_neuron1 = 2*1 + 3*2 = 8
-    # hidden_neuron2 = 3*2 = 6
-    # output_neuron1 = 8*4 + 6*3 = 50
-    # output_neuron2 = 3*5 + 8*3 = 39
-    nn.set_all_activation_functions(ActivationFunction.LINEAR)
-    nn.forward_propagation()
-
-    assert neuron_hidden1.value == 8
-    assert neuron_hidden2.value == 6
-    assert neuron_output1.value == 50
-    assert neuron_output2.value == 39
-
-    assert len(nn.connections) == 7
-    assert len(nn.hidden_neurons) == 2
-    nn.remove_neuron(neuron_hidden2)  # This should remove hidden2 and the connections from/to it
-    assert len(nn.connections) == 5
-    assert len(nn.hidden_neurons) == 1
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(input2, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+    nn.set_input_data([1, 2])
 
     nn.forward_propagation()
 
-    # hidden_neuron1 = 2*1 + 3*2 = 8
-    # output_neuron1 = 8*4 = 32
-    # output_neuron2 = 3*5 + 8*3 = 39
+    expected_output = (input1.get_value() * input1.get_next_connections()[0].get_weight() +
+                       input2.get_value() * input2.get_next_connections()[0].get_weight())
+    expected_output = ActivationFunction.activate(hidden1.get_activation(), expected_output)
+    expected_output = expected_output * hidden1.get_next_connections()[0].get_weight()
+    expected_output = ActivationFunction.activate(out1.get_activation(), expected_output)
 
-    assert neuron_hidden1.value == 8
-    assert neuron_output1.value == 32
-    assert neuron_output2.value == 39
+    assert nn.get_output_data() == expected_output
+
+    nn.forward_propagation()
+    assert nn.get_output_data() == expected_output
+    assert nn.get_output_data() == expected_output
+    assert nn.get_input_data() == [1, 2]
 
 
-def test_forward_propagation_consistent():
+def test_forward_propagation_recurrent_connection():
     nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2, fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_hidden1 = HiddenNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output1 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
-    neuron_output2 = OutputNeuron(fire_rate=1, activation_function=ActivationFunction.LINEAR)
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(out1)
 
-    nn.add_input_neuron(neuron_input1)
-    nn.add_hidden_neuron(neuron_hidden1)
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(input2, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+    nn.add_connection(Connection(out1, hidden1))
 
-    nn.add_connection(neuron_input1, neuron_output1, 3)
-    nn.add_connection(neuron_input1, neuron_hidden1, 5)
-    nn.add_connection(neuron_hidden1, neuron_output2, 2)
+    nn.set_input_data([1, 2])
 
-    nn.set_all_activation_functions(ActivationFunction.LINEAR)
-    for i in range(50):
-        nn.forward_propagation()
+    nn.forward_propagation()
 
-    # output_neuron1 = 2*3 = 6
-    # output_neuron2 = 2*5*2 = 20
+    expected_output = (input1.get_value() * input1.get_next_connections()[0].get_weight() +
+                       input2.get_value() * input2.get_next_connections()[0].get_weight())
+    expected_output = ActivationFunction.activate(hidden1.get_activation(), expected_output)
+    expected_output = expected_output * hidden1.get_next_connections()[0].get_weight()
+    expected_output = ActivationFunction.activate(out1.get_activation(), expected_output)
 
-    assert neuron_output1.value == 6
-    assert neuron_output2.value == 20
+    assert nn.get_output_data() == expected_output
+
+    recurrent_value = out1.get_value() * out1.get_next_connections()[0].get_weight()
+    assert hidden1.get_value() == recurrent_value
+
+    expected_output = (input1.get_value() * input1.get_next_connections()[0].get_weight() +
+                       input2.get_value() * input2.get_next_connections()[0].get_weight() + recurrent_value)
+    expected_output = ActivationFunction.activate(hidden1.get_activation(), expected_output)
+    expected_output = expected_output * hidden1.get_next_connections()[0].get_weight()
+    expected_output = ActivationFunction.activate(out1.get_activation(), expected_output)
+
+    nn.forward_propagation()
+
+    assert nn.get_output_data() == expected_output
+    assert nn.get_output_data() == expected_output
+    assert nn.get_input_data() == [1, 2]
 
 
-def test_random_weight_mutation():
+def test_get_forward_order_list():
     nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2)
-    neuron_output1 = OutputNeuron()
-    neuron_output2 = OutputNeuron()
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    hidden2 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(hidden2)
+    nn.add_neuron(out1)
 
-    nn.add_input_neuron(neuron_input1)
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(input2, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+    nn.add_connection(Connection(out1, hidden1))
 
-    nn.add_connection(neuron_input1, neuron_output1, 1)
-    nn.add_connection(neuron_input1, neuron_output2, 1)
+    forward_order = nn.get_forward_order_list()
 
-    nn.random_mutate_weight()
-
-    first_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output1).weight != 1
-    second_connection_changed = nn.get_connection_between_neurons(neuron_input1, neuron_output2).weight != 1
-
-    assert first_connection_changed or second_connection_changed
-    assert first_connection_changed != second_connection_changed
+    assert forward_order == [input1, input2, hidden1,
+                             out1]  # Bias and hidden2 is not included because it has no connections
 
 
-def test_set_expected_output_values():
+def test_calculate_net_cost():
     nn = NeuralNetwork()
-    neuron_output1 = OutputNeuron()
-    neuron_output2 = OutputNeuron()
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    hidden2 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(hidden2)
+    nn.add_neuron(out1)
 
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(input2, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+    nn.add_connection(Connection(out1, hidden1))
 
-    nn.set_expected_output_values([1, 0])
-
-    assert neuron_output1.expected_value == 1
-    assert neuron_output2.expected_value == 0
+    assert nn.calculate_net_cost() == 9
 
 
-def test_train():
+def test_remove_all_connections():
     nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2)
-    neuron_input2 = InputNeuron(value=3)
-    neuron_hidden1 = HiddenNeuron()
-    neuron_hidden2 = HiddenNeuron()
-    neuron_output1 = OutputNeuron()
-    neuron_output2 = OutputNeuron()
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    hidden2 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(hidden2)
+    nn.add_neuron(out1)
 
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden1)
-    nn.add_hidden_neuron(neuron_hidden2)
-    nn.add_output_neuron(neuron_output1)
-    nn.add_output_neuron(neuron_output2)
+    nn.add_connection(Connection(input1, hidden1))
+    nn.add_connection(Connection(input2, hidden1))
+    nn.add_connection(Connection(hidden1, out1))
+    nn.add_connection(Connection(out1, hidden1))
 
-    nn.add_connection(neuron_input1, neuron_hidden1, 1)
-    nn.add_connection(neuron_input2, neuron_hidden1, 2)
-    nn.add_connection(neuron_input2, neuron_hidden2, 2)
-    nn.add_connection(neuron_hidden1, neuron_output1, 4)
-    nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    nn.add_connection(neuron_input2, neuron_output2, 5)
-    nn.add_connection(neuron_hidden1, neuron_output2, 3)
+    assert len(nn.get_all_connections()) == 4
 
-    nn.set_expected_output_values([1, 5])
+    nn.remove_all_connections()
 
-    # Test if implementing custom fitness function works
-    def custom_fitness(self):
-        fitness = 0
-        for neuron in self.output_neurons:
-            fitness -= abs(neuron.value - neuron.expected_value)
-        return fitness
-
-    NeuralNetwork.custom_fitness = custom_fitness
-
-    min_fitness = -0.1
-    nn.train(min_fitness, max_iterations=1000)
-
-    assert nn.get_fitness() >= min_fitness
+    assert len(nn.get_all_connections()) == 0
 
 
-def test_tick_cycle():
+def test_add_random_connection():
     nn = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2, fire_rate=2)
-    neuron_input2 = InputNeuron(value=3)
-    neuron_hidden2 = HiddenNeuron(fire_rate=2)
-    neuron_output1 = OutputNeuron()
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    hidden2 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(hidden2)
+    nn.add_neuron(out1)
 
-    nn.add_input_neuron(neuron_input1)
-    nn.add_input_neuron(neuron_input2)
-    nn.add_hidden_neuron(neuron_hidden2)
-    nn.add_output_neuron(neuron_output1)
+    nn.add_random_connection()
+    assert len(nn.get_all_connections()) == 1
+    nn.add_random_connection()
+    nn.add_random_connection()
+    nn.add_random_connection()
+    nn.add_random_connection()
+    nn.add_random_connection()
+    nn.add_random_connection()
 
-    nn.add_connection(neuron_input1, neuron_hidden2, 1)
-    nn.add_connection(neuron_input2, neuron_hidden2, 2)
-    nn.add_connection(neuron_hidden2, neuron_output1, 3)
-    nn.add_connection(neuron_output1, neuron_input1, 4)
-
-    nn.set_expected_output_values([1, 2])
-
-    min_fitness = -0.1
-    nn.train(min_fitness)
-    nn_fitness = nn.get_fitness()
-
-    assert nn_fitness >= min_fitness
-
-
-def test_random_activation_function():
-    neurons = []
-
-    for i in range(50):
-        neurons.append(Neuron())
-
-    is_different = False
-
-    for i in range(len(neurons)):
-        for j in range(len(neurons)):
-            if neurons[i].activation_function != neurons[j].activation_function:
-                is_different = True
-
-    assert is_different
+    assert len(nn.get_all_connections()) <= 7
+    assert len(nn.get_all_connections()) >= 4
 
 
-def test_random_fire_rate():
-    neurons = []
-
-    for i in range(50):
-        neurons.append(Neuron())
-
-    is_different = False
-
-    for i in range(len(neurons)):
-        for j in range(len(neurons)):
-            if neurons[i].fire_rate_fixed != neurons[j].fire_rate_fixed:
-                is_different = True
-    assert is_different
-
-
-def test_random_weight_shift():
-    weight_shifts = []
-
-    for i in range(50):
-        weight_shifts.append(get_random_weight_shift())
-
-    is_different = False
-
-    for i in range(len(weight_shifts)):
-        for j in range(len(weight_shifts)):
-            if weight_shifts[i] != weight_shifts[j]:
-                is_different = True
-    assert is_different
-
-
-def test_weight_shift_is_correct():
-    nn_parent = NeuralNetwork()
-    neuron_input1 = InputNeuron(value=2)
-    neuron_input2 = InputNeuron(value=3)
-    neuron_hidden1 = HiddenNeuron()
-    neuron_output1 = OutputNeuron()
-
-    nn_parent.add_input_neuron(neuron_input1)
-    nn_parent.add_input_neuron(neuron_input2)
-    nn_parent.add_hidden_neuron(neuron_hidden1)
-    nn_parent.add_output_neuron(neuron_output1)
-
-    nn_parent.add_connection(neuron_input1, neuron_hidden1, 1)
-    nn_parent.add_connection(neuron_input2, neuron_hidden1, 2)
-    nn_parent.add_connection(neuron_hidden1, neuron_output1, 3)
-
-    nn_parent.set_expected_output_values([1, 0])
-
-    nn_child = nn_parent.create_child()
-    nn_child.random_mutate_weight()
-
-    child_connection = nn_child.last_modified_connection
-
-    change_weight_shift_direction(nn_parent.get_last_modified_connection())
-
-    assert child_connection.weight_shift_direction != nn_parent.get_last_modified_connection().weight_shift_direction
-
-
-def test_train_without_setting_connections():
-    nn = NeuralNetwork(2, 2, 2)
-
-    nn.set_input_neurons([5, 10])
-    nn.set_expected_output_values([1, 2])
-
-    nn.train(-0.1, max_iterations=10000)
-
-    nn.print()
-    assert nn.get_fitness() >= -0.1
-
-
-def test_train_without_parameters():
+def test_get_random_neuron():
     nn = NeuralNetwork()
+    input1 = InputNeuron()
+    input2 = InputNeuron()
+    hidden1 = HiddenNeuron()
+    hidden2 = HiddenNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(input2)
+    nn.add_neuron(hidden1)
+    nn.add_neuron(hidden2)
+    nn.add_neuron(out1)
 
-    nn.set_input_neurons([5, 10, 2, 3, 8, 1, 2, 3, 4, 5])
-    nn.set_expected_output_values([1, 2, 1, 0, -5, 100])
-
-    nn.train(-0.1, max_iterations=10000)
-
-    nn.print()
-    assert nn.get_fitness() >= -0.1
+    assert nn.get_random_neuron() is not None
+    assert nn.get_random_neuron() in nn.get_all_neurons()
 
 
-def test_train_with_json_dataset():
+def test_add_random_neuron():
     nn = NeuralNetwork()
+    input1 = InputNeuron()
+    out1 = OutputNeuron()
+    nn.add_neuron(input1)
+    nn.add_neuron(out1)
 
-    def custom_fitness(self):
-        fitness = 0
+    nn.add_connection(Connection(input1, out1))
 
-        for j in range(get_data_size()):
-            self.set_input_neurons(get_input_data(j))
-            self.set_expected_output_values(get_output_data(j))
-            self.forward_propagation()
+    assert len(nn.get_all_connections()) == 1
 
-            for neuron in self.output_neurons:
-                fitness -= abs(neuron.value - neuron.expected_value)
-        return fitness
+    new_neuron = nn.add_random_neuron()
 
-    NeuralNetwork.custom_fitness = custom_fitness
+    assert input1.next_connections[0].get_in_node() == input1
+    assert input1.next_connections[0].get_out_node() == new_neuron
+    assert new_neuron.next_connections[0].get_in_node() == new_neuron
+    assert new_neuron.next_connections[0].get_out_node() == out1
+    assert input1.next_connections[0].get_weight() == 1.0
 
-    nn.train(-0.1, max_iterations=100)
+    assert len(nn.get_all_connections()) == 2
 
     nn.print()
 
-    for i in range(get_data_size()):
-        nn.set_input_neurons(get_input_data(i))
-        nn.set_expected_output_values(get_output_data(i))
-        nn.forward_propagation()
-        print("Input: " + str(get_input_data(i)) + " Expected: " + str(get_output_data(i)) + " Output: " + str(
-            nn.get_output_values()))
-
-    assert nn.get_fitness() >= -0.1
+    assert len(nn.get_all_neurons()) == 3
+    assert len(nn.get_input_neurons()) == 1
+    assert len(nn.get_hidden_neurons()) == 1
+    assert len(nn.get_output_neurons()) == 1

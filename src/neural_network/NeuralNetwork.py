@@ -1,449 +1,313 @@
-from copy import deepcopy, copy
+import bisect
+import random
 
-from src.neural_network.ActivationFunction import ActivationFunction
+from src.neural_network import YaneConfig
 from src.neural_network.Connection import Connection
-from src.neural_network.HiddenNeuron import HiddenNeuron
-from src.neural_network.InputNeuron import InputNeuron
-from src.neural_network.Neuron import Neuron
-from src.neural_network.OutputNeuron import OutputNeuron
-from src.neural_network.YaneConfig import *
+from src.neural_network.Node import Node
+from src.neural_network.NodeTypes import NodeTypes
+from src.neural_network.exceptions.InvalidConnection import InvalidConnection
+from src.neural_network.exceptions.InvalidNode import InvalidNode
+from src.neural_network.exceptions.InvalidNodeTypeException import InvalidNodeTypeException
 
-
-def get_total_fire_rate(working_neurons):
-    total_fire_rate = 0
-    for neuron in working_neurons:
-        total_fire_rate += neuron.fire_rate_variable
-    return total_fire_rate
-
-
-def change_weight_shift_direction(connection):
-    connection.weight_shift_direction = not connection.weight_shift_direction
-
-
-def mutate_weight(random_connection: Connection):
-    random_connection.weight = get_mutation_random_weight(json_config)
-
-    NeuralNetwork.last_modified_connection = random_connection
-
-
-json_config = load_json_config()
+yane_config = YaneConfig.load_json_config()
 
 
 class NeuralNetwork:
-    def __init__(self, input_neurons_count=None, hidden_neurons_count=None, output_neurons_count=None):
+    def __init__(self):
+        self.last_weight_shift_connection = None
+        self.input_nodes = []
+        self.hidden_nodes = []
+        self.output_nodes = []
+        self.forward_order_list = None
 
-        self.input_neurons = []
-        self.hidden_neurons = []
-        self.output_neurons = []
-        self.connections = []
-        self.fitness = 0
+    def get_all_nodes(self) -> list[Node]:
+        return [node for node in self.input_nodes + self.hidden_nodes + self.output_nodes]
 
-        if input_neurons_count is not None:
-            for i in range(input_neurons_count):
-                self.add_input_neuron(InputNeuron())
+    def add_connection(self, connection):
+        if self.get_all_nodes().__contains__(connection.get_in_node()) is False:
+            raise InvalidNode("node in is not in the neural network")
 
-        if hidden_neurons_count is not None:
-            for i in range(hidden_neurons_count):
-                self.add_hidden_neuron(HiddenNeuron())
+        if self.get_all_nodes().__contains__(connection.get_out_node()) is False:
+            raise InvalidNode("node out is not in the neural network")
 
-        if output_neurons_count is not None:
-            for i in range(output_neurons_count):
-                self.add_output_neuron(OutputNeuron())
+        connection.get_in_node().add_next_connection(connection)
 
-    last_modified_connection: Connection = None
+    def add_input_node(self, node: Node):
+        if node.type is not NodeTypes.INPUT:
+            raise InvalidNodeTypeException(
+                "Invalid node type. Can only add InputNode")
 
-    def get_neuron_index(self, neuron):
-        if type(neuron) is InputNeuron:
-            if self.input_neurons.__contains__(neuron):
-                return str(self.input_neurons.index(neuron))
-        elif type(neuron) is HiddenNeuron:
-            if self.hidden_neurons.__contains__(neuron):
-                return str(self.hidden_neurons.index(neuron))
-        elif type(neuron) is OutputNeuron:
-            if self.output_neurons.__contains__(neuron):
-                return str(self.output_neurons.index(neuron))
-        return -1
+        bisect.insort(self.input_nodes, node, key=lambda x: x.get_id())
 
-    def get_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
-        for connection in self.connections:
-            if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
-                return connection
+    def add_hidden_node(self, node: Node):
+        if node.type is not NodeTypes.HIDDEN:
+            raise InvalidNodeTypeException(
+                "Invalid node type. Can only add HiddenNode")
+
+        bisect.insort(self.hidden_nodes, node, key=lambda x: x.get_id())
+
+    def add_output_node(self, node: Node):
+        if node.type is not NodeTypes.OUTPUT:
+            raise InvalidNodeTypeException(
+                "Invalid node type. Can only add OutputNode")
+
+        bisect.insort(self.output_nodes, node, key=lambda x: x.get_id())
+
+    def add_node(self, node: Node):
+
+        if self.get_all_nodes().__contains__(node):
+            raise InvalidNode("node already exists in the neural network")
+
+        if node.type is NodeTypes.INPUT:
+            self.add_input_node(node)
+        elif node.type is NodeTypes.HIDDEN:
+            self.add_hidden_node(node)
+        elif node.type is NodeTypes.OUTPUT:
+            self.add_output_node(node)
+        else:
+            raise InvalidNodeTypeException(
+                "Invalid node type. Can only add InputNode, HiddenNode or OutputNode")
+
+    def get_input_nodes(self) -> list[Node]:
+        return self.input_nodes
+
+    def get_hidden_nodes(self) -> list[Node]:
+        return self.hidden_nodes
+
+    def get_output_nodes(self) -> list[Node]:
+        return self.output_nodes
+
+    def get_node_by_id(self, node_id) -> Node | None:
+        node: Node
+
+        for node in self.get_all_nodes():
+            if node.get_id() == node_id:
+                return node
+
         return None
 
-    def random_mutate_weight(self):
-        if len(self.connections) == 0:
-            return
-
-        random_connection = random.choice(self.connections)
-        mutate_weight(random_connection)
-
-    def optimize_weights(self, fitness_tolerance=0.01):
-        self.get_fitness()
-        nn_parent = self
-        nn_child = nn_parent.create_child()
-
-        fitness_improved = True
-
-        while fitness_improved:
-            fitness_improved = False
-            for connection in nn_child.connections:
-                result = nn_child.optimize_weight_shift(connection, fitness_tolerance)
-                if result:
-                    fitness_improved = True
-        self.copy(nn_child)
-        self.get_fitness()
-
-    # First: Optimize weights of parent
-    # Second: Create child
-    # Third: mutate child
-    # Fourth: Optimize weights of child
-    # Fifth: Compare fitness of parent and child
-    # TODO: Remove training function and move it to NeuroCluster.
-    # There is no point to only train 1 neural network and not having a population of neural networks.
-    def train(self, min_fitness=-0.1, max_iterations=1000, fitness_tolerance=0.01):
-        nn_parent = self
-        nn_parent.optimize_weights(fitness_tolerance)
-        current_fitness = nn_parent.get_fitness()
-
-        while current_fitness < min_fitness and max_iterations > 0:
-            max_iterations -= 1
-            nn_child = deepcopy(nn_parent)
-            nn_child.mutate()
-            nn_child.optimize_weights(fitness_tolerance)
-
-            new_fitness = nn_child.get_fitness()
-
-            if new_fitness >= current_fitness:
-                nn_parent = nn_child
-                current_fitness = new_fitness
-                print("New fitness: " + str(current_fitness))
-
-        self.copy(nn_parent)
-
-    def get_fitness(self):
-        self.forward_propagation()
-        self.fitness = self.custom_fitness()
-        return self.fitness
-
-    def custom_fitness(self):
-        fitness = 0
-        for neuron in self.output_neurons:
-            fitness -= abs(neuron.value - neuron.expected_value)
-        return fitness
-
-    def get_last_modified_connection(self):
-        for connection in self.connections:
-            if connection.deep_id == NeuralNetwork.last_modified_connection.deep_id:
-                return connection
-
-    def clear_hidden_neurons(self):
-        for neuron in self.hidden_neurons:
-            neuron.value = 0.0
-
-    def clear_output_neurons(self):
-        for neuron in self.output_neurons:
-            neuron.value = 0.0
-
-    def clear_neurons(self):
-        self.reset_input_neurons()
-        self.reset_fire_rate()
-
-        if get_clear_on_new_input(json_config):
-            self.clear_hidden_neurons()
-            self.clear_output_neurons()
-
-    def add_input_neuron(self, neuron: Neuron):
-        if type(neuron) is not InputNeuron:
-            raise TypeError("Neuron is not of type InputNeuron")
-
-        self.input_neurons.append(neuron)
-
-    def add_hidden_neuron(self, neuron: Neuron):
-        if type(neuron) is not HiddenNeuron:
-            raise TypeError("Neuron is not of type HiddenNeuron")
-
-        self.hidden_neurons.append(neuron)
-
-    def add_output_neuron(self, neuron: Neuron):
-        if type(neuron) is not OutputNeuron:
-            raise TypeError("Neuron is not of type OutputNeuron")
-
-        self.output_neurons.append(neuron)
-
-    def remove_neuron(self, neuron: Neuron):
-        for connection in self.connections:
-            if connection.neuron_from == neuron or connection.neuron_to == neuron:
-                self.remove_connection(connection)
-
-        if neuron in self.input_neurons:
-            self.input_neurons.remove(neuron)
-        elif neuron in self.hidden_neurons:
-            self.hidden_neurons.remove(neuron)
-        elif neuron in self.output_neurons:
-            self.output_neurons.remove(neuron)
-
-    def add_connection(self, neuron_from: Neuron, neuron_to: Neuron, weight=1.0):
-        connection = Connection(neuron_from, neuron_to, weight)
-        self.connections.append(connection)
-
-    def get_connected_neurons_forward(self, neuron: Neuron):
-        connected_neurons = []
-        for connection in self.connections:
-            if connection.neuron_from == neuron:
-                connected_neurons.append(connection.neuron_to)
-
-        return connected_neurons
-
-    def get_connected_neurons_backward(self, neuron: Neuron):
-        connected_neurons = []
-        for connection in self.connections:
-            if connection.neuron_to == neuron:
-                connected_neurons.append(connection.neuron_from)
-        return connected_neurons
-
-    def remove_connection_between_neurons(self, neuron_from: Neuron, neuron_to: Neuron):
-        for connection in self.connections:
-            if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
-                self.remove_connection(connection)
-
-    def get_connection_weight(self, neuron_from, neuron_to):
-        for connection in self.connections:
-            if connection.neuron_from == neuron_from and connection.neuron_to == neuron_to:
-                return connection.weight
-
-    def get_neuron_forward_order(self):
-        working_neurons = copy(self.input_neurons)
-
-        for neuron in working_neurons:
-            for next_neuron in self.get_connected_neurons_forward(neuron):
-                if next_neuron not in working_neurons:
-                    working_neurons.append(next_neuron)
-
-        return working_neurons
-
-    def reset_input_neurons(self):
-        for neuron in self.input_neurons:
-            neuron.value = neuron.value_fixed
-
-    def get_output_values(self):
-        output_values = []
-        for neuron in self.output_neurons:
-            output_values.append(neuron.value)
-        return output_values
-
-    def get_expected_output_values(self):
-        expected_output_values = []
-        for neuron in self.output_neurons:
-            expected_output_values.append(neuron.expected_value)
-        return expected_output_values
-
-    def set_expected_output_values(self, param):
-
-        while len(param) > len(self.output_neurons):
-            new_neuron = OutputNeuron()
-            self.add_output_neuron(new_neuron)
-
-        for expected_value, neuron in zip(param, self.output_neurons):
-            neuron.expected_value = expected_value
-
-    def copy(self, nn_current):
-        self.input_neurons = copy(nn_current.input_neurons)
-        self.hidden_neurons = copy(nn_current.hidden_neurons)
-        self.output_neurons = copy(nn_current.output_neurons)
-        self.connections = copy(nn_current.connections)
-        self.fitness = copy(nn_current.fitness)
-
-    def reset_fire_rate(self):
-        for neuron in self.input_neurons:
-            neuron.fire_rate_variable = neuron.fire_rate_fixed
-        for neuron in self.hidden_neurons:
-            neuron.fire_rate_variable = neuron.fire_rate_fixed
-        for neuron in self.output_neurons:
-            neuron.fire_rate_variable = neuron.fire_rate_fixed
-
-    def set_all_activation_functions(self, linear):
-        for neuron in self.input_neurons:
-            neuron.activation_function = linear
-        for neuron in self.hidden_neurons:
-            neuron.activation_function = linear
-        for neuron in self.output_neurons:
-            neuron.activation_function = linear
-
-    def forward_propagation(self):  # One tick cycle
-        self.clear_neurons()
-        working_neurons = self.get_neuron_forward_order()
-
-        while working_neurons:
-            for neuron in working_neurons[:]:
-                if neuron.fire_rate_variable > 0:
-                    neuron.fire_rate_variable -= 1
-                    ActivationFunction.activate(neuron)
-                else:
-                    working_neurons.remove(neuron)
-                for connection in self.get_connections(neuron):
-                    connection.neuron_to.value += neuron.value * connection.weight
-
-    def get_connections(self, neuron):
-        connections = [connection for connection in self.connections if connection.neuron_from == neuron]
+    def get_all_connections(self) -> list[Connection]:
+        connections = []
+        for node in self.get_all_nodes():
+            connections += node.get_next_connections()
         return connections
 
-    def create_child(self):
-        nn_child = deepcopy(self)
-        return nn_child
+    def remove_node(self, remove_node):
+        if remove_node in self.input_nodes:
+            self.input_nodes.remove(remove_node)
+        elif remove_node in self.hidden_nodes:
+            self.hidden_nodes.remove(remove_node)
+        elif remove_node in self.output_nodes:
+            self.output_nodes.remove(remove_node)
+
+        for node in self.get_all_nodes():
+            for con in node.get_next_connections():
+                if con.get_out_node() == remove_node:
+                    node.remove_next_connection(con)
+
+    def remove_connection(self, remove_connection):
+        if remove_connection in self.get_all_connections():
+            remove_connection.get_in_node().remove_next_connection(remove_connection)
+
+    def set_input_data(self, data):
+        while len(data) > len(self.input_nodes):
+            new_node = Node(NodeTypes.INPUT)
+            self.add_input_node(new_node)
+
+        for i, v in enumerate(data):
+            self.input_nodes[i].set_value(v)
+        for i in range(len(data), len(self.input_nodes)):
+            self.input_nodes[i].set_value(0.0)
+
+    def forward_propagation(self, data=None):
+        self.clear_output()
+
+        if data is not None:
+            self.set_input_data(data)
+
+        for node in self.get_forward_order_list():
+            node.fire()
+
+        return self.get_output_data()
+
+    def clear_values(self):
+        for node in self.hidden_nodes:
+            node.set_value(0.0)
+
+        for node in self.output_nodes:
+            node.set_value(0.0)
+
+    def get_forward_order_list(self) -> list[Node]:
+
+        if self.forward_order_list is not None:
+            return self.forward_order_list
+
+        self.forward_order_list = []
+
+        for node in self.get_input_nodes():
+            if len(node.get_next_connections()) > 0:
+                self.forward_order_list.append(node)
+
+        node: Node
+
+        for node in self.forward_order_list:
+            for connection in node.get_next_connections():
+                if connection.get_out_node() not in self.forward_order_list:
+                    self.forward_order_list.append(connection.get_out_node())
+
+        return self.forward_order_list
+
+    def get_output_data(self) -> list:
+        output_data = []
+
+        for node in self.output_nodes:
+            output_data.append(node.get_value())
+
+        return output_data
+
+    def calculate_net_cost(self):
+        net_cost = len(self.get_all_connections())
+        net_cost += len(self.get_all_nodes())
+        return net_cost
+
+    def remove_all_connections(self):
+        for node in self.get_all_nodes():
+            node.next_connections = []
 
     def mutate(self):
-        if random.random() < get_mutation_weight_probability(json_config):
-            self.random_mutate_weight()
+        self.mutate_nodes()
+        self.mutate_connections()
 
-        if random.random() < get_mutation_connection_probability(json_config):
-            self.random_mutate_connection()
+    def mutate_nodes(self):
+        nodes = self.get_hidden_nodes() + self.get_output_nodes()
+        random_node = random.choice(nodes)
 
-        if random.random() < get_mutation_activation_function_probability(json_config):
-            self.random_mutate_activation_function()
+        if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
+            random_node.mutate_activation_function()
 
-        if random.random() < get_mutation_fire_rate_probability(json_config):
-            self.random_mutate_fire_rate()
+        if random.random() < YaneConfig.get_mutation_node_probability(yane_config):
+            self.add_or_remove_random_node()
 
-        if random.random() < get_mutation_neuron_probability(json_config):
-            self.random_mutate_neuron()
+    def mutate_connections(self):
+        connections = self.get_all_connections()
+
+        if len(connections) <= 0:
+            self.add_random_connection()
+            return
+
+        random_connection = random.choice(connections)
+
+        if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
+            random_connection.mutate_weight_random()
+        if random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
+            random_connection.mutate_enabled()
+        if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
+            self.last_weight_shift_connection = random_connection.mutate_weight_shift()
+        if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
+            self.add_or_remove_random_connection()
+
+    def add_random_connection(self):
+        random_node_in: Node = self.get_random_node()
+        random_node_out: Node = self.get_random_node()
+
+        connection = Connection()
+        connection.set_in_node(random_node_in)
+        connection.set_out_node(random_node_out)
+        connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
+
+        try:
+            self.add_connection(connection)
+        except InvalidConnection:
+            pass
+
+    def remove_random_connection(self):
+        connections = self.get_all_connections()
+
+        if len(connections) > 0:
+            connection = random.choice(connections)
+            self.remove_connection(connection)
+
+    def get_random_node(self):
+        nodes = self.get_all_nodes()
+
+        if len(nodes) > 0:
+            return random.choice(nodes)
+        else:
+            return None
+
+    def add_random_node(self):
+
+        if len(self.get_all_connections()) <= 0:
+            return None
+
+        connection = random.choice(self.get_all_connections())
+        node_in: Node = connection.get_in_node()
+
+        new_node = Node(NodeTypes.HIDDEN)
+        new_connection = Connection()
+
+        self.add_node(new_node)
+
+        # A ---> C
+        # A ---> B ---> C
+
+        new_connection.set_in_node(node_in)
+        new_connection.set_out_node(new_node)
+        connection.set_in_node(new_node)
+        node_in.remove_next_connection(connection)
+        new_node.add_next_connection(connection)
+        new_connection.set_weight(1.0)
+
+        self.add_connection(new_connection)
+
+        return new_node
 
     def print(self):
-        self.reset_input_neurons()
-        self.reset_fire_rate()
+        print("Neural Network:")
+        print("Input nodes:")
+        for node in self.input_nodes:
+            print(node)
+        print("Hidden nodes:")
+        for node in self.hidden_nodes:
+            print(node)
+        print("Output nodes:")
+        for node in self.output_nodes:
+            print(node)
+        print("Connections:")
+        for connection in self.get_all_connections():
+            print(connection)
+        print("End of Neural Network")
 
-        print("Input neurons: " + str(len(self.input_neurons)))
-        print("Hidden neurons: " + str(len(self.hidden_neurons)))
-        print("Output neurons: " + str(len(self.output_neurons)))
-        print("Connections: " + str(len(self.connections)))
-        print("")
+    def get_input_data(self):
+        input_data = []
 
-        for neuron in self.input_neurons:
-            print("Input neuron: " + str(neuron.value) + " | activation: " + str(
-                neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
+        for node in self.input_nodes:
+            input_data.append(node.get_value())
 
-        for neuron in self.hidden_neurons:
-            print("Hidden neuron: " + str(neuron.value) + " | activation: " + str(
-                neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
+        return input_data
 
-        for neuron in self.output_neurons:
-            print("Output neuron: " + str(neuron.value) + " | activation: " + str(
-                neuron.activation_function) + " | fire rate: " + str(neuron.fire_rate_variable))
+    def clear_output(self):
+        for node in self.output_nodes:
+            node.set_value(0.0)
 
-        for connection in self.connections:
-            print("Connection: " + str(connection.weight) + " | from: " + str(
-                type(connection.neuron_from).__name__) + str(
-                self.get_neuron_index(connection.neuron_from)) + " | to: " + str(
-                type(connection.neuron_to).__name__) + str(self.get_neuron_index(connection.neuron_to)))
-
-    def set_input_neurons(self, param):
-
-        while len(param) > len(self.input_neurons):
-            new_neuron = InputNeuron()
-            self.add_input_neuron(new_neuron)
-
-        for input_value, neuron in zip(param, self.input_neurons):
-            neuron.value_fixed = input_value
-
-    def random_mutate_connection(self):
+    def add_or_remove_random_connection(self):
         if random.random() < 0.5:
-            self.create_random_connection()
+            self.add_random_connection()
         else:
             self.remove_random_connection()
 
-    def create_random_connection(self):
-        random_neuron_from = self.get_random_neuron()
-        random_neuron_to = self.get_random_neuron()
-        if not self.connections.__contains__(self.get_connection_between_neurons(random_neuron_from, random_neuron_to)):
-            self.add_connection(random_neuron_from, random_neuron_to, 0)
-
-    def get_random_neuron(self) -> Neuron:
-        random_neuron = random.choice(self.input_neurons + self.hidden_neurons + self.output_neurons)
-        return random_neuron
-
-    def remove_random_connection(self):
-        if len(self.connections) > 0:
-            random_connection = random.choice(self.connections)
-            self.remove_connection(random_connection)
-
-    # TODO: Make get_random_weight_shift less random and more intelligent
-    # Example: Start with a big weight shift and then decrease the weight shift
-    def optimize_weight_shift(self, connection, fitness_tolerance=0.01):
-        old_fitness = self.get_fitness()
-        fitness_improved_up = True
-        fitness_improved_down = True
-        fitness_improved = False
-        old_weight = connection.weight
-
-        while fitness_improved_up or fitness_improved_down:
-            if connection.weight_shift_direction:
-                connection.weight += get_random_weight_shift(json_config)
-            else:
-                connection.weight -= get_random_weight_shift(json_config)
-
-            new_fitness = self.get_fitness()
-
-            if new_fitness > old_fitness and abs(new_fitness - old_fitness) > fitness_tolerance:
-                fitness_improved = True
-                old_fitness = new_fitness
-                old_weight = connection.weight
-                fitness_improved_up = True
-                fitness_improved_down = True
-            else:
-                connection.weight = old_weight
-                if connection.weight_shift_direction:
-                    fitness_improved_up = False
-                else:
-                    fitness_improved_down = False
-                connection.weight_shift_direction = not connection.weight_shift_direction
-
-        NeuralNetwork.last_modified_connection = connection
-        return fitness_improved
-
-    def random_mutate_activation_function(self):
-        random_neuron = self.get_random_neuron()
-        random_neuron.activation_function = get_random_activation_function(json_config)
-
-    def random_mutate_fire_rate(self):
-        random_neuron = self.get_random_neuron()
-        random_neuron.fire_rate_fixed = get_random_fire_rate(json_config)
-        random_neuron.fire_rate_variable = random_neuron.fire_rate_fixed
-
-    def random_mutate_neuron(self):
+    def add_or_remove_random_node(self):
         if random.random() < 0.5:
-            self.create_random_neuron()
+            self.add_random_node()
         else:
-            self.remove_random_neuron()
+            self.remove_random_node()
 
-    # Neurons are only created between connected neurons
-    def create_random_neuron(self):
-        random_neuron_from = self.get_random_neuron()
-        random_neuron_to = self.get_random_neuron()
-        new_neuron = HiddenNeuron()
+    def remove_random_node(self):
+        nodes = self.get_hidden_nodes()
 
-        connection = self.get_connection_between_neurons(random_neuron_from, random_neuron_to)
-        if connection is None:
-            return
+        if len(nodes) > 0:
+            node = random.choice(nodes)
+            self.remove_node(node)
 
-        self.add_hidden_neuron(new_neuron)
-
-        self.add_connection(random_neuron_from, new_neuron, 1)
-        self.add_connection(new_neuron, random_neuron_to, connection.weight)
-
-        self.remove_connection(connection)
-
-    # Does not remove input or output neurons
-    def remove_random_neuron(self):
-        random_neuron = self.get_random_hidden_neuron()
-
-        if random_neuron is not None:
-            self.remove_neuron(random_neuron)
-
-    def get_random_hidden_neuron(self):
-        if len(self.hidden_neurons) == 0:
-            return None
-
-        random_neuron = random.choice(self.hidden_neurons)
-        return random_neuron
-
-    def remove_connection(self, connection):
-        self.connections.remove(connection)
+    def get_last_weight_shift_connection(self) -> Connection:
+        return self.last_weight_shift_connection

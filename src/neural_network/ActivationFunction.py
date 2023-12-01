@@ -2,49 +2,69 @@ from enum import Enum
 
 import numpy as np
 
-from src.neural_network.YaneConfig import get_binary_threshold, load_json_config
+from src.neural_network import YaneConfig
+from src.neural_network.exceptions.InvalidActivation import InvalidActivation
 
-json_config = load_json_config()
-
-
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-
-def relu(x):
-    return max(0, x)
-
-
-def tanh(x):
-    return np.tanh(x)
-
-
-def linear(x):
-    return x
-
-
-def binary(x):
-    return 1 if x > get_binary_threshold(json_config) else 0
+yane_config = YaneConfig.load_json_config()
 
 
 class ActivationFunction(str, Enum):
-    SIGMOID = "Sigmoid"
-    RELU = "ReLU"
-    TANH = "Tanh"
-    LINEAR = "Linear"
-    BINARY = "Binary"
+    LINEAR = "linear"
+    SIGMOID = "sigmoid"
+    TANH = "tanh"
+    RELU = "relu"
+    BINARY = "binary"
 
     @classmethod
-    def activate(cls, neuron):
-        if neuron.activation_function == cls.SIGMOID:
-            neuron.value = sigmoid(neuron.value)
-        elif neuron.activation_function == cls.RELU:
-            neuron.value = relu(neuron.value)
-        elif neuron.activation_function == cls.TANH:
-            neuron.value = tanh(neuron.value)
-        elif neuron.activation_function == cls.LINEAR:
-            neuron.value = linear(neuron.value)
-        elif neuron.activation_function == cls.BINARY:
-            neuron.value = binary(neuron.value)
+    def get_function(cls, name):
+        name = name.lower()
+        if name == "linear":
+            return cls.LINEAR
+        elif name == "sigmoid":
+            return cls.SIGMOID
+        elif name == "tanh":
+            return cls.TANH
+        elif name == "relu":
+            return cls.RELU
+        elif name == "binary":
+            return cls.BINARY
         else:
-            raise Exception("Unknown activation function")
+            raise InvalidActivation("Activation function not found")
+
+    @classmethod
+    def activate(cls, activation_function, value):
+        if activation_function == cls.LINEAR:
+            return cls.linear(value)
+        elif activation_function == cls.SIGMOID:
+            return cls.sigmoid(value)
+        elif activation_function == cls.TANH:
+            return cls.tanh(value)
+        elif activation_function == cls.RELU:
+            return cls.relu(value)
+        elif activation_function == cls.BINARY:
+            return cls.binary(value)
+        else:
+            raise Exception("Activation function not found")
+
+    @classmethod
+    def linear(cls, value):
+        return value
+
+    @classmethod
+    def sigmoid(cls, value):
+        return 1 / (1 + np.exp(-value))
+
+    @classmethod
+    def tanh(cls, value):
+        return np.tanh(value)
+
+    @classmethod
+    def relu(cls, value):
+        return np.maximum(0, value)
+
+    @classmethod
+    def binary(cls, value):
+        if value >= YaneConfig.get_binary_threshold(yane_config):
+            return 1
+        else:
+            return 0
