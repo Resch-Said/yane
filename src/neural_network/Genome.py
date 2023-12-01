@@ -1,12 +1,14 @@
+import random
 from copy import deepcopy
-from random import random
 
 import numpy as np
 
 from src.neural_network import YaneConfig
+from src.neural_network.Connection import Connection
 from src.neural_network.NeuralNetwork import NeuralNetwork
 from src.neural_network.Node import Node
 from src.neural_network.NodeTypes import NodeTypes
+from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 
 yane_config = YaneConfig.load_json_config()
 
@@ -19,6 +21,10 @@ class Genome:
         self.fitness = None
         self.net_cost = None
         self.reproduction_count = 0
+
+        # Mutation probability
+        self.mutation_enabled_probability = 0.1  # probability of enabling / disabling connection
+        self.mutation_mutation_probability = 0.8  # probability of mutating a mutation
 
         if node_genes is not None:
             for node in node_genes:
@@ -157,7 +163,120 @@ class Genome:
         self.brain.add_node(node)
 
     def mutate(self):
-        self.brain.mutate()
+        self.mutate_nodes()
+        self.mutate_connections()
+        self.mutate_mutations()
+
+    def mutate_nodes(self):
+        nodes = self.get_hidden_nodes() + self.get_output_nodes()
+
+        for node in nodes:
+            if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
+                node.mutate_activation_function()
+
+        if random.random() < YaneConfig.get_mutation_node_probability(yane_config):
+            self.add_or_remove_random_node()
+
+    def add_or_remove_random_node(self):
+        if random.random() < 0.5:
+            self.add_random_node()
+        else:
+            self.remove_random_node()
+
+    def add_random_node(self):
+
+        if len(self.get_all_connections()) <= 0:
+            return None
+
+        connection = random.choice(self.get_all_connections())
+        node_in: Node = connection.get_in_node()
+
+        new_node = Node(NodeTypes.HIDDEN)
+        new_connection = Connection()
+
+        self.add_node(new_node)
+
+        # A ---> C
+        # A ---> B ---> C
+
+        new_connection.set_in_node(node_in)
+        new_connection.set_out_node(new_node)
+        connection.set_in_node(new_node)
+        node_in.remove_next_connection(connection)
+        new_node.add_next_connection(connection)
+        new_connection.set_weight(1.0)
+
+        self.add_connection(new_connection)
+
+        return new_node
+
+    def remove_random_node(self):
+        nodes = self.get_hidden_nodes()
+
+        if len(nodes) > 0:
+            node = random.choice(nodes)
+            self.remove_node(node)
+
+    def remove_node(self, remove_node):
+        if remove_node in self.brain.input_nodes:
+            self.brain.input_nodes.remove(remove_node)
+        elif remove_node in self.brain.hidden_nodes:
+            self.brain.hidden_nodes.remove(remove_node)
+        elif remove_node in self.brain.output_nodes:
+            self.brain.output_nodes.remove(remove_node)
+
+        for node in self.get_all_nodes():
+            for con in node.get_next_connections():
+                if con.get_out_node() == remove_node:
+                    node.remove_next_connection(con)
+
+    def mutate_connections(self):
+        connections = self.get_all_connections()
+
+        if len(connections) <= 0:
+            self.add_random_connection()
+            return
+
+        for connection in connections:
+            if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
+                connection.mutate_weight_random()
+            if random.random() < self.mutation_enabled_probability:
+                connection.mutate_enabled()
+            if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
+                self.brain.last_weight_shift_connection = connection.mutate_weight_shift()
+            if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
+                self.add_or_remove_random_connection()
+
+    def add_or_remove_random_connection(self):
+        if random.random() < 0.5:
+            self.add_random_connection()
+        else:
+            self.remove_random_connection()
+
+    def remove_random_connection(self):
+        connections = self.get_all_connections()
+
+        if len(connections) > 0:
+            connection = random.choice(connections)
+            self.remove_connection(connection)
+
+    def remove_connection(self, remove_connection):
+        if remove_connection in self.get_all_connections():
+            remove_connection.get_in_node().remove_next_connection(remove_connection)
+
+    def add_random_connection(self):
+        random_node_in: Node = self.get_random_node()
+        random_node_out: Node = self.get_random_node()
+
+        connection = Connection()
+        connection.set_in_node(random_node_in)
+        connection.set_out_node(random_node_out)
+        connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
+
+        try:
+            self.add_connection(connection)
+        except InvalidConnection:
+            pass
 
     def print(self):
         print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
@@ -241,3 +360,21 @@ class Genome:
 
     def get_bad_reproduction_count(self):
         return self.bad_reproduction_count
+
+    def get_hidden_nodes(self):
+        return self.brain.get_hidden_nodes()
+
+    def get_output_nodes(self):
+        return self.brain.get_output_nodes()
+
+    def get_all_connections(self):
+        return self.brain.get_all_connections()
+
+    def get_random_node(self):
+        return self.brain.get_random_node()
+
+    def mutate_mutations(self):
+        if random.random() < self.mutation_mutation_probability:
+            self.mutation_enabled_probability = random.random()
+        if random.random() < self.mutation_mutation_probability:
+            self.mutation_mutation_probability = random.random()

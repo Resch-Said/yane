@@ -5,7 +5,6 @@ from src.neural_network import YaneConfig
 from src.neural_network.Connection import Connection
 from src.neural_network.Node import Node
 from src.neural_network.NodeTypes import NodeTypes
-from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 from src.neural_network.exceptions.InvalidNode import InvalidNode
 from src.neural_network.exceptions.InvalidNodeTypeException import InvalidNodeTypeException
 
@@ -92,23 +91,6 @@ class NeuralNetwork:
             connections += node.get_next_connections()
         return connections
 
-    def remove_node(self, remove_node):
-        if remove_node in self.input_nodes:
-            self.input_nodes.remove(remove_node)
-        elif remove_node in self.hidden_nodes:
-            self.hidden_nodes.remove(remove_node)
-        elif remove_node in self.output_nodes:
-            self.output_nodes.remove(remove_node)
-
-        for node in self.get_all_nodes():
-            for con in node.get_next_connections():
-                if con.get_out_node() == remove_node:
-                    node.remove_next_connection(con)
-
-    def remove_connection(self, remove_connection):
-        if remove_connection in self.get_all_connections():
-            remove_connection.get_in_node().remove_next_connection(remove_connection)
-
     def set_input_data(self, data):
         while len(data) > len(self.input_nodes):
             new_node = Node(NodeTypes.INPUT)
@@ -174,58 +156,6 @@ class NeuralNetwork:
         for node in self.get_all_nodes():
             node.next_connections = []
 
-    def mutate(self):
-        self.mutate_nodes()
-        self.mutate_connections()
-
-    def mutate_nodes(self):
-        nodes = self.get_hidden_nodes() + self.get_output_nodes()
-
-        for node in nodes:
-            if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
-                node.mutate_activation_function()
-
-        if random.random() < YaneConfig.get_mutation_node_probability(yane_config):
-            self.add_or_remove_random_node()
-
-    def mutate_connections(self):
-        connections = self.get_all_connections()
-
-        if len(connections) <= 0:
-            self.add_random_connection()
-            return
-
-        for connection in connections:
-            if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
-                connection.mutate_weight_random()
-            if random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
-                connection.mutate_enabled()
-            if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
-                self.last_weight_shift_connection = connection.mutate_weight_shift()
-            if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
-                self.add_or_remove_random_connection()
-
-    def add_random_connection(self):
-        random_node_in: Node = self.get_random_node()
-        random_node_out: Node = self.get_random_node()
-
-        connection = Connection()
-        connection.set_in_node(random_node_in)
-        connection.set_out_node(random_node_out)
-        connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
-
-        try:
-            self.add_connection(connection)
-        except InvalidConnection:
-            pass
-
-    def remove_random_connection(self):
-        connections = self.get_all_connections()
-
-        if len(connections) > 0:
-            connection = random.choice(connections)
-            self.remove_connection(connection)
-
     def get_random_node(self):
         nodes = self.get_all_nodes()
 
@@ -233,33 +163,6 @@ class NeuralNetwork:
             return random.choice(nodes)
         else:
             return None
-
-    def add_random_node(self):
-
-        if len(self.get_all_connections()) <= 0:
-            return None
-
-        connection = random.choice(self.get_all_connections())
-        node_in: Node = connection.get_in_node()
-
-        new_node = Node(NodeTypes.HIDDEN)
-        new_connection = Connection()
-
-        self.add_node(new_node)
-
-        # A ---> C
-        # A ---> B ---> C
-
-        new_connection.set_in_node(node_in)
-        new_connection.set_out_node(new_node)
-        connection.set_in_node(new_node)
-        node_in.remove_next_connection(connection)
-        new_node.add_next_connection(connection)
-        new_connection.set_weight(1.0)
-
-        self.add_connection(new_connection)
-
-        return new_node
 
     def print(self):
         print("Neural Network:")
@@ -288,25 +191,6 @@ class NeuralNetwork:
     def clear_output(self):
         for node in self.output_nodes:
             node.set_value(0.0)
-
-    def add_or_remove_random_connection(self):
-        if random.random() < 0.5:
-            self.add_random_connection()
-        else:
-            self.remove_random_connection()
-
-    def add_or_remove_random_node(self):
-        if random.random() < 0.5:
-            self.add_random_node()
-        else:
-            self.remove_random_node()
-
-    def remove_random_node(self):
-        nodes = self.get_hidden_nodes()
-
-        if len(nodes) > 0:
-            node = random.choice(nodes)
-            self.remove_node(node)
 
     def get_last_weight_shift_connection(self) -> Connection:
         return self.last_weight_shift_connection

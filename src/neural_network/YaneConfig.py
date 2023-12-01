@@ -56,10 +56,6 @@ def get_mutation_shift_probability(json_config):
     return json_config["mutation_shift_probability"]
 
 
-def get_mutation_enabled_probability(json_config):
-    return json_config["mutation_enabled_probability"]
-
-
 def get_species_stagnation_duration(json_config):
     return json_config["species_stagnation_duration"]
 
@@ -104,6 +100,14 @@ def get_improvement_threshold(json_config):
     return json_config["improvement_threshold"]
 
 
+def get_mutation_shift_min(json_config):
+    return json_config["mutation_shift"][0]
+
+
+def get_mutation_shift_max(json_config):
+    return json_config["mutation_shift"][1]
+
+
 # TODO: Automatically stop training if no improvement after x generations
 
 def create_default_json_config():
@@ -114,6 +118,7 @@ def create_default_json_config():
         "allow_early_output": True,
         "clear_on_new_input": True,  # if true, yane will reset all node values when a new input is given
         "weight_shift": [0.01, 0.1],  # How much the weight can change shift in one direction. [min, max]
+        "mutation_shift": [0.01, 0.1],  # How much a mutation probability can shift in one direction. [min, max]
         "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
@@ -122,7 +127,6 @@ def create_default_json_config():
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         "mutation_shift_probability": 0.5,  # chance that a weight is shifted
         "mutation_activation_function_probability": 0.1,  # chance that an activation function is mutated
-        "mutation_enabled_probability": 0.1,  # chance that a connection is enabled/disabled
         # The number of generations without improvement until a species is considered stagnant
         "species_stagnation_duration": 5,
         "species_size_reference": 50,  # The approximate amount of genomes in a species. May fluctuate.
