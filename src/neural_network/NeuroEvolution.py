@@ -36,14 +36,15 @@ class NeuroEvolution:
 
             overpopulation_count = self.get_genomes_size() - YaneConfig.get_max_population_size(yane_config)
 
+            if np.round(current_generation) % 10 == 0:
+                print("Generation: " + str(np.round(current_generation)) + " Best fitness: " + str(
+                    self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
+                      "Number of species: " + str(self.get_population().get_species_size()))
+
             if overpopulation_count > 0:
                 self.clear_stagnated_species()
                 self.clear_overpopulated_species()
                 self.clear_bad_reproducers()
-
-            print("Generation: " + str(np.round(current_generation)) + " Best fitness: " + str(
-                self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
-                  "Number of species: " + str(self.get_population().get_species_size()))
 
             if self.check_best_fitness() or self.check_max_generation():
                 break
@@ -154,7 +155,6 @@ class NeuroEvolution:
                     best_genome.clear_hidden_output_nodes()
                     self.add_evaluation(best_genome)
                 self.remove_species(species)
-                print("Removed stagnated species")
 
     def set_min_fitness(self, min_fitness):
         self.min_fitness = min_fitness
@@ -165,4 +165,3 @@ class NeuroEvolution:
                 if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
                     if genome is not species.get_best_genome():
                         species.remove_genome(genome)
-                        print("Removed bad reproducer")
