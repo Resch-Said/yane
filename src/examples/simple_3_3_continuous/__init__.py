@@ -22,9 +22,8 @@ def evaluate(genome: Genome):
         genome.forward_propagation(data_input + [1])
         predicted_output = genome.get_outputs()
 
-        fitness -= np.abs(predicted_output[0] - target_output[0])
-        fitness -= np.abs(predicted_output[1] - target_output[1])
-        fitness -= np.abs(predicted_output[2] - target_output[2])
+        for i in range(len(predicted_output)):
+            fitness -= np.abs(predicted_output[i] - target_output[i])
 
     return fitness
 
