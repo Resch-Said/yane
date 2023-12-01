@@ -29,6 +29,7 @@ class Genome:
         self.mutation_remove_connection_probability = 0.1  # probability of removing connection
         self.mutation_add_node_probability = 0.1  # probability of adding node
         self.mutation_remove_node_probability = 0.1  # probability of removing node
+        self.mutation_shift_probability = 0.1  # probability of shifting weight
         self.mutation_mutation_probability = 0.8  # probability of mutating a mutation
 
         if node_genes is not None:
@@ -243,7 +244,7 @@ class Genome:
                 connection.mutate_weight_random()
             if random.random() < self.mutation_enabled_probability:
                 connection.mutate_enabled()
-            if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
+            if random.random() < self.mutation_shift_probability:
                 self.brain.last_weight_shift_connection = connection.mutate_weight_shift()
             if random.random() < self.mutation_add_connection_probability:
                 self.add_random_connection()
@@ -286,7 +287,8 @@ class Genome:
             self.mutation_add_connection_probability) + "\nMutation remove connection: " + str(
             self.mutation_remove_connection_probability) + "\n"
               + "Mutation add node: " + str(self.mutation_add_node_probability) + "\nMutation remove node: " + str(
-            self.mutation_remove_node_probability) + "\n")
+            self.mutation_remove_node_probability) + "\n"
+              + "Mutation shift: " + str(self.mutation_shift_probability) + "\n")
 
         self.brain.print()
 
@@ -382,13 +384,13 @@ class Genome:
 
     def mutate_mutations(self):
         if random.random() < self.mutation_mutation_probability:
-            self.mutation_enabled_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_activation_function_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
             self.mutation_mutation_probability = random.random()
             if self.mutation_mutation_probability <= 0.01:
                 self.mutation_mutation_probability = 0.01
+        if random.random() < self.mutation_mutation_probability:
+            self.mutation_enabled_probability = random.random()
+        if random.random() < self.mutation_mutation_probability:
+            self.mutation_activation_function_probability = random.random()
         if random.random() < self.mutation_mutation_probability:
             self.mutation_add_connection_probability = random.random()
         if random.random() < self.mutation_mutation_probability:
@@ -397,3 +399,5 @@ class Genome:
             self.mutation_add_node_probability = random.random()
         if random.random() < self.mutation_mutation_probability:
             self.mutation_remove_node_probability = random.random()
+        if random.random() < self.mutation_mutation_probability:
+            self.mutation_shift_probability = random.random()

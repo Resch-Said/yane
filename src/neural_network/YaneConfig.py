@@ -40,10 +40,6 @@ def get_mutation_weight_max(json_config):
     return json_config["mutation_weight"][1]
 
 
-def get_mutation_shift_probability(json_config):
-    return json_config["mutation_shift_probability"]
-
-
 def get_species_stagnation_duration(json_config):
     return json_config["species_stagnation_duration"]
 
@@ -111,7 +107,6 @@ def create_default_json_config():
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
         "mutation_weight_probability": 0.1,  # chance that a weight is mutated
-        "mutation_shift_probability": 0.5,  # chance that a weight is shifted
         # The number of generations without improvement until a species is considered stagnant
         "species_stagnation_duration": 5,
         "species_size_reference": 50,  # The approximate amount of genomes in a species. May fluctuate.
