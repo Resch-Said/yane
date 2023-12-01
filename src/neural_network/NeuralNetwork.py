@@ -180,10 +180,10 @@ class NeuralNetwork:
 
     def mutate_nodes(self):
         nodes = self.get_hidden_nodes() + self.get_output_nodes()
-        random_node = random.choice(nodes)
 
-        if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
-            random_node.mutate_activation_function()
+        for node in nodes:
+            if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
+                node.mutate_activation_function()
 
         if random.random() < YaneConfig.get_mutation_node_probability(yane_config):
             self.add_or_remove_random_node()
@@ -195,16 +195,15 @@ class NeuralNetwork:
             self.add_random_connection()
             return
 
-        random_connection = random.choice(connections)
-
-        if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
-            random_connection.mutate_weight_random()
-        if random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
-            random_connection.mutate_enabled()
-        if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
-            self.last_weight_shift_connection = random_connection.mutate_weight_shift()
-        if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
-            self.add_or_remove_random_connection()
+        for connection in connections:
+            if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
+                connection.mutate_weight_random()
+            if random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
+                connection.mutate_enabled()
+            if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
+                self.last_weight_shift_connection = connection.mutate_weight_shift()
+            if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
+                self.add_or_remove_random_connection()
 
     def add_random_connection(self):
         random_node_in: Node = self.get_random_node()
