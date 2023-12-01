@@ -284,7 +284,9 @@ class Genome:
             self.mutation_activation_function_probability) + "\nMutation mutation: " + str(
             self.mutation_mutation_probability) + "\nMutation add connection: " + str(
             self.mutation_add_connection_probability) + "\nMutation remove connection: " + str(
-            self.mutation_remove_connection_probability) + "\n")
+            self.mutation_remove_connection_probability) + "\n"
+              + "Mutation add node: " + str(self.mutation_add_node_probability) + "\nMutation remove node: " + str(
+            self.mutation_remove_node_probability) + "\n")
 
         self.brain.print()
 
@@ -385,7 +387,7 @@ class Genome:
             self.mutation_activation_function_probability = random.random()
         if random.random() < self.mutation_mutation_probability:
             self.mutation_mutation_probability = random.random()
-            if self.mutation_mutation_probability <= 0:
+            if self.mutation_mutation_probability <= 0.01:
                 self.mutation_mutation_probability = 0.01
         if random.random() < self.mutation_mutation_probability:
             self.mutation_add_connection_probability = random.random()
