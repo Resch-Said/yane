@@ -145,11 +145,14 @@ class NeuroEvolution:
                 species.pop_genome()
 
     def clear_stagnated_species(self):
+
+        best_genome = self.get_best_species_genome()[1]
+
         for species in self.get_population().get_species():
             if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
-                best_genome = species.get_best_genome()
-                best_genome.clear_hidden_output_nodes()
-                self.add_evaluation(best_genome)
+                if species.get_best_genome() is best_genome:
+                    best_genome.clear_hidden_output_nodes()
+                    self.add_evaluation(best_genome)
                 self.remove_species(species)
                 print("Removed stagnated species")
 
