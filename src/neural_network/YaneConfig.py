@@ -24,10 +24,6 @@ def get_binary_threshold(json_config):
     return json_config["binary_threshold"]
 
 
-def get_mutation_weight_probability(json_config):
-    return json_config["mutation_weight_probability"]
-
-
 def get_random_mutation_weight(json_config):
     return random.uniform(get_mutation_weight_min(json_config), get_mutation_weight_max(json_config))
 
@@ -106,7 +102,6 @@ def create_default_json_config():
         "mutation_weight": [-2, 2],  # The range of the random weight when mutating
         "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
         "binary_threshold": 0.5,  # only used for binary activation function
-        "mutation_weight_probability": 0.1,  # chance that a weight is mutated
         # The number of generations without improvement until a species is considered stagnant
         "species_stagnation_duration": 5,
         "species_size_reference": 50,  # The approximate amount of genomes in a species. May fluctuate.

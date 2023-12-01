@@ -30,6 +30,7 @@ class Genome:
         self.mutation_add_node_probability = 0.1  # probability of adding node
         self.mutation_remove_node_probability = 0.1  # probability of removing node
         self.mutation_shift_probability = 0.1  # probability of shifting weight
+        self.mutation_weight_probability = 0.1  # probability of mutating weight
         self.mutation_mutation_probability = 0.8  # probability of mutating a mutation
 
         if node_genes is not None:
@@ -240,7 +241,7 @@ class Genome:
             return
 
         for connection in connections:
-            if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
+            if random.random() < self.mutation_weight_probability:
                 connection.mutate_weight_random()
             if random.random() < self.mutation_enabled_probability:
                 connection.mutate_enabled()
@@ -288,7 +289,8 @@ class Genome:
             self.mutation_remove_connection_probability) + "\n"
               + "Mutation add node: " + str(self.mutation_add_node_probability) + "\nMutation remove node: " + str(
             self.mutation_remove_node_probability) + "\n"
-              + "Mutation shift: " + str(self.mutation_shift_probability) + "\n")
+              + "Mutation shift: " + str(self.mutation_shift_probability) + "\n"
+              + "Mutation weight: " + str(self.mutation_weight_probability) + "\n")
 
         self.brain.print()
 
@@ -401,3 +403,5 @@ class Genome:
             self.mutation_remove_node_probability = random.random()
         if random.random() < self.mutation_mutation_probability:
             self.mutation_shift_probability = random.random()
+        if random.random() < self.mutation_mutation_probability:
+            self.mutation_weight_probability = random.random()
