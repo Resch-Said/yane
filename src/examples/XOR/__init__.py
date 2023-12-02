@@ -9,7 +9,6 @@ dataset = TrainingData.load_data('dataset_XOR.json')
 length = len(dataset)
 
 yane = NeuroEvolution()
-yane.set_max_generations(500)
 yane.set_min_fitness(0)
 yane.set_number_of_outputs(1)
 

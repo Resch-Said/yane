@@ -43,7 +43,6 @@ class NeuroEvolution:
             if overpopulation_count > 0:
                 self.clear_stagnated_species()
                 self.clear_overpopulated_species()
-                # self.clear_bad_genomes()
                 self.clear_bad_reproducers()
 
             if self.check_best_fitness() or self.check_max_generation():
@@ -165,9 +164,3 @@ class NeuroEvolution:
                         if genome is species.get_best_genome():
                             continue
                         species.remove_genome(genome)
-
-    def clear_bad_genomes(self):
-        for species in self.get_population().get_species():
-            for genome in species.get_genomes():
-                if genome.get_fitness() < species.get_best_genome().get_fitness() * 1:
-                    species.remove_genome(genome)
