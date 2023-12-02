@@ -422,23 +422,50 @@ class Genome:
 
                 self.mutation_num[num_name] = max(new_num_value, 1)
 
-    def plot(self):
-        G = nx.DiGraph()
+    def plot(self, interactive=False):
+
+        if interactive:
+            plt.ion()
+
+        DG = nx.DiGraph()
+
+        edge_colors = []
+        node_colors = []
+        edge_lengths = []
 
         for node in self.get_all_nodes():
-            G.add_node(node.get_id())
+            DG.add_node(node.get_id(), node_type=str(node.type)[0])
+            if node.type == NodeTypes.INPUT:
+                node_colors.append('green')
+            elif node.type == NodeTypes.HIDDEN:
+                node_colors.append('yellow')
+            elif node.type == NodeTypes.OUTPUT:
+                node_colors.append('red')
 
         for connection in self.get_all_connections():
-            G.add_edge(connection.get_in_node().get_id(), connection.get_out_node().get_id(),
-                       weight=np.round(connection.get_weight(), 2))
+            DG.add_edge(connection.get_in_node().get_id(), connection.get_out_node().get_id(),
+                        weight=np.round(connection.get_weight(), 2))
+            if connection.get_weight() >= 0:
+                edge_colors.append('blue')
+            else:
+                edge_colors.append('red')
 
-        pos = nx.spring_layout(G)
+            edge_lengths.append(np.abs(connection.get_weight()))
 
-        nx.draw_networkx_nodes(G, pos, node_size=100)
-        nx.draw_networkx_labels(G, pos)
-        nx.draw_networkx_edges(G, pos, arrowsize=20)
+        pos = nx.spring_layout(DG, pos=nx.shell_layout(DG), fixed=None, iterations=50, weight='weight',
+                               scale=1.0, k=2, center=None, dim=2, seed=None)
+        node_labels = nx.get_node_attributes(DG, 'node_type')
+        nx.draw_networkx_labels(DG, pos, labels=node_labels)
 
-        labels = nx.get_edge_attributes(G, 'weight')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+        nx.draw_networkx_nodes(DG, pos, node_size=200, node_color=node_colors)
+        nx.draw_networkx_edges(DG, pos, arrowsize=20, edge_color=edge_colors)
 
-        plt.show()
+        labels = nx.get_edge_attributes(DG, 'weight')
+        nx.draw_networkx_edge_labels(DG, pos, edge_labels=labels)
+
+        if interactive:
+            plt.draw()
+            plt.pause(0.001)
+            plt.clf()
+        else:
+            plt.show()
