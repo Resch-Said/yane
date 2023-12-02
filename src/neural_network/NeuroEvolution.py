@@ -42,7 +42,6 @@ class NeuroEvolution:
 
             if overpopulation_count > 0:
                 self.clear_stagnated_species()
-                self.clear_overpopulated_species()
                 self.clear_bad_reproducers()
 
             if self.check_best_fitness() or self.check_max_generation():

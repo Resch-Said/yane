@@ -27,6 +27,7 @@ class Species:
             self.average_fitness = self.get_average_fitness()
             self.previous_average_fitness = self.average_fitness
 
+        self.prune_overpopulation()
         self.update_average_fitness()
         self.update_generations_without_improvement()
 
@@ -100,3 +101,7 @@ class Species:
             reproduction_limit = 1
 
         return random.choice(self.genomes[:reproduction_limit])
+
+    def prune_overpopulation(self):
+        while self.get_size() > YaneConfig.get_species_size_reference(yane_config):
+            self.pop_genome()
