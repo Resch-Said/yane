@@ -23,15 +23,17 @@ class Genome:
         self.reproduction_count = 0
 
         # Mutation probability
-        self.mutation_enabled_probability = 0.1  # probability of enabling / disabling connection
-        self.mutation_activation_function_probability = 0.1  # probability of mutating activation function
-        self.mutation_add_connection_probability = 0.1  # probability of adding connection
-        self.mutation_remove_connection_probability = 0.1  # probability of removing connection
-        self.mutation_add_node_probability = 0.1  # probability of adding node
-        self.mutation_remove_node_probability = 0.1  # probability of removing node
-        self.mutation_shift_probability = 0.1  # probability of shifting weight
-        self.mutation_weight_probability = 0.1  # probability of mutating weight
-        self.mutation_mutation_probability = 0.8  # probability of mutating a mutation
+        self.mutation_rates = {
+            'enabled_probability': random.random(),  # probability of enabling / disabling connection
+            'activation_function_probability': random.random(),  # probability of mutating activation function
+            'add_connection_probability': random.random(),  # probability of adding connection
+            'remove_connection_probability': random.random(),  # probability of removing connection
+            'add_node_probability': random.random(),  # probability of adding node
+            'remove_node_probability': random.random(),  # probability of removing node
+            'shift_probability': random.random(),  # probability of shifting weight
+            'weight_probability': random.random(),  # probability of mutating weight
+            'mutation_probability': 0.8,  # probability of mutating a mutation
+        }
 
         if node_genes is not None:
             for node in node_genes:
@@ -172,18 +174,18 @@ class Genome:
     def mutate(self):
         self.mutate_nodes()
         self.mutate_connections()
-        self.mutate_mutations()
+        self.mutate_mutation_rates()
 
     def mutate_nodes(self):
         nodes = self.get_hidden_nodes() + self.get_output_nodes()
 
         for node in nodes:
-            if random.random() < self.mutation_activation_function_probability:
+            if random.random() < self.mutation_rates['activation_function_probability']:
                 node.mutate_activation_function()
 
-        if random.random() < self.mutation_add_node_probability:
+        if random.random() < self.mutation_rates['add_node_probability']:
             self.add_random_node()
-        if random.random() < self.mutation_remove_node_probability:
+        if random.random() < self.mutation_rates['remove_node_probability']:
             self.remove_random_node()
 
     def add_random_node(self):
@@ -241,15 +243,15 @@ class Genome:
             return
 
         for connection in connections:
-            if random.random() < self.mutation_weight_probability:
+            if random.random() < self.mutation_rates['weight_probability']:
                 connection.mutate_weight_random()
-            if random.random() < self.mutation_enabled_probability:
+            if random.random() < self.mutation_rates['enabled_probability']:
                 connection.mutate_enabled()
-            if random.random() < self.mutation_shift_probability:
+            if random.random() < self.mutation_rates['shift_probability']:
                 self.brain.last_weight_shift_connection = connection.mutate_weight_shift()
-            if random.random() < self.mutation_add_connection_probability:
+            if random.random() < self.mutation_rates['add_connection_probability']:
                 self.add_random_connection()
-            if random.random() < self.mutation_remove_connection_probability:
+            if random.random() < self.mutation_rates['remove_connection_probability']:
                 self.remove_random_connection()
 
     def remove_random_connection(self):
@@ -281,16 +283,14 @@ class Genome:
         print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
             len(self.get_brain().get_forward_order_list())) + " connected nodes")
 
-        print("Mutation probabilities: \n" + "Mutation connection enabled / disabled: " + str(
-            self.mutation_enabled_probability) + "\nMutation activation: " + str(
-            self.mutation_activation_function_probability) + "\nMutation mutation: " + str(
-            self.mutation_mutation_probability) + "\nMutation add connection: " + str(
-            self.mutation_add_connection_probability) + "\nMutation remove connection: " + str(
-            self.mutation_remove_connection_probability) + "\n"
-              + "Mutation add node: " + str(self.mutation_add_node_probability) + "\nMutation remove node: " + str(
-            self.mutation_remove_node_probability) + "\n"
-              + "Mutation shift: " + str(self.mutation_shift_probability) + "\n"
-              + "Mutation weight: " + str(self.mutation_weight_probability) + "\n")
+        print("Mutation rates:")
+        for rate_name, rate_value in self.mutation_rates.items():
+            print(rate_name + ": " + str(rate_value))
+
+        print("Reproduction count: " + str(self.get_reproduction_count()))
+        print("Bad reproduction count: " + str(self.get_bad_reproduction_count()))
+
+        print()
 
         self.brain.print()
 
@@ -384,24 +384,10 @@ class Genome:
     def get_random_node(self):
         return self.brain.get_random_node()
 
-    def mutate_mutations(self):
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_mutation_probability = random.random()
-            if self.mutation_mutation_probability <= 0.01:
-                self.mutation_mutation_probability = 0.01
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_enabled_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_activation_function_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_add_connection_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_remove_connection_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_add_node_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_remove_node_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_shift_probability = random.random()
-        if random.random() < self.mutation_mutation_probability:
-            self.mutation_weight_probability = random.random()
+    def mutate_mutation_rates(self):
+        for rate_name, rate_value in self.mutation_rates.items():
+            if random.random() < self.mutation_rates['mutation_probability']:
+                change = random.uniform(-0.5, 0.5)
+                new_rate = rate_value + change
+
+                self.mutation_rates[rate_name] = min(max(new_rate, 0.01), 1)
