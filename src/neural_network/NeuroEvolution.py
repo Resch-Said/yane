@@ -128,7 +128,7 @@ class NeuroEvolution:
         # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
         child_genome.set_parent(genome1)
         child_genome.mutate()
-        child_genome.prune_bad_connections()
+        # child_genome.prune_bad_connections()
 
         genome1.set_reproduction_count(genome1.get_reproduction_count() + 1)
         # genome2.set_reproduction_count(genome2.get_reproduction_count() + 1)

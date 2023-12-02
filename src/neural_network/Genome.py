@@ -24,7 +24,6 @@ class Genome:
 
         # Mutation probability
         self.mutation_rates = {
-            'enabled_probability': random.random(),  # probability of enabling / disabling connection
             'activation_function_probability': random.random(),  # probability of mutating activation function
             'add_connection_probability': random.random(),  # probability of adding connection
             'remove_connection_probability': random.random(),  # probability of removing connection
@@ -143,8 +142,9 @@ class Genome:
 
         # Child genome is worse than parent genome
         if self.parent is not None and fitness_result < self.parent.get_fitness():
-            parent_connection = self.get_parent().get_brain().get_last_weight_shift_connection()
             self.parent.set_bad_reproduction_count(self.parent.get_bad_reproduction_count() + 1)
+
+            parent_connection = self.get_parent().get_brain().get_last_weight_shift_connection()
             if parent_connection is not None:
                 parent_connection.switch_weight_shift_direction()
 
@@ -247,14 +247,13 @@ class Genome:
         for connection in connections:
             if random.random() < self.mutation_rates['weight_probability']:
                 connection.mutate_weight_random()
-            if random.random() < self.mutation_rates['enabled_probability']:
-                connection.mutate_enabled()
             if random.random() < self.mutation_rates['shift_probability']:
                 self.brain.last_weight_shift_connection = connection.mutate_weight_shift()
-            if random.random() < self.mutation_rates['add_connection_probability']:
-                self.add_random_connection()
-            if random.random() < self.mutation_rates['remove_connection_probability']:
-                self.remove_random_connection()
+
+        if random.random() < self.mutation_rates['add_connection_probability']:
+            self.add_random_connection()
+        if random.random() < self.mutation_rates['remove_connection_probability']:
+            self.remove_random_connection()
 
     def remove_random_connection(self):
         connections = self.get_all_connections()

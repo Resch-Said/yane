@@ -77,9 +77,6 @@ class Node:
             self.activate()
 
         for connection in self.next_connections:
-            if not connection.is_enabled():
-                continue
-
             next_node: Node = connection.get_out_node()
             next_node.set_value(next_node.get_value() + self.value * connection.get_weight())
 

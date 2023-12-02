@@ -7,12 +7,11 @@ yane_config = YaneConfig.load_json_config()
 class Connection:
     ID = 0
 
-    def __init__(self, in_node: Node = None, out_node: Node = None, weight: float = 1.0, enabled: bool = True, ID=None):
+    def __init__(self, in_node: Node = None, out_node: Node = None, weight: float = 1.0, ID=None):
         self.weight_shift_direction = True
         self.weight = weight
         self.in_node = in_node
         self.out_node = out_node
-        self.enabled = enabled
         self.id = ID
 
         if ID is None:
@@ -28,9 +27,6 @@ class Connection:
     def set_out_node(self, node):
         self.out_node = node
 
-    def set_enabled(self, enabled):
-        self.enabled = enabled
-
     def get_weight(self):
         return self.weight
 
@@ -40,27 +36,21 @@ class Connection:
     def get_out_node(self) -> Node:
         return self.out_node
 
-    def is_enabled(self) -> bool:
-        return self.enabled
-
     def __str__(self):
         return "Connection: " + str(self.id) + " from " + str(self.in_node.id) + " to " + str(
-            self.out_node.id) + " with weight " + str(self.weight) + " and enabled: " + str(self.enabled)
+            self.out_node.id) + " with weight " + str(self.weight)
 
     def get_id(self) -> int:
         return self.id
 
     def copy(self) -> 'Connection':
-        new_connection = Connection(self.in_node, self.out_node, self.weight, self.enabled, self.id)
+        new_connection = Connection(self.in_node, self.out_node, self.weight, self.id)
         new_connection.weight_shift_direction = self.weight_shift_direction
 
         return new_connection
 
     def mutate_weight_random(self):
         self.weight = YaneConfig.get_random_mutation_weight(yane_config)
-
-    def mutate_enabled(self):
-        self.enabled = not self.enabled
 
     def mutate_weight_shift(self):
 

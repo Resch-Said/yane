@@ -111,7 +111,7 @@ def create_default_json_config():
         "species_compatibility_weight_factor": 0.4,  # The factor that is multiplied with the weight difference
         "reproduction_fraction": 0.2,  # The fraction of the population that is allowed to reproduce
         # The maximum amount of times a genome is allowed to make bad genomes in a row
-        "max_bad_reproductions_in_row": 5,
+        "max_bad_reproductions_in_row": 10,
         "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
         # The factor that is multiplied with the net cost to calculate the fitness.
         # If to high, the net cost will be prioritized over the fitness.
