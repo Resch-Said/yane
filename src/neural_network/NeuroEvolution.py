@@ -43,7 +43,8 @@ class NeuroEvolution:
             if overpopulation_count > 0:
                 self.clear_stagnated_species()
                 self.clear_overpopulated_species()
-                # self.clear_bad_reproducers()
+                # self.clear_bad_genomes()
+                self.clear_bad_reproducers()
 
             if self.check_best_fitness() or self.check_max_generation():
                 break
@@ -127,6 +128,7 @@ class NeuroEvolution:
         # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
         child_genome.set_parent(genome1)
         child_genome.mutate()
+        child_genome.prune_bad_connections()
 
         genome1.set_reproduction_count(genome1.get_reproduction_count() + 1)
         # genome2.set_reproduction_count(genome2.get_reproduction_count() + 1)
@@ -150,10 +152,8 @@ class NeuroEvolution:
 
         for species in self.get_population().get_species():
             if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
-                if species.get_best_genome() is best_genome:
-                    best_genome.clear_hidden_output_nodes()
-                    self.add_evaluation(best_genome)
-                self.remove_species(species)
+                if species.get_best_genome() is not best_genome:
+                    self.remove_species(species)
 
     def set_min_fitness(self, min_fitness):
         self.min_fitness = min_fitness
@@ -164,3 +164,9 @@ class NeuroEvolution:
                 if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
                     if genome is not species.get_best_genome():
                         species.remove_genome(genome)
+
+    def clear_bad_genomes(self):
+        for species in self.get_population().get_species():
+            for genome in species.get_genomes():
+                if genome.get_fitness() < species.get_best_genome().get_fitness() * 1:
+                    species.remove_genome(genome)

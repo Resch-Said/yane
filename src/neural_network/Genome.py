@@ -166,6 +166,8 @@ class Genome:
             new_connection.set_out_node(new_genome.get_brain().get_node_by_id(connection.get_out_node().get_id()))
             new_genome.add_connection(new_connection)
 
+        new_genome.mutation_rates = deepcopy(self.mutation_rates)
+
         return new_genome
 
     def add_node(self, node: Node):
@@ -391,3 +393,8 @@ class Genome:
                 new_rate = rate_value + change
 
                 self.mutation_rates[rate_name] = min(max(new_rate, 0.01), 1)
+
+    def prune_bad_connections(self):
+        for connection in self.get_all_connections():
+            if np.abs(connection.weight) <= 0.001:
+                self.remove_connection(connection)
