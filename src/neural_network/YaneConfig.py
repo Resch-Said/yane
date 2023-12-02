@@ -113,7 +113,6 @@ def create_default_json_config():
         # The maximum amount of times a genome is allowed to make bad genomes in a row
         "max_bad_reproductions_in_row": 5,
         "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
-
         # The factor that is multiplied with the net cost to calculate the fitness.
         # If to high, the net cost will be prioritized over the fitness.
         "net_cost_factor": 0.0001
