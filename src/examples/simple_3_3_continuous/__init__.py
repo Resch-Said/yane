@@ -45,3 +45,5 @@ for data in dataset:
     output = best_genome.get_outputs()
 
     print("Input: " + str(inputs) + " Output: " + str(output) + " Expected: " + str(expected_output))
+
+best_genome.plot()

@@ -1,6 +1,8 @@
 import random
 from copy import deepcopy
 
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 
 from src.neural_network import YaneConfig
@@ -419,3 +421,24 @@ class Genome:
                 new_num_value = num_value + change
 
                 self.mutation_num[num_name] = max(new_num_value, 1)
+
+    def plot(self):
+        G = nx.DiGraph()
+
+        for node in self.get_all_nodes():
+            G.add_node(node.get_id())
+
+        for connection in self.get_all_connections():
+            G.add_edge(connection.get_in_node().get_id(), connection.get_out_node().get_id(),
+                       weight=np.round(connection.get_weight(), 2))
+
+        pos = nx.spring_layout(G)
+
+        nx.draw_networkx_nodes(G, pos, node_size=100)
+        nx.draw_networkx_labels(G, pos)
+        nx.draw_networkx_edges(G, pos, arrowsize=20)
+
+        labels = nx.get_edge_attributes(G, 'weight')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
+
+        plt.show()
