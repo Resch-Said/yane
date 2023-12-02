@@ -148,12 +148,11 @@ class NeuroEvolution:
 
     def clear_stagnated_species(self):
 
-        best_genome = self.get_best_species_genome()[1]
-
         for species in self.get_population().get_species():
             if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
-                if species.get_best_genome() is not best_genome:
-                    self.remove_species(species)
+                if YaneConfig.get_keep_best_genome(yane_config):
+                    self.add_evaluation(species.get_best_genome())
+                self.remove_species(species)
 
     def set_min_fitness(self, min_fitness):
         self.min_fitness = min_fitness
@@ -162,7 +161,9 @@ class NeuroEvolution:
         for species in self.get_population().get_species():
             for genome in species.get_genomes():
                 if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
-                    if genome is not species.get_best_genome():
+                    if YaneConfig.get_keep_best_genome(yane_config):
+                        if genome is species.get_best_genome():
+                            continue
                         species.remove_genome(genome)
 
     def clear_bad_genomes(self):

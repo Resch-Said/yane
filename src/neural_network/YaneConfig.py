@@ -88,6 +88,10 @@ def get_mutation_shift_max(json_config):
     return json_config["mutation_shift"][1]
 
 
+def get_keep_best_genome(json_config):
+    return json_config["keep_best_genome"]
+
+
 # TODO: Automatically stop training if no improvement after x generations
 
 def create_default_json_config():
@@ -115,7 +119,8 @@ def create_default_json_config():
         "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
         # The factor that is multiplied with the net cost to calculate the fitness.
         # If to high, the net cost will be prioritized over the fitness.
-        "net_cost_factor": 0.0001
+        "net_cost_factor": 0.0001,
+        "keep_best_genome": False,  # If true, the best genome of a species will always be kept
     }
     with open('yane_config.json', 'w') as json_config_file:
         json.dump(json_config, json_config_file)
