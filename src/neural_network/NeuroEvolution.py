@@ -33,13 +33,11 @@ class NeuroEvolution:
             self.clear_population()
 
         while True:
-            current_generation = self.get_generation()
-
             self.evaluate_next_genome(callback_evaluation)
             self.clear_bad_species_genomes()
             self.create_next_genomes()
 
-            print("Generation: " + str(np.round(current_generation)) + " Best fitness: " + str(
+            print("Generation: " + str(np.round(self.get_generation())) + " Best fitness: " + str(
                 self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
                   "Number of species: " + str(self.get_population().get_species_size()))
 
@@ -157,7 +155,7 @@ class NeuroEvolution:
     def clear_bad_reproducers(self, species: Species):
         top_genomes = self.get_population().get_top_genomes(YaneConfig.get_elitism(yane_config))
 
-        for genome in species.get_genomes():
+        for genome in species.get_genomes()[:]:
             if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(
                     yane_config) and genome not in top_genomes:
                 species.remove_genome(genome)
@@ -166,6 +164,11 @@ class NeuroEvolution:
         self.get_population().clear()
 
     def clear_bad_species_genomes(self):
-        for species in self.get_population().get_species():
+        for species in self.get_population().get_species()[:]:
             self.clear_stagnated_species(species)
             self.clear_bad_reproducers(species)
+            self.clear_empty_species(species)
+
+    def clear_empty_species(self, species):
+        if species.get_size() <= 0:
+            self.remove_species(species)
