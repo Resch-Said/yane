@@ -14,7 +14,7 @@ class Node:
     def __init__(self, node_type: NodeTypes, ID=None):
         self.value = 0.0
         self.next_connections = []
-        self.activation = ActivationFunction.LINEAR
+        self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
         self.type = node_type
         self.id = ID
 
