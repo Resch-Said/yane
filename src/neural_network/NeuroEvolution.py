@@ -36,9 +36,7 @@ class NeuroEvolution:
             current_generation = self.get_generation()
 
             self.evaluate_next_genome(callback_evaluation)
-            self.create_next_genome()
-
-            self.generation += 1 / YaneConfig.get_max_population_size(yane_config)
+            self.create_next_genomes()
 
             overpopulation_count = self.get_genomes_size() - YaneConfig.get_max_population_size(yane_config)
 
@@ -108,14 +106,18 @@ class NeuroEvolution:
             genome = self.get_evaluation_list().pop()
             genome.evaluate(callback_evaluation)
             self.add_population(genome)
+            self.generation += 1 / YaneConfig.get_max_population_size(yane_config)
 
     def add_evaluation(self, genome):
-        self.evaluation_list.append(genome)
+        if isinstance(genome, list):
+            self.evaluation_list.extend(genome)
+        else:
+            self.evaluation_list.append(genome)
 
     def get_evaluation_list(self):
         return self.evaluation_list
 
-    def create_next_genome(self):
+    def create_next_genomes(self):
         if self.get_genomes_size() <= 0:
             return
 
@@ -123,21 +125,14 @@ class NeuroEvolution:
 
         # TODO: Add different crossover methods
 
-        genome1 = random_species.get_random_genome()
-        # genome2 = random_species.get_random_genome()
+        child_genomes: list[Genome] = [genome.copy() for genome in random_species.get_upper_genomes()]
 
-        # child_genome = Genome.crossover(genome1, genome2)
-        child_genome: Genome = genome1.copy()
+        for child, parent in zip(child_genomes, random_species.get_upper_genomes()):
+            child.set_parent(parent)
+            child.mutate()
+            parent.set_reproduction_count(parent.get_reproduction_count() + 1)
 
-        # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
-        child_genome.set_parent(genome1)
-        child_genome.mutate()
-        # child_genome.prune_bad_connections()
-
-        genome1.set_reproduction_count(genome1.get_reproduction_count() + 1)
-        # genome2.set_reproduction_count(genome2.get_reproduction_count() + 1)
-
-        self.add_evaluation(child_genome)
+        self.add_evaluation(child_genomes)
 
     def get_best_species_genome(self) -> (Species, Genome):
         return self.get_population().get_best_species_genome()

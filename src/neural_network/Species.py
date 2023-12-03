@@ -20,10 +20,7 @@ class Species:
         return self.generations_without_improvement
 
     def add_genome(self, genome):
-        if random.random() < 0.5:
-            bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness(), x.get_net_cost()))
-        else:
-            bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness()))
+        bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness(), x.get_net_cost()))
 
         if self.average_fitness is None:
             self.average_fitness = self.get_average_fitness()
@@ -107,3 +104,13 @@ class Species:
     def prune_overpopulation(self):
         while self.get_size() > YaneConfig.get_species_size_reference(yane_config):
             self.pop_genome()
+
+    def get_upper_genomes(self):
+        fraction = YaneConfig.get_reproduction_fraction(yane_config)
+
+        reproduction_limit = int(np.ceil(fraction * self.get_size()))
+
+        if reproduction_limit <= 0:
+            reproduction_limit = 1
+
+        return self.genomes[:reproduction_limit]
