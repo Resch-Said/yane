@@ -107,8 +107,7 @@ class NeuralNetwork:
         if data is not None:
             self.set_input_data(data)
 
-        for node in self.get_forward_order_list():
-            node.fire()
+        [node.fire() for node in self.get_forward_order_list()]
 
         return self.get_output_data()
 
