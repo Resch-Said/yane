@@ -1,7 +1,6 @@
 import random
 
-from src.neural_network import YaneConfig
-from src.neural_network.Genome import Genome
+from src.neural_network import YaneConfig, Genome
 from src.neural_network.Species import Species
 
 yane_config = YaneConfig.load_json_config()

@@ -9,12 +9,13 @@ dataset = TrainingData.load_data('dataset_3_3.json')
 length = len(dataset)
 
 yane = NeuroEvolution()
-yane.set_min_fitness(0)
+yane.set_min_fitness(-0.1)
 yane.set_number_of_outputs(3)
 
 
 def evaluate(genome: Genome):
     fitness = 0.0
+
     for sample in dataset:
         data_input = sample['input']
         target_output = sample['output']

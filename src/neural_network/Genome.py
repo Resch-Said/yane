@@ -139,7 +139,6 @@ class Genome:
     # You have to implement this function yourself since it is specific to your problem
     def evaluate(self, callback_evaluator):
         self.set_net_cost(self.get_brain().calculate_net_cost())
-
         fitness_result = callback_evaluator(self)
 
         self.clear_hidden_output_nodes()
@@ -158,7 +157,7 @@ class Genome:
                 parent_connection.switch_weight_shift_direction()
 
         # TODO: Remove net cost as soon as fitness prioritization is implemented
-        # self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
+        # self.set_fitness(fitness_result - net_cost * NeuroEvolution.get_net_cost_factor())
         self.set_fitness(fitness_result)
         return self.get_fitness()
 

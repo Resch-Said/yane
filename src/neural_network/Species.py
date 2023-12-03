@@ -3,8 +3,7 @@ import random
 
 import numpy as np
 
-from src.neural_network import YaneConfig
-from src.neural_network.Genome import Genome
+from src.neural_network import YaneConfig, Genome
 
 yane_config = YaneConfig.load_json_config()
 
@@ -21,7 +20,10 @@ class Species:
         return self.generations_without_improvement
 
     def add_genome(self, genome):
-        bisect.insort(self.genomes, genome, key=lambda x: -x.get_fitness())
+        if random.random() < 0.5:
+            bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness(), x.get_net_cost()))
+        else:
+            bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness()))
 
         if self.average_fitness is None:
             self.average_fitness = self.get_average_fitness()
@@ -58,7 +60,7 @@ class Species:
 
         return self.genomes[0].get_fitness()
 
-    def get_best_genome(self) -> Genome | None:
+    def get_best_genome(self) -> Genome:
         if self.get_size() <= 0:
             return None
 

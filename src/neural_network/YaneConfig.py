@@ -48,10 +48,6 @@ def get_max_species_per_population(json_config):
     return json_config["max_species_per_population"]
 
 
-def get_net_cost_factor(json_config):
-    return json_config["net_cost_factor"]
-
-
 def get_max_population_size(json_config):
     return json_config["max_species_per_population"] * json_config["species_size_reference"]
 
@@ -117,9 +113,6 @@ def create_default_json_config():
         # The maximum amount of times a genome is allowed to make bad genomes in a row
         "max_bad_reproductions_in_row": 10,
         "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
-        # The factor that is multiplied with the net cost to calculate the fitness.
-        # If to high, the net cost will be prioritized over the fitness.
-        "net_cost_factor": 0.0001,
         "keep_best_genome": True,  # If true, the best genome of a species will always be kept
     }
     with open('yane_config.json', 'w') as json_config_file:
