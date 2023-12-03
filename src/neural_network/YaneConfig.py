@@ -84,8 +84,8 @@ def get_mutation_shift_max(json_config):
     return json_config["mutation_shift"][1]
 
 
-def get_keep_best_genome(json_config):
-    return json_config["keep_best_genome"]
+def get_elitism(json_config):
+    return json_config["elitism"]
 
 
 # TODO: Automatically stop training if no improvement after x generations
@@ -113,7 +113,7 @@ def create_default_json_config():
         # The maximum amount of times a genome is allowed to make bad genomes in a row
         "max_bad_reproductions_in_row": 10,
         "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
-        "keep_best_genome": True,  # If true, the best genome of a species will always be kept
+        "elitism": 5  # The amount of genomes that will be protected from selection
     }
     with open('yane_config.json', 'w') as json_config_file:
         json.dump(json_config, json_config_file)

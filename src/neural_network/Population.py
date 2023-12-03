@@ -113,3 +113,6 @@ class Population:
 
     def clear(self):
         self.species.clear()
+
+    def get_top_genomes(self, num_genomes):
+        return sorted(self.get_all_genomes(), key=lambda genome: genome.get_fitness(), reverse=True)[:num_genomes]

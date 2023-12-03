@@ -24,6 +24,8 @@ class Genome:
         self.net_cost = None
         self.reproduction_count = 0
 
+        # TODO: Put connection and node related mutation rates in their respective classes
+
         # Mutation probability
         self.mutation_rates = {
             'activation_function_probability': random.random(),  # probability of mutating activation function
@@ -318,7 +320,7 @@ class Genome:
         self.brain.set_input_data(data)
 
     def forward_propagation(self, data=None):
-        self.brain.forward_propagation(data)
+        return self.brain.forward_propagation(data)
 
     def get_outputs(self) -> list:
         return self.brain.get_output_data()
