@@ -40,7 +40,7 @@ class NeuroEvolution:
                 self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
                   "Number of species: " + str(self.get_population().get_species_size()))
 
-            if overpopulation_count > 0:
+            if overpopulation_count + 1 > 0:
                 self.clear_stagnated_species()
                 self.clear_bad_reproducers()
 
