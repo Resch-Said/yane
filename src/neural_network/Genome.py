@@ -208,7 +208,7 @@ class Genome:
         node_in: Node = connection.get_in_node()
 
         new_node = Node(NodeTypes.HIDDEN)
-        new_connection = Connection()
+        new_connection = Connection(weight=1.0)
 
         self.add_node(new_node)
 
@@ -220,7 +220,6 @@ class Genome:
         connection.set_in_node(new_node)
         node_in.remove_next_connection(connection)
         new_node.add_next_connection(connection)
-        new_connection.set_weight(1.0)
 
         self.add_connection(new_connection)
 

@@ -7,7 +7,10 @@ yane_config = YaneConfig.load_json_config()
 class Connection:
     ID = 0
 
-    def __init__(self, in_node: Node = None, out_node: Node = None, weight: float = 1.0, ID=None):
+    def __init__(self, in_node: Node = None, out_node: Node = None, weight: float = None, ID=None):
+
+        if weight is None:
+            weight = YaneConfig.get_random_mutation_weight(yane_config)
         self.weight_shift_direction = True
         self.weight = weight
         self.in_node = in_node

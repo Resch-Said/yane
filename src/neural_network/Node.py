@@ -80,7 +80,6 @@ class Node:
             self.activate()
 
         next_nodes_and_weights = self.get_next_nodes_and_weights()
-
         [next_node.set_value(next_node.get_value() + self.value * weight) for next_node, weight in
          next_nodes_and_weights]
 
