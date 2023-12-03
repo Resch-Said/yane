@@ -1,5 +1,7 @@
 import bisect
 
+import numpy as np
+
 from src.neural_network import YaneConfig, Connection
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.NodeTypes import NodeTypes
@@ -30,6 +32,9 @@ class Node:
 
     def set_activation(self, activation):
         self.activation = activation
+
+    def get_next_nodes_and_weights(self):
+        return np.array([(connection.get_out_node(), connection.get_weight()) for connection in self.next_connections])
 
     def get_value(self):
         return self.value
@@ -76,9 +81,10 @@ class Node:
         if self.type != NodeTypes.INPUT:
             self.activate()
 
-        for connection in self.next_connections:
-            next_node: Node = connection.get_out_node()
-            next_node.set_value(next_node.get_value() + self.value * connection.get_weight())
+        next_nodes_and_weights = self.get_next_nodes_and_weights()
+
+        [next_node.set_value(next_node.get_value() + self.value * weight) for next_node, weight in
+         next_nodes_and_weights]
 
         if self.type == NodeTypes.HIDDEN:
             self.value = 0.0
