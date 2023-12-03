@@ -7,7 +7,7 @@ from src.neural_network.NeuroEvolution import NeuroEvolution
 env = gym.make('Acrobot-v1')
 
 yane = NeuroEvolution()
-yane.set_number_of_outputs(3)
+yane.set_number_of_outputs(env.action_space.n)
 yane.set_min_fitness(-64)
 
 

@@ -7,7 +7,7 @@ from src.neural_network.NeuroEvolution import NeuroEvolution
 env = gym.make('CartPole-v1')
 
 yane = NeuroEvolution()
-yane.set_number_of_outputs(2)
+yane.set_number_of_outputs(env.action_space.n)
 yane.set_min_fitness(500)
 
 
