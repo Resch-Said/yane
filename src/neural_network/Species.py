@@ -84,7 +84,8 @@ class Species:
 
     def update_generations_without_improvement(self):
 
-        improved_percentage = (self.average_fitness - self.previous_average_fitness) / self.previous_average_fitness
+        improved_percentage = (
+                (self.average_fitness - self.previous_average_fitness) / (self.previous_average_fitness + 0.00001))
 
         if improved_percentage >= YaneConfig.get_improvement_threshold(yane_config):
             self.generations_without_improvement = 0
