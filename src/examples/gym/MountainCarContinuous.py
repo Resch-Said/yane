@@ -14,7 +14,6 @@ def evaluate(genome: Genome):
     state = env.reset()
     state = state[0]
     done = False
-    pos = 0
     fitness = 0
     for _ in range(800):
         input_data = list(state)
@@ -23,8 +22,7 @@ def evaluate(genome: Genome):
         action = outputs
 
         state, reward, done, _, _ = env.step(action)
-        pos = max(state[1], pos)
-        fitness += reward + pos
+        fitness += reward + state[1]
 
     return fitness
 
@@ -45,7 +43,6 @@ env = gym.make('MountainCarContinuous-v0', render_mode="human")
 state = env.reset()
 state = state[0]
 done = False
-pos = 0
 fitness = 0
 for _ in range(800):
     input_data = list(state)
@@ -54,9 +51,7 @@ for _ in range(800):
     action = outputs
 
     state, reward, done, _, _ = env.step(action)
-    fitness += reward
-    pos = max(state[1], pos)
-    fitness += reward + pos
+    fitness += reward + state[1]
     print("Fitness: " + str(fitness), end="\r")
 
 best_genome.plot()
