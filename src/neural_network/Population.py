@@ -57,6 +57,8 @@ class Population:
         best_species = None
 
         for species in self.species:
+            if species.get_best_genome() is None:
+                continue
             if best_genome is None or species.get_best_fitness() > best_genome.get_fitness():
                 best_genome = species.get_best_genome()
                 best_species = species
