@@ -144,8 +144,6 @@ class Genome:
 
         self.clear_hidden_output_nodes()
 
-        # net_cost = self.get_net_cost()
-
         if self.parent is not None and fitness_result >= self.parent.get_fitness():
             self.parent.set_bad_reproduction_count(0)
 
@@ -157,12 +155,9 @@ class Genome:
             if parent_connection is not None:
                 parent_connection.switch_weight_shift_direction()
 
-        # TODO: Remove net cost as soon as fitness prioritization is implemented
-        # self.set_fitness(fitness_result - net_cost * NeuroEvolution.get_net_cost_factor())
         self.set_fitness(fitness_result)
         return self.get_fitness()
 
-    # Avoid deep copy because of recursion
     def copy(self):
         new_genome = Genome()
 
