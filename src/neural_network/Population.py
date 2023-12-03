@@ -110,3 +110,6 @@ class Population:
 
     def remove_species(self, species):
         self.species.remove(species)
+
+    def clear(self):
+        self.species.clear()

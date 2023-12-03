@@ -26,6 +26,12 @@ class NeuroEvolution:
         return self.generation
 
     def train(self, callback_evaluation):
+        if self.get_genomes_size() > 0:
+            for genome in self.get_population().get_all_genomes():
+                self.add_evaluation(genome)
+
+            self.clear_population()
+
         while True:
             current_generation = self.get_generation()
 
@@ -40,9 +46,8 @@ class NeuroEvolution:
                 self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
                   "Number of species: " + str(self.get_population().get_species_size()))
 
-            if overpopulation_count + 1 > 0:
-                self.clear_stagnated_species()
-                self.clear_bad_reproducers()
+            self.clear_stagnated_species()
+            self.clear_bad_reproducers()
 
             if self.check_best_fitness() or self.check_max_generation():
                 break
@@ -92,6 +97,7 @@ class NeuroEvolution:
         if self.get_genomes_size() <= 0:
             genome = Genome()
             genome.set_number_of_outputs(number_of_outputs)
+
             self.add_evaluation(genome)
         else:
             for genome in self.get_population().get_all_genomes():
@@ -145,7 +151,6 @@ class NeuroEvolution:
                 species.pop_genome()
 
     def clear_stagnated_species(self):
-
         for species in self.get_population().get_species():
             if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
                 if YaneConfig.get_keep_best_genome(yane_config):
@@ -163,3 +168,6 @@ class NeuroEvolution:
                         if genome is species.get_best_genome():
                             continue
                         species.remove_genome(genome)
+
+    def clear_population(self):
+        self.get_population().clear()
