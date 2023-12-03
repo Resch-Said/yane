@@ -4,7 +4,7 @@ import numpy as np
 from src.neural_network.Genome import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
 
-env = gym.make('CartPole-v1', render_mode="human")
+env = gym.make('CartPole-v1')
 
 yane = NeuroEvolution()
 yane.set_number_of_outputs(2)
@@ -12,7 +12,6 @@ yane.set_min_fitness(500)
 
 
 def evaluate_normal_input(genome: Genome):
-    genome.plot(True)
     state = env.reset()
     state = state[0]
     done = False
