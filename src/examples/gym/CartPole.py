@@ -12,6 +12,7 @@ yane.set_min_fitness(500)
 
 
 def evaluate_normal_input(genome: Genome):
+    genome.plot(True)
     state = env.reset()
     state = state[0]
     done = False
@@ -24,7 +25,7 @@ def evaluate_normal_input(genome: Genome):
 
         state, reward, done, _, _ = env.step(action)
         fitness += reward
-
+        print("Fitness: " + str(fitness), end="\r")
     return fitness
 
 
@@ -36,6 +37,8 @@ best_genome = yane.get_best_species_genome()[1]
 print()
 print(best_genome.print())
 print()
+
+print("Testing best genome")
 
 env = gym.make('CartPole-v1', render_mode="human")
 
@@ -50,6 +53,8 @@ while not done:
     action = np.argmax(outputs)
 
     state, reward, done, _, _ = env.step(action)
+    fitness += reward
+    print("Fitness: " + str(fitness), end="\r")
 
 best_genome.plot()
 
