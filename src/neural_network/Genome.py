@@ -33,7 +33,6 @@ class Genome:
             'remove_node_probability': random.random(),  # probability of removing node
             'shift_probability': random.random(),  # probability of shifting weight
             'weight_probability': random.random(),  # probability of mutating weight
-
             'mutation_probability': 0.8,  # probability of mutating a mutation
         }
 
@@ -407,11 +406,6 @@ class Genome:
                 new_rate = rate_value + change
 
                 self.mutation_rates[rate_name] = min(max(new_rate, 0.01), 1)
-
-    def prune_bad_connections(self):
-        for connection in self.get_all_connections():
-            if np.abs(connection.weight) <= 0.001:
-                self.remove_connection(connection)
 
     def mutate_mutation_nums(self):
         for num_name, num_value in self.mutation_num.items():
