@@ -36,16 +36,12 @@ class NeuroEvolution:
             current_generation = self.get_generation()
 
             self.evaluate_next_genome(callback_evaluation)
+            self.clear_bad_species_genomes()
             self.create_next_genomes()
-
-            overpopulation_count = self.get_genomes_size() - YaneConfig.get_max_population_size(yane_config)
 
             print("Generation: " + str(np.round(current_generation)) + " Best fitness: " + str(
                 self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
                   "Number of species: " + str(self.get_population().get_species_size()))
-
-            self.clear_stagnated_species()
-            self.clear_bad_reproducers()
 
             if self.check_best_fitness() or self.check_max_generation():
                 break
@@ -145,24 +141,27 @@ class NeuroEvolution:
             while species.get_size() > YaneConfig.get_species_size_reference(yane_config):
                 species.pop_genome()
 
-    def clear_stagnated_species(self):
-        for species in self.get_population().get_species():
-            if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
-                if YaneConfig.get_keep_best_genome(yane_config):
-                    self.add_evaluation(species.get_best_genome())
-                self.remove_species(species)
+    def clear_stagnated_species(self, species: Species):
+        if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
+            if YaneConfig.get_keep_best_genome(yane_config):
+                self.add_evaluation(species.get_best_genome())
+            self.remove_species(species)
 
     def set_min_fitness(self, min_fitness):
         self.min_fitness = min_fitness
 
-    def clear_bad_reproducers(self):
-        for species in self.get_population().get_species():
-            for genome in species.get_genomes():
-                if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
-                    if YaneConfig.get_keep_best_genome(yane_config):
-                        if genome is species.get_best_genome():
-                            continue
-                        species.remove_genome(genome)
+    def clear_bad_reproducers(self, species: Species):
+        for genome in species.get_genomes():
+            if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
+                if YaneConfig.get_keep_best_genome(yane_config):
+                    if genome is species.get_best_genome():
+                        continue
+                    species.remove_genome(genome)
 
     def clear_population(self):
         self.get_population().clear()
+
+    def clear_bad_species_genomes(self):
+        for species in self.get_population().get_species():
+            self.clear_stagnated_species(species)
+            self.clear_bad_reproducers(species)

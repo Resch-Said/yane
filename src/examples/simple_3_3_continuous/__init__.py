@@ -10,7 +10,7 @@ length = len(dataset)
 
 yane = NeuroEvolution()
 yane.set_min_fitness(-0.1)
-yane.set_max_generations(200)
+yane.set_max_generations(500)
 yane.set_number_of_outputs(3)
 
 
