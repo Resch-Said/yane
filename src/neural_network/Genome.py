@@ -272,6 +272,7 @@ class Genome:
         if remove_connection in self.get_all_connections():
             remove_connection.get_in_node().remove_next_connection(remove_connection)
 
+    # TODO: We should only aloud connections between nodes that have a path to the output nodes
     def add_random_connection(self):
         random_node_in: Node = self.get_random_node()
         random_node_out: Node = self.get_random_node()

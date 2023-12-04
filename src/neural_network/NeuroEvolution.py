@@ -172,3 +172,6 @@ class NeuroEvolution:
     def clear_empty_species(self, species):
         if species.get_size() <= 0:
             self.remove_species(species)
+
+    def flatten(self, state):
+        return np.array(state).flatten()
