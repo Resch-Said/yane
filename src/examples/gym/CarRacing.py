@@ -15,11 +15,10 @@ env = gym.make("CarRacing-v2")
 
 yane = NeuroEvolution()
 yane.set_number_of_outputs(3)
-yane.set_min_fitness(500)
+yane.set_min_fitness(100)
 
 
-# TODO: It takes a long time to copy many input nodes
-def evaluate_normal_input(genome: Genome):
+def evaluate(genome: Genome):
     state = env.reset()
     state = state[0]
     done = False
@@ -40,7 +39,7 @@ def evaluate_normal_input(genome: Genome):
     return fitness
 
 
-yane.train(evaluate_normal_input)
+yane.train(evaluate)
 
 yane.print()
 best_genome = yane.get_best_species_genome()[1]
@@ -59,7 +58,7 @@ done = False
 fitness = 0
 while not done:
     state_image = Image.fromarray(state)
-    state_image = state_image.resize((16, 16))
+    state_image = state_image.resize((8, 8))
     state_image = state_image.convert('L')
 
     input_data = np.array(state_image).flatten()
