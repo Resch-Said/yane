@@ -19,7 +19,7 @@ class Species:
     def get_generations_without_improvement(self):
         return self.generations_without_improvement
 
-    def add_genome(self, genome):
+    def add_genome(self, genome: Genome):
         bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness(), x.get_net_cost()))
 
         if self.average_fitness is None:
