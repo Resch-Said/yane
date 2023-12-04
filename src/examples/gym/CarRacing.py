@@ -18,26 +18,24 @@ yane.set_number_of_outputs(3)
 yane.set_min_fitness(500)
 
 
-# TODO: To many input nodes, so we should update yane to be able to create the forward order list
-#  starting from the outputs
+# TODO: It takes a long time to copy many input nodes
 def evaluate_normal_input(genome: Genome):
     state = env.reset()
     state = state[0]
     done = False
     fitness = 0
-    while not done:
+    for _ in range(100):
         state_image = Image.fromarray(state)
-        state_image = state_image.resize((2, 2))
+        state_image = state_image.resize((8, 8))
         state_image = state_image.convert('L')
 
         input_data = np.array(state_image).flatten()
-        outputs = genome.forward_propagation(input_data)
+        # input_data = state.flatten()
+
+        outputs = genome.forward_propagation(input_data, True)
 
         state, reward, done, _, _ = env.step(outputs)
         fitness += reward
-
-        if fitness < 0:
-            done = True
 
     return fitness
 
@@ -60,13 +58,21 @@ state = state[0]
 done = False
 fitness = 0
 while not done:
-    input_data = np.convolve(state.flatten(), [0.5, 0.5, 0.5, 0.5, 0.5])
+    state_image = Image.fromarray(state)
+    state_image = state_image.resize((16, 16))
+    state_image = state_image.convert('L')
 
-    outputs = best_genome.forward_propagation(input_data)
+    input_data = np.array(state_image).flatten()
+    # input_data = state.flatten()
+
+    outputs = best_genome.forward_propagation(input_data, True)
 
     state, reward, done, _, _ = env.step(outputs)
     fitness += reward
     print("Fitness: " + str(fitness), end="\r")
+
+    if fitness < 0:
+        done = True
 
 best_genome.plot()
 
