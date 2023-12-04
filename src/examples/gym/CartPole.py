@@ -11,7 +11,7 @@ yane.set_number_of_outputs(env.action_space.n)
 yane.set_min_fitness(800)
 
 
-def evaluate_normal_input(genome: Genome):
+def evaluate(genome: Genome):
     state = env.reset()
     state = state[0]
     done = False
@@ -28,7 +28,7 @@ def evaluate_normal_input(genome: Genome):
     return fitness
 
 
-yane.train(evaluate_normal_input)
+yane.train(evaluate)
 
 yane.print()
 best_genome = yane.get_best_species_genome()[1]
