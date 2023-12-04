@@ -31,7 +31,7 @@ def evaluate(genome: Genome):
         input_data = np.array(state_image).flatten()
         # input_data = state.flatten()
 
-        outputs = genome.forward_propagation(input_data, True)
+        outputs = genome.tick(input_data)
 
         state, reward, done, _, _ = env.step(outputs)
         fitness += reward
@@ -64,7 +64,7 @@ while not done:
     input_data = np.array(state_image).flatten()
     # input_data = state.flatten()
 
-    outputs = best_genome.forward_propagation(input_data, True)
+    outputs = best_genome.tick(input_data)
 
     state, reward, done, _, _ = env.step(outputs)
     fitness += reward

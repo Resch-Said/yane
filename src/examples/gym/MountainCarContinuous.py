@@ -18,7 +18,7 @@ def evaluate(genome: Genome):
     for _ in range(800):
         input_data = list(state)
 
-        outputs = genome.forward_propagation(input_data)
+        outputs = genome.tick(input_data)
         action = outputs
 
         state, reward, done, _, _ = env.step(action)
@@ -47,7 +47,7 @@ fitness = 0
 for _ in range(800):
     input_data = list(state)
 
-    outputs = best_genome.forward_propagation(input_data)
+    outputs = best_genome.tick(input_data)
     action = outputs
 
     state, reward, done, _, _ = env.step(action)
