@@ -171,6 +171,8 @@ class Genome:
             new_genome.add_connection(new_connection)
 
         new_genome.mutation_rates = deepcopy(self.mutation_rates)
+        new_genome.mutation_num = deepcopy(self.mutation_num)
+        new_genome.parent = self
 
         return new_genome
 
