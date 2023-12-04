@@ -289,7 +289,7 @@ class Genome:
 
     def print(self):
         print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
-            len(self.get_brain().get_forward_order_list())) + " connected nodes")
+            len(self.get_brain().get_backward_order_list())) + " connected nodes")
 
         print("Mutation rates:")
         for rate_name, rate_value in self.mutation_rates.items():

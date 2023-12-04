@@ -18,6 +18,7 @@ class NeuralNetwork:
         self.hidden_nodes = []
         self.output_nodes = []
         self.forward_order_list = None
+        self.backward_order_list = None
 
     def get_all_nodes(self) -> list[Node]:
         return [node for node in self.input_nodes + self.hidden_nodes + self.output_nodes]
@@ -91,6 +92,8 @@ class NeuralNetwork:
             connections += node.get_next_connections()
         return connections
 
+    # TODO: We don't need to set inputs if they are not in the forward order list
+    #   or to put it more simple, we only need to set inputs in the forward order list
     def set_input_data(self, data):
         while len(data) > len(self.input_nodes):
             new_node = Node(NodeTypes.INPUT)
@@ -101,13 +104,24 @@ class NeuralNetwork:
         for i in range(len(data), len(self.input_nodes)):
             self.input_nodes[i].set_value(0.0)
 
-    def forward_propagation(self, data=None):
+    def forward_propagation(self, data=None, start_backwards=False):
+        '''
+        :param data: Input data to be set in the input nodes
+        :param start_backwards: Use backwards order instead of forward order to increase performance
+                if you have a lot of input nodes
+        :return: Output data from the output nodes
+        '''
         self.clear_output()
 
         if data is not None:
             self.set_input_data(data)
 
-        [node.fire() for node in self.get_forward_order_list()]
+        if start_backwards:
+            for node in self.get_backward_order_list():
+                node.fire()
+        else:
+            for node in self.get_forward_order_list():
+                node.fire()
 
         return self.get_output_data()
 
@@ -137,6 +151,28 @@ class NeuralNetwork:
                     self.forward_order_list.append(connection.get_out_node())
 
         return self.forward_order_list
+
+    # output nodes are usually smaller than input nodes, so it's better to start from the output nodes
+    def get_backward_order_list(self) -> list[Node]:
+
+        if self.backward_order_list is not None:
+            return self.backward_order_list
+
+        self.backward_order_list = []
+
+        for node in self.get_output_nodes():
+            if len(node.get_previous_connections()) > 0:
+                self.backward_order_list.append(node)
+
+        node: Node
+
+        for node in self.backward_order_list:
+            for connection in node.get_previous_connections():
+                if connection.get_in_node() not in self.backward_order_list:
+                    self.backward_order_list.append(connection.get_in_node())
+
+        self.backward_order_list.reverse()
+        return self.backward_order_list
 
     def get_output_data(self) -> list:
         output_data = []
