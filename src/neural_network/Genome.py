@@ -321,6 +321,9 @@ class Genome:
     def set_input_data(self, data):
         self.brain.set_input_data(data)
 
+    def tick(self, data=None):
+        return self.brain.tick(data)
+
     def forward_propagation(self, data=None, start_backwards=False):
         return self.brain.forward_propagation(data, start_backwards)
 

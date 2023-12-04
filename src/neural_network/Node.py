@@ -31,7 +31,8 @@ class Node:
             Node.INPUT_POS += 1
 
     def __str__(self):
-        return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Activation: " + str(self.activation)
+        return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Activation: " + str(
+            self.activation) + " Type: " + str(self.type) + " Input pos: " + str(self.input_pos)
 
     def set_value(self, value):
         self.value = value

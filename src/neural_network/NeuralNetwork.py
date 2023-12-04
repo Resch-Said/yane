@@ -13,6 +13,7 @@ yane_config = YaneConfig.load_json_config()
 
 class NeuralNetwork:
     def __init__(self):
+        self.next_trigger_nodes = []
         self.last_weight_shift_connection = None
         self.input_nodes = []
         self.hidden_nodes = []
@@ -92,7 +93,7 @@ class NeuralNetwork:
             connections += node.get_next_connections()
         return connections
 
-    def set_input_data(self, data, start_backwards):
+    def set_input_data(self, data, start_backwards=False):
         while len(data) > len(self.input_nodes):
             new_node = Node(NodeTypes.INPUT)
             self.add_input_node(new_node)
@@ -106,6 +107,28 @@ class NeuralNetwork:
             if node.type is NodeTypes.INPUT:
                 node.set_value(data[node.get_input_position()])
                 node.set_original_input_data(node.value)
+
+    def tick(self, data):
+        '''
+        Every tick the neural network will fire all triggered nodes
+        :param data:
+        :return:
+        '''
+
+        trigger_nodes = self.next_trigger_nodes
+        self.next_trigger_nodes = []
+
+        if data is not None:
+            self.set_input_data(data)
+            self.next_trigger_nodes.extend(self.get_input_nodes())
+
+        for node in trigger_nodes:
+            node.fire()
+            for connection in node.get_next_connections():
+                if connection.get_out_node() not in self.next_trigger_nodes:
+                    self.next_trigger_nodes.append(connection.get_out_node())
+
+        return self.get_output_data()
 
     def forward_propagation(self, data=None, start_backwards=False):
         '''

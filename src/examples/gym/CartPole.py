@@ -19,7 +19,7 @@ def evaluate(genome: Genome):
     while not done:
         input_data = list(state)
 
-        outputs = genome.forward_propagation(input_data)
+        outputs = genome.tick(input_data)
         action = np.argmax(outputs)
 
         state, reward, done, _, _ = env.step(action)
@@ -48,7 +48,7 @@ fitness = 0
 while not done:
     input_data = list(state)
 
-    outputs = best_genome.forward_propagation(input_data)
+    outputs = best_genome.tick(input_data)
     action = np.argmax(outputs)
 
     state, reward, done, _, _ = env.step(action)
