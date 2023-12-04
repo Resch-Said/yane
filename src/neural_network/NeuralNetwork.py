@@ -92,17 +92,20 @@ class NeuralNetwork:
             connections += node.get_next_connections()
         return connections
 
-    # TODO: We don't need to set inputs if they are not in the forward order list
-    #   or to put it more simple, we only need to set inputs in the forward order list
-    def set_input_data(self, data):
+    def set_input_data(self, data, start_backwards):
         while len(data) > len(self.input_nodes):
             new_node = Node(NodeTypes.INPUT)
             self.add_input_node(new_node)
 
-        for i, v in enumerate(data):
-            self.input_nodes[i].set_value(v)
-        for i in range(len(data), len(self.input_nodes)):
-            self.input_nodes[i].set_value(0.0)
+        if start_backwards:
+            nodes = self.get_backward_order_list()
+        else:
+            nodes = self.get_forward_order_list()
+
+        for node in nodes:
+            if node.type is NodeTypes.INPUT:
+                node.set_value(data[node.get_input_position()])
+                node.set_original_input_data(node.value)
 
     def forward_propagation(self, data=None, start_backwards=False):
         '''
@@ -114,7 +117,7 @@ class NeuralNetwork:
         self.clear_output()
 
         if data is not None:
-            self.set_input_data(data)
+            self.set_input_data(data, start_backwards)
 
         if start_backwards:
             for node in self.get_backward_order_list():
@@ -132,16 +135,17 @@ class NeuralNetwork:
         for node in self.output_nodes:
             node.set_value(0.0)
 
-    def get_forward_order_list(self) -> list[Node]:
+    def get_forward_order_list(self, start_nodes=None) -> list[Node]:
 
         if self.forward_order_list is not None:
             return self.forward_order_list
 
         self.forward_order_list = []
 
-        for node in self.get_input_nodes():
-            if len(node.get_next_connections()) > 0:
-                self.forward_order_list.append(node)
+        if start_nodes is None:
+            self.forward_order_list.extend(self.get_input_nodes())
+        else:
+            self.forward_order_list.extend(start_nodes)
 
         node: Node
 
@@ -152,13 +156,18 @@ class NeuralNetwork:
 
         return self.forward_order_list
 
-    # output nodes are usually smaller than input nodes, so it's better to start from the output nodes
     def get_backward_order_list(self) -> list[Node]:
+        '''
+        Output nodes are usually smaller than input nodes, so it's better to start from the output nodes.
+        The disadvantage is that we need to go through the network twice because otherwise the order would be wrong.
+        :return:
+        '''
 
         if self.backward_order_list is not None:
             return self.backward_order_list
 
         self.backward_order_list = []
+        input_nodes = []
 
         for node in self.get_output_nodes():
             if len(node.get_previous_connections()) > 0:
@@ -170,8 +179,10 @@ class NeuralNetwork:
             for connection in node.get_previous_connections():
                 if connection.get_in_node() not in self.backward_order_list:
                     self.backward_order_list.append(connection.get_in_node())
+                    if connection.get_in_node().type is NodeTypes.INPUT:
+                        input_nodes.append(connection.get_in_node())
 
-        self.backward_order_list.reverse()
+        self.backward_order_list = self.get_forward_order_list(input_nodes)
         return self.backward_order_list
 
     def get_output_data(self) -> list:

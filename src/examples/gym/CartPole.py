@@ -8,7 +8,7 @@ env = gym.make('CartPole-v1')
 
 yane = NeuroEvolution()
 yane.set_number_of_outputs(env.action_space.n)
-yane.set_min_fitness(1000)
+yane.set_min_fitness(800)
 
 
 def evaluate_normal_input(genome: Genome):

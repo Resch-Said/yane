@@ -290,8 +290,13 @@ class Genome:
             pass
 
     def print(self):
-        print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
-            len(self.get_brain().get_backward_order_list())) + " connected nodes")
+
+        if self.get_brain().get_forward_order_list() is None:
+            print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
+                len(self.get_brain().get_backward_order_list())) + " connected nodes")
+        else:
+            print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
+                len(self.get_brain().get_forward_order_list())) + " connected nodes")
 
         print("Mutation rates:")
         for rate_name, rate_value in self.mutation_rates.items():
@@ -317,8 +322,8 @@ class Genome:
     def set_input_data(self, data):
         self.brain.set_input_data(data)
 
-    def forward_propagation(self, data=None):
-        return self.brain.forward_propagation(data)
+    def forward_propagation(self, data=None, start_backwards=False):
+        return self.brain.forward_propagation(data, start_backwards)
 
     def get_outputs(self) -> list:
         return self.brain.get_output_data()
