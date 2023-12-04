@@ -20,6 +20,7 @@ class Node:
         self.type = node_type
         self.id = ID
         self.input_pos = input_pos
+        self.original_input_data = None
 
         if ID is None:
             self.id = Node.ID
@@ -110,7 +111,7 @@ class Node:
         new_node.set_activation(self.activation)
         return new_node
 
-    def fire(self):
+    def fire(self, keep_input=False):
         if self.type != NodeTypes.INPUT:
             self.activate()
 
@@ -118,7 +119,11 @@ class Node:
         [next_node.set_value(next_node.get_value() + self.value * weight) for next_node, weight in
          next_nodes_and_weights]
 
-        if self.type == NodeTypes.HIDDEN:
+        if self.type == NodeTypes.INPUT and not keep_input:
+            self.value = 0.0
+        elif self.type == NodeTypes.INPUT and keep_input:
+            self.value = self.original_input_data
+        elif self.type == NodeTypes.HIDDEN:
             self.value = 0.0
 
     def mutate_activation_function(self):
@@ -140,3 +145,6 @@ class Node:
 
     def get_input_position(self):
         return self.input_pos
+
+    def set_original_input_data(self, value):
+        self.original_input_data = value
