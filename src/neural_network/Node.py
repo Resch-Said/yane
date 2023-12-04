@@ -40,9 +40,6 @@ class Node:
     def set_activation(self, activation):
         self.activation = activation
 
-    def get_next_nodes_and_weights(self):
-        return [(connection.get_out_node(), connection.get_weight()) for connection in self.next_connections]
-
     def get_value(self):
         return self.value
 
@@ -116,9 +113,9 @@ class Node:
         if self.type != NodeTypes.INPUT:
             self.activate()
 
-        next_nodes_and_weights = self.get_next_nodes_and_weights()
-        [next_node.set_value(next_node.get_value() + self.value * weight) for next_node, weight in
-         next_nodes_and_weights]
+        for connection in self.next_connections:
+            next_node = connection.get_out_node()
+            next_node.set_value(next_node.get_value() + self.value * connection.get_weight())
 
         if self.type == NodeTypes.INPUT and not keep_input:
             self.value = 0.0
