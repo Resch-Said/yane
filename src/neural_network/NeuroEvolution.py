@@ -33,9 +33,9 @@ class NeuroEvolution:
             self.clear_population()
 
         while True:
-            self.evaluate_next_genome(callback_evaluation)
             self.clear_bad_species_genomes()
             self.create_next_genomes()
+            self.evaluate_next_genome(callback_evaluation)
 
             print("Generation: " + str(np.round(self.get_generation())) + " Best fitness: " + str(
                 self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
