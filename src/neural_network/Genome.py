@@ -1,12 +1,16 @@
+import random
 from copy import deepcopy
-from random import random
 
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 
 from src.neural_network import YaneConfig
+from src.neural_network.Connection import Connection
 from src.neural_network.NeuralNetwork import NeuralNetwork
 from src.neural_network.Node import Node
 from src.neural_network.NodeTypes import NodeTypes
+from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 
 yane_config = YaneConfig.load_json_config()
 
@@ -19,6 +23,26 @@ class Genome:
         self.fitness = None
         self.net_cost = None
         self.reproduction_count = 0
+
+        # TODO: Put connection and node related mutation rates in their respective classes
+
+        # Mutation probability
+        self.mutation_rates = {
+            'activation_function_probability': random.random(),  # probability of mutating activation function
+            'add_connection_probability': random.random(),  # probability of adding connection
+            'remove_connection_probability': random.random(),  # probability of removing connection
+            'add_node_probability': random.random(),  # probability of adding node
+            'remove_node_probability': random.random(),  # probability of removing node
+            'shift_probability': random.random(),  # probability of shifting weight
+            'weight_probability': random.random(),  # probability of mutating weight
+            'mutation_probability': 0.8,  # probability of mutating a mutation
+        }
+
+        # Mutations numbers
+        self.mutation_num = {
+            "num_structural_mutations_node": 1,  # number of structural mutations
+            "num_structural_mutations_connection": 1,  # number of structural mutations
+        }
 
         if node_genes is not None:
             for node in node_genes:
@@ -75,7 +99,7 @@ class Genome:
             elif gene2 is None:
                 new_genes.append(gene1)
             else:
-                if random() < 0.5:
+                if random.random() < 0.5:
                     new_genes.append(gene1)
                 else:
                     new_genes.append(gene2)
@@ -116,29 +140,24 @@ class Genome:
     # You have to implement this function yourself since it is specific to your problem
     def evaluate(self, callback_evaluator):
         self.set_net_cost(self.get_brain().calculate_net_cost())
-
         fitness_result = callback_evaluator(self)
 
         self.clear_hidden_output_nodes()
-
-        # net_cost = self.get_net_cost()
 
         if self.parent is not None and fitness_result >= self.parent.get_fitness():
             self.parent.set_bad_reproduction_count(0)
 
         # Child genome is worse than parent genome
         if self.parent is not None and fitness_result < self.parent.get_fitness():
-            parent_connection = self.get_parent().get_brain().get_last_weight_shift_connection()
             self.parent.set_bad_reproduction_count(self.parent.get_bad_reproduction_count() + 1)
+
+            parent_connection = self.get_parent().get_brain().get_last_weight_shift_connection()
             if parent_connection is not None:
                 parent_connection.switch_weight_shift_direction()
 
-        # TODO: Remove net cost as soon as fitness prioritization is implemented
-        # self.set_fitness(fitness_result - net_cost * YaneConfig.get_net_cost_factor(yane_config))
         self.set_fitness(fitness_result)
         return self.get_fitness()
 
-    # Avoid deep copy because of recursion
     def copy(self):
         new_genome = Genome()
 
@@ -151,17 +170,146 @@ class Genome:
             new_connection.set_out_node(new_genome.get_brain().get_node_by_id(connection.get_out_node().get_id()))
             new_genome.add_connection(new_connection)
 
+        new_genome.mutation_rates = deepcopy(self.mutation_rates)
+        new_genome.mutation_num = deepcopy(self.mutation_num)
+        new_genome.parent = self
+
         return new_genome
 
     def add_node(self, node: Node):
         self.brain.add_node(node)
 
     def mutate(self):
-        self.brain.mutate()
+        self.mutate_nodes()
+        self.mutate_connections()
+        self.mutate_mutation_rates()
+        self.mutate_mutation_nums()
+
+    def mutate_nodes(self):
+        nodes = self.get_hidden_nodes() + self.get_output_nodes()
+
+        for node in nodes:
+            if random.random() < self.mutation_rates['activation_function_probability']:
+                node.mutate_activation_function()
+
+        for i in range(self.mutation_num['num_structural_mutations_node']):
+            if random.random() < self.mutation_rates['add_node_probability']:
+                self.add_random_node()
+            if random.random() < self.mutation_rates['remove_node_probability']:
+                self.remove_random_node()
+
+    def add_random_node(self):
+
+        if len(self.get_all_connections()) <= 0:
+            return None
+
+        connection = random.choice(self.get_all_connections())
+        node_in: Node = connection.get_in_node()
+
+        new_node = Node(NodeTypes.HIDDEN)
+        new_connection = Connection(weight=1.0)
+
+        self.add_node(new_node)
+
+        # A ---> C
+        # A ---> B ---> C
+
+        new_connection.set_in_node(node_in)
+        new_connection.set_out_node(new_node)
+        connection.set_in_node(new_node)
+        node_in.remove_connection(connection)
+        new_node.add_connection(connection)
+
+        self.add_connection(new_connection)
+
+        return new_node
+
+    def remove_random_node(self):
+        nodes = self.get_hidden_nodes()
+
+        if len(nodes) > 0:
+            node = random.choice(nodes)
+            self.remove_node(node)
+
+    def remove_node(self, remove_node):
+        if remove_node in self.brain.input_nodes:
+            self.brain.input_nodes.remove(remove_node)
+        elif remove_node in self.brain.hidden_nodes:
+            self.brain.hidden_nodes.remove(remove_node)
+        elif remove_node in self.brain.output_nodes:
+            self.brain.output_nodes.remove(remove_node)
+
+        for node in self.get_all_nodes():
+            for con in node.get_next_connections():
+                if con.get_out_node() == remove_node:
+                    node.remove_connection(con)
+
+    def mutate_connections(self):
+        connections = self.get_all_connections()
+
+        if len(connections) <= 0:
+            self.add_random_connection()
+            return
+
+        for connection in connections:
+            if random.random() < self.mutation_rates['weight_probability']:
+                connection.mutate_weight_random()
+            if random.random() < self.mutation_rates['shift_probability']:
+                self.brain.last_weight_shift_connection = connection.mutate_weight_shift()
+
+        for i in range(self.mutation_num['num_structural_mutations_connection']):
+            if random.random() < self.mutation_rates['add_connection_probability']:
+                self.add_random_connection()
+            if random.random() < self.mutation_rates['remove_connection_probability']:
+                self.remove_random_connection()
+
+    def remove_random_connection(self):
+        connections = self.get_all_connections()
+
+        if len(connections) > 0:
+            connection = random.choice(connections)
+            self.remove_connection(connection)
+
+    def remove_connection(self, remove_connection: Connection):
+        if remove_connection in self.get_all_connections():
+            remove_connection.get_in_node().remove_connection(remove_connection)
+
+    def add_random_connection(self):
+        random_node_in: Node = self.get_random_node()
+        random_node_out: Node = self.get_random_node()
+
+        connection = Connection()
+        connection.set_in_node(random_node_in)
+        connection.set_out_node(random_node_out)
+        connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
+
+        try:
+            self.add_connection(connection)
+        except InvalidConnection:
+            pass
 
     def print(self):
-        print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
-            len(self.get_brain().get_forward_order_list())) + " connected nodes")
+
+        if self.get_brain().get_forward_order_list() is None:
+            print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
+                len(self.get_brain().get_backward_order_list())) + " connected nodes")
+        else:
+            print("Genome: " + str(self.get_fitness()) + " with net cost: " + str(self.get_net_cost()) + " and " + str(
+                len(self.get_brain().get_forward_order_list())) + " connected nodes")
+
+        print("Mutation rates:")
+        for rate_name, rate_value in self.mutation_rates.items():
+            print(rate_name + ": " + str(rate_value))
+
+        print("Mutation nums:")
+        for num_name, num_value in self.mutation_num.items():
+            print(num_name + ": " + str(num_value))
+
+        print("Reproduction count: " + str(self.get_reproduction_count()))
+        print("Bad reproduction count: " + str(self.get_bad_reproduction_count()))
+
+        print()
+
         self.brain.print()
 
     def get_all_nodes(self):
@@ -173,8 +321,11 @@ class Genome:
     def set_input_data(self, data):
         self.brain.set_input_data(data)
 
-    def forward_propagation(self, data=None):
-        self.brain.forward_propagation(data)
+    def tick(self, data=None):
+        return self.brain.tick(data)
+
+    def forward_propagation(self, data=None, start_backwards=False):
+        return self.brain.forward_propagation(data, start_backwards)
 
     def get_outputs(self) -> list:
         return self.brain.get_output_data()
@@ -241,3 +392,79 @@ class Genome:
 
     def get_bad_reproduction_count(self):
         return self.bad_reproduction_count
+
+    def get_hidden_nodes(self):
+        return self.brain.get_hidden_nodes()
+
+    def get_output_nodes(self):
+        return self.brain.get_output_nodes()
+
+    def get_all_connections(self):
+        return self.brain.get_all_connections()
+
+    def get_random_node(self):
+        return self.brain.get_random_node()
+
+    def mutate_mutation_rates(self):
+        for rate_name, rate_value in self.mutation_rates.items():
+            if random.random() < self.mutation_rates['mutation_probability']:
+                change = random.uniform(-0.5, 0.5)
+                new_rate = rate_value + change
+
+                self.mutation_rates[rate_name] = min(max(new_rate, 0.01), 1)
+
+    def mutate_mutation_nums(self):
+        for num_name, num_value in self.mutation_num.items():
+            if random.random() < self.mutation_rates['mutation_probability']:
+                change = random.randint(-1, 1)
+                new_num_value = num_value + change
+
+                self.mutation_num[num_name] = max(new_num_value, 1)
+
+    def plot(self, interactive=False):
+
+        if interactive:
+            plt.ion()
+
+        DG = nx.DiGraph()
+
+        edge_colors = []
+        node_colors = []
+        edge_lengths = []
+
+        for node in self.get_all_nodes():
+            DG.add_node(node.get_id(), node_type=str(node.type)[0])
+            if node.type == NodeTypes.INPUT:
+                node_colors.append('green')
+            elif node.type == NodeTypes.HIDDEN:
+                node_colors.append('yellow')
+            elif node.type == NodeTypes.OUTPUT:
+                node_colors.append('red')
+
+        for connection in self.get_all_connections():
+            DG.add_edge(connection.get_in_node().get_id(), connection.get_out_node().get_id(),
+                        weight=np.round(connection.get_weight(), 2))
+            if connection.get_weight() >= 0:
+                edge_colors.append('blue')
+            else:
+                edge_colors.append('red')
+
+            edge_lengths.append(np.abs(connection.get_weight()))
+
+        pos = nx.spring_layout(DG, pos=nx.shell_layout(DG), fixed=None, iterations=50, weight='weight',
+                               scale=1.0, k=2, center=None, dim=2, seed=None)
+        node_labels = nx.get_node_attributes(DG, 'node_type')
+        nx.draw_networkx_labels(DG, pos, labels=node_labels)
+
+        nx.draw_networkx_nodes(DG, pos, node_size=200, node_color=node_colors)
+        nx.draw_networkx_edges(DG, pos, arrowsize=20, edge_color=edge_colors)
+
+        labels = nx.get_edge_attributes(DG, 'weight')
+        nx.draw_networkx_edge_labels(DG, pos, edge_labels=labels)
+
+        if interactive:
+            plt.draw()
+            plt.pause(0.001)
+            plt.clf()
+        else:
+            plt.show()

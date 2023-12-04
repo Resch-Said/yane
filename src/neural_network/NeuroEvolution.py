@@ -26,22 +26,18 @@ class NeuroEvolution:
         return self.generation
 
     def train(self, callback_evaluation):
+        if self.get_genomes_size() > 0:
+            for genome in self.get_population().get_all_genomes():
+                self.add_evaluation(genome)
+
+            self.clear_population()
+
         while True:
-            current_generation = self.get_generation()
-
+            self.clear_bad_species_genomes()
+            self.create_next_genomes()
             self.evaluate_next_genome(callback_evaluation)
-            self.create_next_genome()
 
-            self.generation += 1 / YaneConfig.get_max_population_size(yane_config)
-
-            overpopulation_count = self.get_genomes_size() - YaneConfig.get_max_population_size(yane_config)
-
-            if overpopulation_count > 0:
-                self.clear_stagnated_species()
-                self.clear_overpopulated_species()
-                self.clear_bad_reproducers()
-
-            print("Generation: " + str(np.round(current_generation)) + " Best fitness: " + str(
+            print("Generation: " + str(np.round(self.get_generation())) + " Best fitness: " + str(
                 self.get_best_fitness()) + " Average fitness: " + str(self.get_average_fitness()),
                   "Number of species: " + str(self.get_population().get_species_size()))
 
@@ -93,6 +89,7 @@ class NeuroEvolution:
         if self.get_genomes_size() <= 0:
             genome = Genome()
             genome.set_number_of_outputs(number_of_outputs)
+
             self.add_evaluation(genome)
         else:
             for genome in self.get_population().get_all_genomes():
@@ -103,14 +100,18 @@ class NeuroEvolution:
             genome = self.get_evaluation_list().pop()
             genome.evaluate(callback_evaluation)
             self.add_population(genome)
+            self.generation += 1 / YaneConfig.get_max_population_size(yane_config)
 
     def add_evaluation(self, genome):
-        self.evaluation_list.append(genome)
+        if isinstance(genome, list):
+            self.evaluation_list.extend(genome)
+        else:
+            self.evaluation_list.append(genome)
 
     def get_evaluation_list(self):
         return self.evaluation_list
 
-    def create_next_genome(self):
+    def create_next_genomes(self):
         if self.get_genomes_size() <= 0:
             return
 
@@ -118,20 +119,14 @@ class NeuroEvolution:
 
         # TODO: Add different crossover methods
 
-        genome1 = random_species.get_random_genome()
-        # genome2 = random_species.get_random_genome()
+        child_genomes: list[Genome] = [genome.copy() for genome in random_species.get_upper_genomes()]
 
-        # child_genome = Genome.crossover(genome1, genome2)
-        child_genome: Genome = genome1.copy()
+        for child, parent in zip(child_genomes, random_species.get_upper_genomes()):
+            child.set_parent(parent)
+            child.mutate()
+            parent.set_reproduction_count(parent.get_reproduction_count() + 1)
 
-        # child_genome.set_best_parent_fitness(max(genome1.get_fitness(), genome2.get_fitness()))
-        child_genome.set_parent(genome1)
-        child_genome.mutate()
-
-        genome1.set_reproduction_count(genome1.get_reproduction_count() + 1)
-        # genome2.set_reproduction_count(genome2.get_reproduction_count() + 1)
-
-        self.add_evaluation(child_genome)
+        self.add_evaluation(child_genomes)
 
     def get_best_species_genome(self) -> (Species, Genome):
         return self.get_population().get_best_species_genome()
@@ -144,22 +139,39 @@ class NeuroEvolution:
             while species.get_size() > YaneConfig.get_species_size_reference(yane_config):
                 species.pop_genome()
 
-    def clear_stagnated_species(self):
-        for species in self.get_population().get_species():
-            if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
-                best_genome = species.get_best_genome()
-                best_genome.clear_hidden_output_nodes()
-                self.add_evaluation(best_genome)
-                self.remove_species(species)
-                print("Removed stagnated species")
+    def clear_stagnated_species(self, species: Species):
+
+        top_genomes = self.get_population().get_top_genomes(YaneConfig.get_elitism(yane_config))
+
+        if species.get_generations_without_improvement() > YaneConfig.get_species_stagnation_duration(yane_config):
+            for genome in species.get_genomes():
+                if genome in top_genomes:
+                    self.add_evaluation(species.get_best_genome())
+            self.remove_species(species)
 
     def set_min_fitness(self, min_fitness):
         self.min_fitness = min_fitness
 
-    def clear_bad_reproducers(self):
-        for species in self.get_population().get_species():
-            for genome in species.get_genomes():
-                if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(yane_config):
-                    if genome is not species.get_best_genome():
-                        species.remove_genome(genome)
-                        print("Removed bad reproducer")
+    def clear_bad_reproducers(self, species: Species):
+        top_genomes = self.get_population().get_top_genomes(YaneConfig.get_elitism(yane_config))
+
+        for genome in species.get_genomes()[:]:
+            if genome.get_bad_reproduction_count() > YaneConfig.get_max_bad_reproductions_in_row(
+                    yane_config) and genome not in top_genomes:
+                species.remove_genome(genome)
+
+    def clear_population(self):
+        self.get_population().clear()
+
+    def clear_bad_species_genomes(self):
+        for species in self.get_population().get_species()[:]:
+            self.clear_stagnated_species(species)
+            self.clear_bad_reproducers(species)
+            self.clear_empty_species(species)
+
+    def clear_empty_species(self, species):
+        if species.get_size() <= 0:
+            self.remove_species(species)
+
+    def flatten(self, state):
+        return np.array(state).flatten()

@@ -36,8 +36,8 @@ def calculate_fitness(target_output, predicted_output):
 def calculate_fitness_2(target_output, predicted_output):
     target_output_index = target_output[0]
 
-    target_output_value_for_wrong_prediction = 0.4
-    target_output_value_for_correct_prediction = 0.6
+    target_output_value_for_wrong_prediction = 0
+    target_output_value_for_correct_prediction = 1
 
     fitness = 0.0
 

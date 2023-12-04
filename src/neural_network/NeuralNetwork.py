@@ -5,7 +5,6 @@ from src.neural_network import YaneConfig
 from src.neural_network.Connection import Connection
 from src.neural_network.Node import Node
 from src.neural_network.NodeTypes import NodeTypes
-from src.neural_network.exceptions.InvalidConnection import InvalidConnection
 from src.neural_network.exceptions.InvalidNode import InvalidNode
 from src.neural_network.exceptions.InvalidNodeTypeException import InvalidNodeTypeException
 
@@ -14,23 +13,25 @@ yane_config = YaneConfig.load_json_config()
 
 class NeuralNetwork:
     def __init__(self):
+        self.next_trigger_nodes = []
         self.last_weight_shift_connection = None
         self.input_nodes = []
         self.hidden_nodes = []
         self.output_nodes = []
         self.forward_order_list = None
+        self.backward_order_list = None
 
     def get_all_nodes(self) -> list[Node]:
         return [node for node in self.input_nodes + self.hidden_nodes + self.output_nodes]
 
-    def add_connection(self, connection):
+    def add_connection(self, connection: Connection):
         if self.get_all_nodes().__contains__(connection.get_in_node()) is False:
             raise InvalidNode("node in is not in the neural network")
 
         if self.get_all_nodes().__contains__(connection.get_out_node()) is False:
             raise InvalidNode("node out is not in the neural network")
 
-        connection.get_in_node().add_next_connection(connection)
+        connection.get_in_node().add_connection(connection)
 
     def add_input_node(self, node: Node):
         if node.type is not NodeTypes.INPUT:
@@ -92,41 +93,61 @@ class NeuralNetwork:
             connections += node.get_next_connections()
         return connections
 
-    def remove_node(self, remove_node):
-        if remove_node in self.input_nodes:
-            self.input_nodes.remove(remove_node)
-        elif remove_node in self.hidden_nodes:
-            self.hidden_nodes.remove(remove_node)
-        elif remove_node in self.output_nodes:
-            self.output_nodes.remove(remove_node)
-
-        for node in self.get_all_nodes():
-            for con in node.get_next_connections():
-                if con.get_out_node() == remove_node:
-                    node.remove_next_connection(con)
-
-    def remove_connection(self, remove_connection):
-        if remove_connection in self.get_all_connections():
-            remove_connection.get_in_node().remove_next_connection(remove_connection)
-
-    def set_input_data(self, data):
+    def set_input_data(self, data, start_backwards=False):
         while len(data) > len(self.input_nodes):
             new_node = Node(NodeTypes.INPUT)
             self.add_input_node(new_node)
 
-        for i, v in enumerate(data):
-            self.input_nodes[i].set_value(v)
-        for i in range(len(data), len(self.input_nodes)):
-            self.input_nodes[i].set_value(0.0)
+        if start_backwards:
+            nodes = self.get_backward_order_list()
+        else:
+            nodes = self.get_forward_order_list()
 
-    def forward_propagation(self, data=None):
-        self.clear_output()
+        for node in nodes:
+            if node.type is NodeTypes.INPUT:
+                node.set_value(data[node.get_input_position()])
+                node.set_original_input_data(node.value)
+
+    def tick(self, data):
+        '''
+        Every tick the neural network will fire all triggered nodes
+        :param data:
+        :return:
+        '''
+
+        trigger_nodes = self.next_trigger_nodes
+        self.next_trigger_nodes = []
 
         if data is not None:
             self.set_input_data(data)
+            self.next_trigger_nodes.extend(self.get_input_nodes())
 
-        for node in self.get_forward_order_list():
+        for node in trigger_nodes:
             node.fire()
+            for connection in node.get_next_connections():
+                if connection.get_out_node() not in self.next_trigger_nodes:
+                    self.next_trigger_nodes.append(connection.get_out_node())
+
+        return self.get_output_data()
+
+    def forward_propagation(self, data=None, start_backwards=False):
+        '''
+        :param data: Input data to be set in the input nodes
+        :param start_backwards: Use backwards order instead of forward order to increase performance
+                if you have a lot of input nodes
+        :return: Output data from the output nodes
+        '''
+        self.clear_output()
+
+        if data is not None:
+            self.set_input_data(data, start_backwards)
+
+        if start_backwards:
+            for node in self.get_backward_order_list():
+                node.fire()
+        else:
+            for node in self.get_forward_order_list():
+                node.fire()
 
         return self.get_output_data()
 
@@ -137,16 +158,17 @@ class NeuralNetwork:
         for node in self.output_nodes:
             node.set_value(0.0)
 
-    def get_forward_order_list(self) -> list[Node]:
+    def get_forward_order_list(self, start_nodes=None) -> list[Node]:
 
         if self.forward_order_list is not None:
             return self.forward_order_list
 
         self.forward_order_list = []
 
-        for node in self.get_input_nodes():
-            if len(node.get_next_connections()) > 0:
-                self.forward_order_list.append(node)
+        if start_nodes is None:
+            self.forward_order_list.extend(self.get_input_nodes())
+        else:
+            self.forward_order_list.extend(start_nodes)
 
         node: Node
 
@@ -156,6 +178,35 @@ class NeuralNetwork:
                     self.forward_order_list.append(connection.get_out_node())
 
         return self.forward_order_list
+
+    def get_backward_order_list(self) -> list[Node]:
+        '''
+        Output nodes are usually smaller than input nodes, so it's better to start from the output nodes.
+        The disadvantage is that we need to go through the network twice because otherwise the order would be wrong.
+        :return:
+        '''
+
+        if self.backward_order_list is not None:
+            return self.backward_order_list
+
+        self.backward_order_list = []
+        input_nodes = []
+
+        for node in self.get_output_nodes():
+            if len(node.get_previous_connections()) > 0:
+                self.backward_order_list.append(node)
+
+        node: Node
+
+        for node in self.backward_order_list:
+            for connection in node.get_previous_connections():
+                if connection.get_in_node() not in self.backward_order_list:
+                    self.backward_order_list.append(connection.get_in_node())
+                    if connection.get_in_node().type is NodeTypes.INPUT:
+                        input_nodes.append(connection.get_in_node())
+
+        self.backward_order_list = self.get_forward_order_list(input_nodes)
+        return self.backward_order_list
 
     def get_output_data(self) -> list:
         output_data = []
@@ -174,59 +225,6 @@ class NeuralNetwork:
         for node in self.get_all_nodes():
             node.next_connections = []
 
-    def mutate(self):
-        self.mutate_nodes()
-        self.mutate_connections()
-
-    def mutate_nodes(self):
-        nodes = self.get_hidden_nodes() + self.get_output_nodes()
-        random_node = random.choice(nodes)
-
-        if random.random() < YaneConfig.get_mutation_activation_function_probability(yane_config):
-            random_node.mutate_activation_function()
-
-        if random.random() < YaneConfig.get_mutation_node_probability(yane_config):
-            self.add_or_remove_random_node()
-
-    def mutate_connections(self):
-        connections = self.get_all_connections()
-
-        if len(connections) <= 0:
-            self.add_random_connection()
-            return
-
-        random_connection = random.choice(connections)
-
-        if random.random() < YaneConfig.get_mutation_weight_probability(yane_config):
-            random_connection.mutate_weight_random()
-        if random.random() < YaneConfig.get_mutation_enabled_probability(yane_config):
-            random_connection.mutate_enabled()
-        if random.random() < YaneConfig.get_mutation_shift_probability(yane_config):
-            self.last_weight_shift_connection = random_connection.mutate_weight_shift()
-        if random.random() < YaneConfig.get_mutation_connection_probability(yane_config):
-            self.add_or_remove_random_connection()
-
-    def add_random_connection(self):
-        random_node_in: Node = self.get_random_node()
-        random_node_out: Node = self.get_random_node()
-
-        connection = Connection()
-        connection.set_in_node(random_node_in)
-        connection.set_out_node(random_node_out)
-        connection.set_weight(YaneConfig.get_random_mutation_weight(yane_config))
-
-        try:
-            self.add_connection(connection)
-        except InvalidConnection:
-            pass
-
-    def remove_random_connection(self):
-        connections = self.get_all_connections()
-
-        if len(connections) > 0:
-            connection = random.choice(connections)
-            self.remove_connection(connection)
-
     def get_random_node(self):
         nodes = self.get_all_nodes()
 
@@ -234,33 +232,6 @@ class NeuralNetwork:
             return random.choice(nodes)
         else:
             return None
-
-    def add_random_node(self):
-
-        if len(self.get_all_connections()) <= 0:
-            return None
-
-        connection = random.choice(self.get_all_connections())
-        node_in: Node = connection.get_in_node()
-
-        new_node = Node(NodeTypes.HIDDEN)
-        new_connection = Connection()
-
-        self.add_node(new_node)
-
-        # A ---> C
-        # A ---> B ---> C
-
-        new_connection.set_in_node(node_in)
-        new_connection.set_out_node(new_node)
-        connection.set_in_node(new_node)
-        node_in.remove_next_connection(connection)
-        new_node.add_next_connection(connection)
-        new_connection.set_weight(1.0)
-
-        self.add_connection(new_connection)
-
-        return new_node
 
     def print(self):
         print("Neural Network:")
@@ -289,25 +260,6 @@ class NeuralNetwork:
     def clear_output(self):
         for node in self.output_nodes:
             node.set_value(0.0)
-
-    def add_or_remove_random_connection(self):
-        if random.random() < 0.5:
-            self.add_random_connection()
-        else:
-            self.remove_random_connection()
-
-    def add_or_remove_random_node(self):
-        if random.random() < 0.5:
-            self.add_random_node()
-        else:
-            self.remove_random_node()
-
-    def remove_random_node(self):
-        nodes = self.get_hidden_nodes()
-
-        if len(nodes) > 0:
-            node = random.choice(nodes)
-            self.remove_node(node)
 
     def get_last_weight_shift_connection(self) -> Connection:
         return self.last_weight_shift_connection

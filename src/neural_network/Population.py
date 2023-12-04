@@ -1,7 +1,6 @@
 import random
 
-from src.neural_network import YaneConfig
-from src.neural_network.Genome import Genome
+from src.neural_network import YaneConfig, Genome
 from src.neural_network.Species import Species
 
 yane_config = YaneConfig.load_json_config()
@@ -58,6 +57,8 @@ class Population:
         best_species = None
 
         for species in self.species:
+            if species.get_best_genome() is None:
+                continue
             if best_genome is None or species.get_best_fitness() > best_genome.get_fitness():
                 best_genome = species.get_best_genome()
                 best_species = species
@@ -111,3 +112,9 @@ class Population:
 
     def remove_species(self, species):
         self.species.remove(species)
+
+    def clear(self):
+        self.species.clear()
+
+    def get_top_genomes(self, num_genomes):
+        return sorted(self.get_all_genomes(), key=lambda genome: genome.get_fitness(), reverse=True)[:num_genomes]

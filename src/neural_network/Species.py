@@ -3,8 +3,7 @@ import random
 
 import numpy as np
 
-from src.neural_network import YaneConfig
-from src.neural_network.Genome import Genome
+from src.neural_network import YaneConfig, Genome
 
 yane_config = YaneConfig.load_json_config()
 
@@ -20,13 +19,14 @@ class Species:
     def get_generations_without_improvement(self):
         return self.generations_without_improvement
 
-    def add_genome(self, genome):
-        bisect.insort(self.genomes, genome, key=lambda x: -x.get_fitness())
+    def add_genome(self, genome: Genome):
+        bisect.insort(self.genomes, genome, key=lambda x: (-x.get_fitness(), x.get_net_cost()))
 
         if self.average_fitness is None:
             self.average_fitness = self.get_average_fitness()
             self.previous_average_fitness = self.average_fitness
 
+        self.prune_overpopulation()
         self.update_average_fitness()
         self.update_generations_without_improvement()
 
@@ -57,7 +57,7 @@ class Species:
 
         return self.genomes[0].get_fitness()
 
-    def get_best_genome(self) -> Genome | None:
+    def get_best_genome(self) -> Genome:
         if self.get_size() <= 0:
             return None
 
@@ -84,7 +84,8 @@ class Species:
 
     def update_generations_without_improvement(self):
 
-        improved_percentage = (self.average_fitness - self.previous_average_fitness) / self.previous_average_fitness
+        improved_percentage = (
+                (self.average_fitness - self.previous_average_fitness) / (self.previous_average_fitness + 0.00001))
 
         if improved_percentage >= YaneConfig.get_improvement_threshold(yane_config):
             self.generations_without_improvement = 0
@@ -100,3 +101,17 @@ class Species:
             reproduction_limit = 1
 
         return random.choice(self.genomes[:reproduction_limit])
+
+    def prune_overpopulation(self):
+        while self.get_size() > YaneConfig.get_species_size_reference(yane_config):
+            self.pop_genome()
+
+    def get_upper_genomes(self):
+        fraction = YaneConfig.get_reproduction_fraction(yane_config)
+
+        reproduction_limit = int(np.ceil(fraction * self.get_size()))
+
+        if reproduction_limit <= 0:
+            reproduction_limit = 1
+
+        return self.genomes[:reproduction_limit]
