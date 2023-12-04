@@ -10,18 +10,24 @@ yane_config = YaneConfig.load_json_config()
 
 class Node:
     ID = 0
+    INPUT_POS = 0
 
-    def __init__(self, node_type: NodeTypes, ID=None):
+    def __init__(self, node_type: NodeTypes, ID=None, input_pos=None):
         self.value = 0.0
         self.next_connections = []
         self.previous_connections = []
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
         self.type = node_type
         self.id = ID
+        self.input_pos = input_pos
 
         if ID is None:
             self.id = Node.ID
             Node.ID += 1
+
+        if node_type == NodeTypes.INPUT and input_pos is None:
+            self.input_pos = Node.INPUT_POS
+            Node.INPUT_POS += 1
 
     def __str__(self):
         return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Activation: " + str(self.activation)
@@ -100,9 +106,8 @@ class Node:
 
     # Avoid deep copy because of recursion
     def copy(self):
-        new_node = Node(self.type, self.id)
+        new_node = Node(self.type, self.id, self.input_pos)
         new_node.set_activation(self.activation)
-
         return new_node
 
     def fire(self):
@@ -132,3 +137,6 @@ class Node:
         elif connection in self.previous_connections:
             self.remove_previous_connection(connection)
             connection.get_in_node().remove_next_connection(connection)
+
+    def get_input_position(self):
+        return self.input_pos
