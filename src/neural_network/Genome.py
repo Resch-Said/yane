@@ -215,8 +215,8 @@ class Genome:
         new_connection.set_in_node(node_in)
         new_connection.set_out_node(new_node)
         connection.set_in_node(new_node)
-        node_in.remove_next_connection(connection)
-        new_node.add_next_connection(connection)
+        node_in.remove_connection(connection)
+        new_node.add_connection(connection)
 
         self.add_connection(new_connection)
 
@@ -240,7 +240,7 @@ class Genome:
         for node in self.get_all_nodes():
             for con in node.get_next_connections():
                 if con.get_out_node() == remove_node:
-                    node.remove_next_connection(con)
+                    node.remove_connection(con)
 
     def mutate_connections(self):
         connections = self.get_all_connections()
@@ -268,11 +268,11 @@ class Genome:
             connection = random.choice(connections)
             self.remove_connection(connection)
 
-    def remove_connection(self, remove_connection):
+    def remove_connection(self, remove_connection: Connection):
         if remove_connection in self.get_all_connections():
-            remove_connection.get_in_node().remove_next_connection(remove_connection)
+            remove_connection.get_in_node().remove_connection(remove_connection)
 
-    # TODO: We should only aloud connections between nodes that have a path to the output nodes
+    # TODO: We should only alow connections between nodes that have a path to the output nodes
     def add_random_connection(self):
         random_node_in: Node = self.get_random_node()
         random_node_out: Node = self.get_random_node()

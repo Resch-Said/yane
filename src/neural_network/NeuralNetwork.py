@@ -22,14 +22,14 @@ class NeuralNetwork:
     def get_all_nodes(self) -> list[Node]:
         return [node for node in self.input_nodes + self.hidden_nodes + self.output_nodes]
 
-    def add_connection(self, connection):
+    def add_connection(self, connection: Connection):
         if self.get_all_nodes().__contains__(connection.get_in_node()) is False:
             raise InvalidNode("node in is not in the neural network")
 
         if self.get_all_nodes().__contains__(connection.get_out_node()) is False:
             raise InvalidNode("node out is not in the neural network")
 
-        connection.get_in_node().add_next_connection(connection)
+        connection.get_in_node().add_connection(connection)
 
     def add_input_node(self, node: Node):
         if node.type is not NodeTypes.INPUT:

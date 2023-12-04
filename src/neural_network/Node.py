@@ -14,6 +14,7 @@ class Node:
     def __init__(self, node_type: NodeTypes, ID=None):
         self.value = 0.0
         self.next_connections = []
+        self.previous_connections = []
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
         self.type = node_type
         self.id = ID
@@ -42,6 +43,35 @@ class Node:
 
     def get_next_connections(self) -> list[Connection]:
         return self.next_connections
+
+    def get_previous_connections(self) -> list[Connection]:
+        return self.previous_connections
+
+    def add_connection(self, connection: Connection):
+        if connection.get_in_node() == self:
+            self.add_next_connection(connection)
+            connection.get_out_node().add_previous_connection(connection)
+        elif connection.get_out_node() == self:
+            self.add_previous_connection(connection)
+            connection.get_in_node().add_next_connection(connection)
+        else:
+            raise InvalidConnection("Cannot add connection with different in or out neurons than this neuron")
+
+    def add_previous_connection(self, connection: Connection):
+        if connection in self.previous_connections:
+            raise InvalidConnection("Cannot add connection twice")
+
+        if connection.get_out_node() != self:
+            raise InvalidConnection("Cannot add connection with different out neuron than this neuron")
+
+        if connection.get_in_node() is None:
+            raise InvalidConnection("Cannot add connection with no in neuron")
+
+        for previous_connection in self.previous_connections:
+            if previous_connection.get_in_node() == connection.get_in_node():
+                raise InvalidConnection("Cannot add connection with same in neuron twice")
+
+        bisect.insort(self.previous_connections, connection, key=lambda x: x.get_id())
 
     def add_next_connection(self, connection: Connection):
         if connection in self.next_connections:
@@ -89,5 +119,16 @@ class Node:
     def mutate_activation_function(self):
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
 
-    def remove_next_connection(self, con):
-        self.next_connections.remove(con)
+    def remove_next_connection(self, connection):
+        self.next_connections.remove(connection)
+
+    def remove_previous_connection(self, connection):
+        self.previous_connections.remove(connection)
+
+    def remove_connection(self, connection: Connection):
+        if connection in self.next_connections:
+            self.remove_next_connection(connection)
+            connection.get_out_node().remove_previous_connection(connection)
+        elif connection in self.previous_connections:
+            self.remove_previous_connection(connection)
+            connection.get_in_node().remove_next_connection(connection)
