@@ -107,10 +107,12 @@ class Node:
     def get_id(self):
         return self.id
 
-    # Avoid deep copy because of recursion
+    # Do NOT copy connections
     def copy(self):
         new_node = Node(self.type, self.id, self.input_pos)
         new_node.set_activation(self.activation)
+        new_node.set_original_input_data(self.original_input_data)
+
         return new_node
 
     def fire(self, keep_input=False):
@@ -132,10 +134,10 @@ class Node:
     def mutate_activation_function(self):
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
 
-    def remove_next_connection(self, connection):
+    def remove_next_connection(self, connection: Connection):
         self.next_connections.remove(connection)
 
-    def remove_previous_connection(self, connection):
+    def remove_previous_connection(self, connection: Connection):
         self.previous_connections.remove(connection)
 
     def remove_connection(self, connection: Connection):
