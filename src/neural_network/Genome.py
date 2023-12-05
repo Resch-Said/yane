@@ -239,8 +239,11 @@ class Genome:
         elif remove_node in self.brain.output_nodes:
             self.brain.output_nodes.remove(remove_node)
 
-        for node in self.get_all_nodes():
-            node.next_connections = {con for con in node.get_next_connections() if con.get_out_node() != remove_node}
+        for previous_connection in remove_node.get_previous_connections():
+            previous_connection.get_in_node().remove_next_connection(previous_connection)
+
+        for next_connection in remove_node.get_next_connections():
+            next_connection.get_out_node().remove_previous_connection(next_connection)
 
     def mutate_connections(self):
         connections = self.get_all_connections()
