@@ -1,5 +1,3 @@
-import bisect
-
 from src.neural_network import YaneConfig, Connection
 from src.neural_network.ActivationFunction import ActivationFunction
 from src.neural_network.NodeTypes import NodeTypes
@@ -9,26 +7,26 @@ yane_config = YaneConfig.load_json_config()
 
 
 class Node:
-    ID = 0
-    INPUT_POS = 0
+    global_node_id = 0
+    global_input_pos = 0
 
-    def __init__(self, node_type: NodeTypes, ID=None, input_pos=None):
+    def __init__(self, node_type: NodeTypes, node_id=None, input_pos=None):
         self.value = 0.0
-        self.next_connections = []
-        self.previous_connections = []
+        self.next_connections = set()
+        self.previous_connections = set()
         self.activation = ActivationFunction.get_function(YaneConfig.get_random_activation_function(yane_config))
         self.type = node_type
-        self.id = ID
+        self.id = node_id
         self.input_pos = input_pos
         self.original_input_data = None
 
-        if ID is None:
-            self.id = Node.ID
-            Node.ID += 1
+        if node_id is None:
+            self.id = Node.global_node_id
+            Node.global_node_id += 1
 
         if node_type == NodeTypes.INPUT and input_pos is None:
-            self.input_pos = Node.INPUT_POS
-            Node.INPUT_POS += 1
+            self.input_pos = Node.global_input_pos
+            Node.global_input_pos += 1
 
     def __str__(self):
         return "Neuron: " + str(self.id) + " Value: " + str(self.value) + " Activation: " + str(
@@ -46,10 +44,10 @@ class Node:
     def get_activation(self):
         return self.activation
 
-    def get_next_connections(self) -> list[Connection]:
+    def get_next_connections(self) -> set[Connection]:
         return self.next_connections
 
-    def get_previous_connections(self) -> list[Connection]:
+    def get_previous_connections(self) -> set[Connection]:
         return self.previous_connections
 
     def add_connection(self, connection: Connection):
@@ -72,11 +70,14 @@ class Node:
         if connection.get_in_node() is None:
             raise InvalidConnection("Cannot add connection with no in neuron")
 
+        if connection.get_out_node() == self and connection.get_in_node() == self:
+            raise InvalidConnection("Cannot add connection with same in and out neuron")
+
         for previous_connection in self.previous_connections:
             if previous_connection.get_in_node() == connection.get_in_node():
                 raise InvalidConnection("Cannot add connection with same in neuron twice")
 
-        bisect.insort(self.previous_connections, connection, key=lambda x: x.get_id())
+        self.previous_connections.add(connection)
 
     def add_next_connection(self, connection: Connection):
         if connection in self.next_connections:
@@ -88,11 +89,14 @@ class Node:
         if connection.get_out_node() is None:
             raise InvalidConnection("Cannot add connection with no out neuron")
 
+        if connection.get_out_node() == self and connection.get_in_node() == self:
+            raise InvalidConnection("Cannot add connection with same in and out neuron")
+
         for next_connection in self.next_connections:
             if next_connection.get_out_node() == connection.get_out_node():
                 raise InvalidConnection("Cannot add connection with same out neuron twice")
 
-        bisect.insort(self.next_connections, connection, key=lambda x: x.get_id())
+        self.next_connections.add(connection)
 
     def activate(self):
         self.value = ActivationFunction.activate(self.activation, self.value)
@@ -110,6 +114,7 @@ class Node:
         return new_node
 
     def fire(self, keep_input=False):
+
         if self.type != NodeTypes.INPUT:
             self.activate()
 
