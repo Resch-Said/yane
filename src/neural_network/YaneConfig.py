@@ -88,6 +88,9 @@ def get_elitism(json_config):
     return json_config["elitism"]
 
 
+config_name = 'yane_config.json'
+
+
 # TODO: Automatically stop training if no improvement after x generations
 
 def create_default_json_config():
@@ -115,13 +118,13 @@ def create_default_json_config():
         "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
         "elitism": 5  # The amount of genomes that will be protected from selection
     }
-    with open('yane_config.json', 'w') as json_config_file:
+    with open(config_name, 'w') as json_config_file:
         json.dump(json_config, json_config_file)
 
 
 def load_json_config():
-    if not os.path.exists('yane_config.json'):
+    if not os.path.exists(config_name):
         create_default_json_config()
-    with open('yane_config.json') as json_config_file:
+    with open(config_name) as json_config_file:
         json_config = json.load(json_config_file)
     return json_config

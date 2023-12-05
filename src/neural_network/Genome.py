@@ -120,7 +120,7 @@ class Genome:
 
         return child_genome
 
-    def get_brain(self):
+    def get_brain(self) -> NeuralNetwork:
         return self.brain
 
     def get_fitness(self):
@@ -192,7 +192,7 @@ class Genome:
             if random.random() < self.mutation_rates['activation_function_probability']:
                 node.mutate_activation_function()
 
-        for i in range(self.mutation_num['num_structural_mutations_node']):
+        for _ in range(self.mutation_num['num_structural_mutations_node']):
             if random.random() < self.mutation_rates['add_node_probability']:
                 self.add_random_node()
             if random.random() < self.mutation_rates['remove_node_probability']:
@@ -257,7 +257,7 @@ class Genome:
             if random.random() < self.mutation_rates['shift_probability']:
                 self.brain.last_weight_shift_connection = connection.mutate_weight_shift()
 
-        for i in range(self.mutation_num['num_structural_mutations_connection']):
+        for _ in range(self.mutation_num['num_structural_mutations_connection']):
             if random.random() < self.mutation_rates['add_connection_probability']:
                 self.add_random_connection()
             if random.random() < self.mutation_rates['remove_connection_probability']:
@@ -331,7 +331,7 @@ class Genome:
         return self.brain.get_output_data()
 
     def set_number_of_outputs(self, number_of_outputs):
-        for i in range(number_of_outputs):
+        for _ in range(number_of_outputs):
             output_node = Node(NodeTypes.OUTPUT)
             self.add_node(output_node)
 
@@ -344,6 +344,7 @@ class Genome:
     def set_reproduction_count(self, reproduction_count):
         self.reproduction_count = reproduction_count
 
+    # TODO: Replace lists with sets if possible
     # smaller is better
     def get_species_compatibility(self, genome):
 
