@@ -2,8 +2,8 @@ from enum import Enum
 
 import numpy as np
 
-from src.neural_network import YaneConfig
 from src.neural_network.exceptions.InvalidActivation import InvalidActivation
+from src.neural_network.util import YaneConfig
 
 yane_config = YaneConfig.load_json_config()
 

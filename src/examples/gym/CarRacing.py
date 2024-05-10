@@ -2,8 +2,8 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
-from src.neural_network.Genome import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
+from src.neural_network.genome.Genome import Genome
 
 
 # needs to be installed

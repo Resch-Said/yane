@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from src.neural_network import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
+from src.neural_network.genome import Genome
 
 
 def main():
@@ -36,7 +36,7 @@ def main():
 
             if result == label:
                 fitness += 1
-                
+
         return fitness
 
     yane.train(evaluate)

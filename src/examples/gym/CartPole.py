@@ -1,16 +1,18 @@
 import gym
 import numpy as np
+from line_profiler_pycharm import profile
 
-from src.neural_network.Genome import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
+from src.neural_network.genome.Genome import Genome
 
 
+@profile
 def main():
     env = gym.make('CartPole-v1')
 
     yane = NeuroEvolution()
     yane.set_number_of_outputs(env.action_space.n)
-    yane.set_min_fitness(800)
+    yane.set_min_fitness(500)
 
     def evaluate(genome: Genome):
         state = env.reset()
@@ -55,7 +57,7 @@ def main():
         fitness += reward
         print("Fitness: " + str(fitness), end="\r")
 
-    best_genome.plot()
+    # best_genome.plot()
 
     env.close()
 

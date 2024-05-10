@@ -1,7 +1,7 @@
 import gym
 
-from src.neural_network.Genome import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
+from src.neural_network.genome.Genome import Genome
 
 env = gym.make('MountainCarContinuous-v0')
 

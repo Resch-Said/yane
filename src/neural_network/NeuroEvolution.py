@@ -1,9 +1,10 @@
 import numpy as np
+from line_profiler_pycharm import profile
 
-from src.neural_network import YaneConfig
-from src.neural_network.Genome import Genome
 from src.neural_network.Population import Population
 from src.neural_network.Species import Species
+from src.neural_network.genome.Genome import Genome
+from src.neural_network.util import YaneConfig
 
 yane_config = YaneConfig.load_json_config()
 
@@ -25,6 +26,7 @@ class NeuroEvolution:
     def get_generation(self):
         return self.generation
 
+    @profile
     def train(self, callback_evaluation):
         if self.get_genomes_size() > 0:
             for genome in self.get_population().get_all_genomes():
@@ -56,6 +58,7 @@ class NeuroEvolution:
     def get_best_fitness(self):
         return self.population.get_best_fitness()
 
+    @profile
     def add_population(self, genome: Genome):
         self.get_population().add_genome(genome)
 
@@ -95,6 +98,7 @@ class NeuroEvolution:
             for genome in self.get_population().get_all_genomes():
                 genome.set_number_of_outputs(number_of_outputs)
 
+    @profile
     def evaluate_next_genome(self, callback_evaluation):
         while len(self.get_evaluation_list()) > 0:
             genome = self.get_evaluation_list().pop()

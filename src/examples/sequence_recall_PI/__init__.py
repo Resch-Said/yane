@@ -1,8 +1,8 @@
 import numpy as np
 
 from src.examples import TrainingData
-from src.neural_network.Genome import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
+from src.neural_network.genome.Genome import Genome
 
 dataset = TrainingData.load_data('dataset_PI.json')
 
@@ -61,7 +61,7 @@ def evaluate(genome: Genome):
         target_output = sample['output']
 
         genome.forward_propagation(data_input)
-        predicted_output = genome.get_outputs()
+        predicted_output = genome.get_output_data()
 
         fitness += calculate_fitness_2(target_output, predicted_output)
 
@@ -83,7 +83,7 @@ for data in dataset[:decimal_places]:
     expected_output = data['output']
 
     best_genome.forward_propagation(inputs)
-    output = best_genome.get_outputs()
+    output = best_genome.get_output_data()
 
     highest = np.argmax(output)
 

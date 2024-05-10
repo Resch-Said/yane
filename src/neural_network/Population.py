@@ -1,7 +1,10 @@
 import random
 
-from src.neural_network import YaneConfig, Genome
+from line_profiler_pycharm import profile
+
 from src.neural_network.Species import Species
+from src.neural_network.genome import Genome
+from src.neural_network.util import YaneConfig
 
 yane_config = YaneConfig.load_json_config()
 
@@ -65,6 +68,7 @@ class Population:
 
         return best_species, best_genome
 
+    @profile
     def add_genome(self, genome):
         if self.get_species_size() <= 0:
             species = Species()

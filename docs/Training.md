@@ -19,4 +19,4 @@ parameter.
 The custom fitness function is called by the `get_fitness` method of the `NeuralNetwork` class.
 The important thing is the last line, where we overwrite the default `custom_fitness` method with our new method.
 
-##  
+##    

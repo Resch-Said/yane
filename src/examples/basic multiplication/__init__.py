@@ -1,8 +1,8 @@
 import numpy as np
 
 from src.examples import TrainingData
-from src.neural_network.Genome import Genome
 from src.neural_network.NeuroEvolution import NeuroEvolution
+from src.neural_network.genome.Genome import Genome
 
 dataset = TrainingData.load_data('multiplication_table.json')
 
@@ -21,7 +21,7 @@ def evaluate(genome: Genome):
         data_input = sample['input']
         target_output = sample['output']
         genome.forward_propagation(data_input)
-        predicted_output = genome.get_outputs()
+        predicted_output = genome.get_output_data()
         for i in range(len(predicted_output)):
             fitness -= np.abs(predicted_output[i] - target_output[i])
 
@@ -42,7 +42,7 @@ for data in dataset:
     expected_output = data['output']
 
     best_genome.forward_propagation(inputs)
-    output = best_genome.get_outputs()
+    output = best_genome.get_output_data()
 
     print("Input: " + str(inputs) + " Output: " + str(output) + " Expected: " + str(expected_output))
 
