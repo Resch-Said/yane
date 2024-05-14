@@ -12,7 +12,8 @@ def get_clear_on_new_input(json_config):
 
 
 def get_random_weight_shift(json_config):
-    weight_shift = random.uniform(json_config["weight_shift"][0], json_config["weight_shift"][1])
+    weight_shift = random.uniform(
+        json_config["weight_shift"][0], json_config["weight_shift"][1])
     return weight_shift
 
 
@@ -99,23 +100,35 @@ def create_default_json_config():
         # the training time since an additional output is added, but it can reduce the execution time of forward
         # propagation. If false, yane will always execute forward propagation until the end.
         "allow_early_output": True,
-        "clear_on_new_input": True,  # if true, yane will reset all node values when a new input is given
-        "weight_shift": [0.01, 0.1],  # How much the weight can change shift in one direction. [min, max]
-        "mutation_shift": [0.01, 0.1],  # How much a mutation probability can shift in one direction. [min, max]
-        "mutation_weight": [-2, 2],  # The range of the random weight when mutating
-        "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],  # all activation functions
+        # if true, yane will reset all node values when a new input is given
+        "clear_on_new_input": True,
+        # How much the weight can change shift in one direction. [min, max]
+        "weight_shift": [0.01, 0.1],
+        # How much a mutation probability can shift in one direction. [min, max]
+        "mutation_shift": [0.01, 0.1],
+        # The range of the random weight when mutating
+        "mutation_weight": [-2, 2],
+        # all activation functions
+        "activation_functions": ["Tanh", "ReLU", "Sigmoid", "Binary", "Linear"],
         "binary_threshold": 0.5,  # only used for binary activation function
         # The number of generations without improvement until a species is considered stagnant
         "species_stagnation_duration": 5,
-        "species_size_reference": 50,  # The approximate amount of genomes in a species. May fluctuate.
-        "max_species_per_population": 5,  # The approximate amount of species in a population. May fluctuate.
-        "species_compatibility_node_factor": 1,  # The factor that is multiplied with the node difference
-        "species_compatibility_connection_factor": 1,  # The factor that is multiplied with the connection difference
-        "species_compatibility_weight_factor": 0.4,  # The factor that is multiplied with the weight difference
-        "reproduction_fraction": 0.2,  # The fraction of the population that is allowed to reproduce
+        # The approximate amount of genomes in a species. May fluctuate.
+        "species_size_reference": 50,
+        # The approximate amount of species in a population. May fluctuate.
+        "max_species_per_population": 5,
+        # The factor that is multiplied with the node difference
+        "species_compatibility_node_factor": 1,
+        # The factor that is multiplied with the connection difference
+        "species_compatibility_connection_factor": 1,
+        # The factor that is multiplied with the weight difference
+        "species_compatibility_weight_factor": 0.4,
+        # The fraction of the population that is allowed to reproduce
+        "reproduction_fraction": 0.2,
         # The maximum amount of times a genome is allowed to make bad genomes in a row
         "max_bad_reproductions_in_row": 10,
-        "improvement_threshold": 0.01,  # The minimum improvement that is required to consider a species improved
+        # The minimum improvement that is required to consider a species improved
+        "improvement_threshold": 0.01,
         "elitism": 5  # The amount of genomes that will be protected from selection
     }
     with open(config_name, 'w') as json_config_file:
